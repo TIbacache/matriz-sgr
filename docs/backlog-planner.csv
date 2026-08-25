@@ -1,0 +1,30 @@
+Bucket;Titulo;Historia;Prioridad
+Fase 1: Documentación;Crear DESIGN.md con especificación visual;E5;P1
+Fase 1: Documentación;Diagramas de contexto y casos de uso;E1;P1
+Fase 1: Documentación;ERD inicial multi-tenant;E1;P1
+Fase 1: Documentación;Historias de usuario con criterios de aceptación;E1;P1
+Fase 2: Backend;HU-1.1 Login con JWT + bcrypt;HU-1.1;P1
+Fase 2: Backend;HU-1.2 Middleware de aislamiento por organization_id;HU-1.2;P1
+Fase 2: Backend;HU-2.1 CRUD unidades territoriales;HU-2.1;P1
+Fase 2: Backend;HU-2.2 CRUD categorías de gestión;HU-2.2;P1
+Fase 2: Backend;HU-3.2 CRUD tareas con validación de rol;HU-3.2;P1
+Fase 2: Backend;HU-4.1 CRUD metas con validación de ponderadores;HU-4.1;P1
+Fase 2: Backend;HU-4.2 Cron + vista materializada de cumplimiento;HU-4.2;P1
+Fase 2: Backend;HU-8.2 Función centralizada emitEvent;HU-8.2;P1
+Fase 2: Backend;HU-6.1 Socket.io: auth en handshake + rooms + presencia;HU-6.1;P2
+Fase 2: Backend;HU-8.1 Rate limiting y límite de payload en sockets;HU-8.1;P2
+Fase 2: Backend;HU-1.3 Terminología configurable por tenant;HU-1.3;P2
+Fase 3: Frontend;Setup Vite + React + TS + tokens de DESIGN.md;E3;P1
+Fase 3: Frontend;Contexto de autenticación (login, JWT, refresh);HU-1.1;P1
+Fase 3: Frontend;HU-3.1 KanbanBoard con dnd-kit + actualización optimista;HU-3.1;P1
+Fase 3: Frontend;HU-3.3 Permisos por rol en el tablero;HU-3.3;P1
+Fase 3: Frontend;HU-3.4 Recuperación de estado tras reconexión;HU-3.4;P2
+Fase 3: Frontend;HU-6.1 Indicadores de presencia en vivo;HU-6.1;P2
+Fase 4: BI y Dashboards;HU-5.1 SemaforoDashboard con gauges ECharts + tabla;HU-5.1;P1
+Fase 4: BI y Dashboards;HU-5.2 HeatmapDashboard territorio × categoría;HU-5.2;P1
+Fase 4: BI y Dashboards;HU-5.3 KPICards + RadarChart;HU-5.3;P2
+Fase 5: Despliegue;HU-7.1 Docker Compose local (frontend, backend, postgres);HU-7.1;P1
+Fase 5: Despliegue;HU-7.2 GitHub Actions → ghcr.io → VPS con rollback;HU-7.2;P2
+Fase 5: Despliegue;Caddy/Nginx + Let's Encrypt + firewall;HU-7.2;P2
+Fase 5: Despliegue;Tests unitarios e integración (Jest + RTL);E7;P2
+Fase 5: Despliegue;HU-7.3 Backups pg_dumpall + restauración mensual;HU-7.3;P3

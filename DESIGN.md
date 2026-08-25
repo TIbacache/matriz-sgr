@@ -1,0 +1,174 @@
+# DESIGN.md — Especificación visual Matriz SGR
+
+**Versión**: 1.0 · **Fecha**: 25 de agosto de 2026
+**Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+
+---
+
+## 1. Identidad central
+
+La identidad visual del sistema se construye alrededor del **semáforo de cumplimiento** (rojo/amarillo/verde). No es un adorno: es el lenguaje principal de la interfaz. Todo lo demás (fondos, tipografía, bordes) es deliberadamente sobrio para que el color de estado sea lo único que grita.
+
+Principio: **la interfaz es un tablero de control municipal, no un SaaS genérico**. Densidad de información alta, cromática funcional, cero decoración.
+
+---
+
+## 2. Tipografía
+
+| Uso | Fuente | Fallback | Pesos |
+|---|---|---|---|
+| Títulos (h1–h3), cifras grandes de KPI | **Space Grotesk** | `system-ui, sans-serif` | 500, 700 |
+| Cuerpo, tablas, formularios, etiquetas | **Public Sans** | `system-ui, sans-serif` | 400, 500, 600 |
+| Datos tabulares/numéricos alineados | **Public Sans** con `font-variant-numeric: tabular-nums` | — | 400, 600 |
+
+- **PROHIBIDO usar Inter** en cualquier parte.
+- Carga vía Google Fonts (`Space+Grotesk`, `Public+Sans`) con `font-display: swap`.
+- Escala tipográfica (base 16px): `12 / 14 / 16 / 20 / 25 / 31 / 39` (ratio ~1.25).
+- Line-height: 1.2 en títulos, 1.5 en cuerpo, 1.35 en celdas de tabla.
+- Cifras de KPI: Space Grotesk 700, tamaño 39–48px, `tabular-nums`.
+
+---
+
+## 3. Paleta
+
+### 3.1 Colores de estado (núcleo de la identidad)
+
+| Token | Hex | Uso |
+|---|---|---|
+| `--estado-verde` | `#1F7A3D` | Cumplimiento ≥ 80% |
+| `--estado-verde-bg` | `#E3F2E8` | Fondo de chip/celda verde |
+| `--estado-amarillo` | `#B87E00` | Cumplimiento 50–79% (texto/borde; el amarillo puro no contrasta) |
+| `--estado-amarillo-bg` | `#FCF0D4` | Fondo de chip/celda amarilla |
+| `--estado-rojo` | `#C0392B` | Cumplimiento < 50% |
+| `--estado-rojo-bg` | `#FADBD7` | Fondo de chip/celda roja |
+
+Reglas:
+- El color de estado se aplica **siempre en par** (color fuerte para texto/indicador + fondo pálido). Nunca texto oscuro sobre el color fuerte.
+- El estado nunca se comunica solo con color: siempre acompañado de texto ("82%", "En riesgo") o forma (●/▲/■) para accesibilidad.
+- Contraste mínimo WCAG AA (4.5:1) en todo texto sobre su fondo.
+
+### 3.2 Neutros y estructura
+
+| Token | Hex | Uso |
+|---|---|---|
+| `--tinta` | `#1A1D1F` | Texto principal |
+| `--tinta-2` | `#5B6166` | Texto secundario, etiquetas |
+| `--tinta-3` | `#8A9094` | Texto deshabilitado, placeholders |
+| `--fondo` | `#F4F4F2` | Fondo de página (gris cálido, NO blanco puro ni crema) |
+| `--superficie` | `#FFFFFF` | Tarjetas, tablas, paneles |
+| `--borde` | `#DDDFE0` | Bordes de tarjetas y tablas |
+| `--borde-fuerte` | `#B9BDBF` | Bordes de inputs con foco/hover |
+
+### 3.3 Acento
+
+| Token | Hex | Uso |
+|---|---|---|
+| `--acento` | `#153B50` | Azul petróleo oscuro: navegación activa, enlaces, botón primario |
+| `--acento-hover` | `#0E2A3A` | Hover del primario |
+
+- Un solo acento. No es el "tech blue" `#3B82F6` de todo dashboard SaaS; es un petróleo profundo que no compite con el semáforo.
+- **PROHIBIDO**: gradientes morado-azul, paletas beige/crema con acento naranja, cualquier gradiente como fondo de tarjeta o botón.
+
+### 3.4 Paleta secuencial para heatmap (ECharts `visualMap`)
+
+De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C0392B`.
+(Verde pálido → amarillo → ámbar → rojo. Coherente con el semáforo; no usar viridis ni azules por defecto de ECharts.)
+
+---
+
+## 4. Espaciado, bordes y sombras
+
+### Espaciado
+- Escala única: **4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 px**. Ningún valor fuera de escala.
+- Padding interno de tarjeta: 16px (compacta) o 24px (dashboard).
+- Gap entre tarjetas de un grid: 16px. Gap entre secciones: 32px.
+
+### Radios de borde
+| Elemento | Radio |
+|---|---|
+| Tarjetas, paneles, modales | **8px** |
+| Botones, inputs, selects | **4px** |
+| Chips de estado, badges | **4px** |
+| Tarjeta kanban | **6px** |
+
+- **PROHIBIDO** anidar elementos redondeados con el mismo radio (tarjeta 8px dentro de tarjeta 8px). El contenedor interno usa radio menor (4–6px) o ninguno.
+- Máximo **dos niveles** de superficie anidada. Un tercer nivel se resuelve con borde o fondo `--fondo`, no con otra tarjeta.
+
+### Sombras
+| Token | Valor | Uso |
+|---|---|---|
+| `--sombra-1` | `0 1px 2px rgba(26,29,31,.08)` | Tarjetas en reposo |
+| `--sombra-2` | `0 4px 12px rgba(26,29,31,.12)` | Tarjeta kanban al arrastrar, dropdowns |
+| `--sombra-3` | `0 12px 32px rgba(26,29,31,.18)` | Modales |
+
+- Nada de sombras de colores, glow, ni `blur > 32px`.
+
+---
+
+## 5. Componentes clave
+
+### Tarjeta kanban (tubo de trabajo)
+- Superficie blanca, radio 6px, borde 1px `--borde`, sombra-1.
+- Franja izquierda de 3px con el color de la **categoría de gestión** (no del estado; el estado lo da la columna).
+- Contenido: título (Public Sans 600, 14px), chip de categoría, fecha compromiso (roja si vencida), avatar/iniciales del responsable.
+- Al arrastrar: sombra-2, rotación 2°, cursor `grabbing`. Placeholder de destino con borde discontinuo `--borde-fuerte`.
+
+### Chip de semáforo
+- Fondo pálido + texto fuerte del par de estado + símbolo (● verde, ▲ amarillo, ■ rojo) + porcentaje.
+- Radio 4px, padding 2px 8px, Public Sans 600, 12px, `tabular-nums`.
+
+### Gauges (ECharts)
+- Arco de 200° (no círculo completo), aguja fina, sin brillo ni sombras internas de ECharts.
+- Bandas del arco con los pares de estado pálidos; valor central en Space Grotesk 700.
+
+### Tablas
+- Encabezado: fondo `--fondo`, Public Sans 600 12px mayúsculas con `letter-spacing: 0.04em`.
+- Filas con borde inferior 1px `--borde`, sin cebra. Hover: fondo `#FAFAF9`.
+- Números alineados a la derecha con `tabular-nums`.
+
+### Botones
+- Primario: fondo `--acento`, texto blanco, radio 4px, padding 8px 16px, sin sombra.
+- Secundario: borde 1px `--borde-fuerte`, texto `--tinta`, fondo transparente.
+- Peligro: solo para acciones destructivas, usa `--estado-rojo`.
+- Nada de botones con gradiente, glow o icono decorativo.
+
+### Iconografía
+- Set único: **Lucide** (stroke 1.5px), tamaño 16 o 20px, color `--tinta-2`.
+- Cada icono debe tener función (acción, estado, navegación). **PROHIBIDO**: sparkles ✨, iconos de relleno junto a títulos, emojis en UI.
+
+---
+
+## 6. Layout
+
+- Navegación lateral fija de 240px, fondo `--superficie`, borde derecho 1px; ítem activo con fondo `#E8EEF1` y texto `--acento`, sin píldoras redondeadas.
+- Contenido con `max-width: 1440px`, padding lateral 24px.
+- Dashboard en grid de 12 columnas: KPIs arriba (4 tarjetas), heatmap + gauges al medio, tabla de detalle abajo.
+- Responsive: kanban con scroll horizontal por columna en móvil; dnd-kit con pointer events (funciona táctil).
+
+## 7. Estados vacíos, carga y error
+
+- Vacío: texto en `--tinta-2` + acción primaria. Sin ilustraciones decorativas.
+- Carga: skeletons grises (`#ECECEA`) con la geometría real del contenido. Sin spinners de página completa.
+- Error de sincronización (revert de actualización optimista): toast superior con fondo `--estado-rojo-bg`, texto `--estado-rojo`, 5s.
+
+---
+
+## 8. Lista negra (test rápido de "AI slop")
+
+Un PR **se rechaza** si aparece cualquiera de estos:
+
+1. Fuente Inter (o dejar la default de un UI kit).
+2. Gradiente morado-azul, o beige/crema + naranja, o cualquier gradiente de fondo.
+3. Tarjeta redondeada dentro de tarjeta redondeada con el mismo radio.
+4. Iconos o emojis decorativos sin función (sparkle, cohetes, "✨ AI").
+5. Componente de librería sin personalizar (test: si se ve igual que la demo de la librería, falla).
+6. Sombras de color, glassmorphism, blur decorativo.
+7. Estado comunicado solo con color, sin texto ni símbolo.
+8. Valores de espaciado/radio fuera de las escalas definidas aquí.
+
+## 9. Referencias de estilo (dirección, no copia)
+
+- Linear (linear.app): densidad y sobriedad cromática.
+- Datadog / Grafana: dashboards donde el color solo codifica estado.
+- gov.uk Design System: tipografía funcional y accesibilidad en contexto público.
+- IBM Carbon: uso de IBM Plex y tablas densas bien resueltas.
