@@ -1,0 +1,148 @@
+// Esquema multi-tenant de Matriz SGR.
+// Decisión de arquitectura: TODA tabla de negocio lleva organizationId aunque
+// sea derivable por FK — permite filtrar por tenant sin joins y usar índices
+// compuestos (organizationId, ...). La seguridad se verifica en middleware de
+// Express, no en la base (sin RLS, según Documento Maestro §2).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  admin
+  supervisor
+  gerente
+  usuario
+}
+
+enum TipoOrganizacion {
+  municipio
+  empresa
+}
+
+model Organization {
+  id            String           @id @default(uuid())
+  nombre        String
+  tipo          TipoOrganizacion
+  // Terminología configurable por tenant (ej: {"unidad": "sucursal", "autoridad": "gerenta general"})
+  configuracionTerminologia Json @default("{}") @map("configuracion_terminologia")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  members    OrganizationMember[]
+  unidades   UnidadTerritorial[]
+  categorias CategoriaGestion[]
+  tareas     Tarea[]
+  metas      Meta[]
+
+  @@map("organizations")
+}
+
+// Usuario GLOBAL: un email puede pertenecer a varias organizaciones.
+// El rol vive en la membresía (OrganizationMember), no aquí.
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  nombre       String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  memberships        OrganizationMember[]
+  unidadesACargo     UnidadTerritorial[]  @relation("responsable_unidad")
+  tareasResponsable  Tarea[]              @relation("responsable_tarea")
+
+  @@map("users")
+}
+
+model OrganizationMember {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+  rol            Rol
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+model UnidadTerritorial {
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  nombre         String
+  responsableId  String? @map("responsable_id")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  responsable  User?        @relation("responsable_unidad", fields: [responsableId], references: [id], onDelete: SetNull)
+  tareas       Tarea[]
+  metas        Meta[]
+
+  @@index([organizationId])
+  @@map("unidades_territoriales")
+}
+
+model CategoriaGestion {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  nombre         String
+  ordenPrioridad Int    @map("orden_prioridad")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tareas       Tarea[]
+  metas        Meta[]
+
+  @@index([organizationId])
+  @@map("categorias_gestion")
+}
+
+// Estados del tubo: string libre (no enum) porque las columnas del kanban
+// son configurables por organización (Documento Maestro §3.1).
+model Tarea {
+  id                   String    @id @default(uuid())
+  organizationId       String    @map("organization_id")
+  unidadTerritorialId  String    @map("unidad_territorial_id")
+  categoriaId          String    @map("categoria_id")
+  titulo               String
+  descripcion          String?
+  estado               String    @default("pendiente")
+  fechaCompromiso      DateTime? @map("fecha_compromiso") @db.Date
+  responsableId        String?   @map("responsable_id")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unidad       UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
+  categoria    CategoriaGestion  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  responsable  User?             @relation("responsable_tarea", fields: [responsableId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, unidadTerritorialId, estado])
+  @@map("tareas")
+}
+
+model Meta {
+  id                  String  @id @default(uuid())
+  organizationId      String  @map("organization_id")
+  unidadTerritorialId String  @map("unidad_territorial_id")
+  categoriaId         String  @map("categoria_id")
+  trimestre           String  // formato "2026-Q3"
+  metaTrimestre       Decimal @map("meta_trimestre") @db.Decimal(12, 2)
+  avance              Decimal @default(0) @db.Decimal(12, 2)
+  ponderador          Decimal @db.Decimal(5, 4) // 0..1; deben sumar 1 por unidad+trimestre
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unidad       UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
+  categoria    CategoriaGestion  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  @@unique([unidadTerritorialId, categoriaId, trimestre])
+  @@index([organizationId, trimestre])
+  @@map("metas")
+}
+
+// NOTA: cumplimiento_ponderado_vista es una VISTA MATERIALIZADA creada por SQL
+// en la migración 'vista_cumplimiento' (Prisma no modela matviews). Se refresca
+// vía cron (src/jobs/cumplimiento.ts) y se consulta con $queryRaw.
