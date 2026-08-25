@@ -17,6 +17,27 @@ const app = express();
 app.use(cors({ origin: env.corsOrigin }));
 app.use(express.json({ limit: "200kb" }));
 
+// Índice para quien abra la API en el navegador: esto es solo la API,
+// la interfaz web vive en el frontend (puerto 5173 en desarrollo).
+app.get("/", (_req, res) =>
+  res.json({
+    servicio: "Matriz SGR API",
+    nota: "Esta es la API. La interfaz web es el frontend (http://localhost:5173 en desarrollo).",
+    endpoints: {
+      publicos: ["GET /health", "POST /auth/login"],
+      conToken: [
+        "GET /auth/me",
+        "GET|POST|PATCH|DELETE /unidades",
+        "GET|POST|PATCH|DELETE /categorias",
+        "GET|POST|PATCH|DELETE /tareas",
+        "GET|PUT|PATCH|DELETE /metas",
+        "GET /kpis/cumplimiento",
+        "POST /kpis/recalcular",
+      ],
+    },
+  })
+);
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.use("/auth", authRouter);
 app.use("/unidades", unidadesRouter);
