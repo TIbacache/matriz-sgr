@@ -1,0 +1,143 @@
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  gap: var(--esp-4);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  /* Móvil: columnas en fila con scroll horizontal (DESIGN §6) */
+  .kanban {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: var(--esp-3);
+  }
+  .kanban-columna {
+    min-width: 260px;
+  }
+}
+
+/* Columna: contenedor de nivel 1 sobre el fondo de página (máx. 2 niveles) */
+.kanban-columna {
+  background: #ededeb;
+  border-radius: var(--radio-tarjeta);
+  padding: var(--esp-3);
+  border: 1px solid transparent;
+}
+
+.kanban-columna--sobre {
+  border: 1px dashed var(--borde-fuerte);
+}
+
+.kanban-columna-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--esp-1) var(--esp-3);
+}
+
+.kanban-columna-titulo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+
+.kanban-columna-contador {
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta-2);
+  background: var(--superficie);
+  border-radius: var(--radio-control);
+  padding: 0 var(--esp-2);
+}
+
+.kanban-columna-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  min-height: 48px;
+}
+
+.kanban-columna-vacia {
+  color: var(--tinta-3);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: var(--esp-3);
+}
+
+/* Tarjeta kanban (DESIGN §5): radio 6px, franja izquierda 3px = categoría */
+.tarea-card {
+  position: relative;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--acento);
+  border-radius: var(--radio-kanban);
+  box-shadow: var(--sombra-1);
+  padding: var(--esp-3);
+  padding-right: var(--esp-6);
+}
+
+.tarea-card--arrastrable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tarea-card--fantasma {
+  opacity: 0.35;
+}
+
+.tarea-card--overlay {
+  cursor: grabbing;
+  transform: rotate(2deg);
+  box-shadow: var(--sombra-2);
+}
+
+.tarea-card-titulo {
+  font-family: var(--font-cuerpo);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.tarea-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-2);
+  margin-top: var(--esp-2);
+  align-items: baseline;
+}
+
+.tarea-card-categoria {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tarea-card-fecha {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.tarea-card-fecha--vencida {
+  color: var(--estado-rojo);
+  font-weight: 600;
+}
+
+.tarea-card-avatar {
+  position: absolute;
+  top: var(--esp-3);
+  right: var(--esp-3);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--acento-suave);
+  color: var(--acento);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

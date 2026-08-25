@@ -1,0 +1,45 @@
+.login-pagina {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--esp-4);
+}
+
+.login-tarjeta {
+  width: 100%;
+  max-width: 360px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-1);
+  padding: var(--esp-6);
+}
+
+.login-titulo {
+  font-size: 1.5625rem;
+}
+
+.login-subtitulo {
+  font-size: 0.875rem;
+  color: var(--tinta-2);
+  margin-bottom: var(--esp-5);
+}
+
+.login-campo-password {
+  margin-top: var(--esp-4);
+}
+
+.login-error {
+  margin-top: var(--esp-3);
+  font-size: 0.875rem;
+  color: var(--estado-rojo);
+  background: var(--estado-rojo-bg);
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-3);
+}
+
+.login-boton {
+  width: 100%;
+  margin-top: var(--esp-5);
+}

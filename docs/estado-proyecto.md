@@ -1,6 +1,6 @@
 # Estado del proyecto — Matriz SGR
 
-**Actualizado**: 25 de agosto de 2026 (fin de Fase 2)
+**Actualizado**: 25 de agosto de 2026 (fin de Fase 3)
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fase.
 
 ## Resumen por fases
@@ -9,7 +9,7 @@ Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fa
 |---|---|---|
 | 1. Documentación y diseño | ✅ Completa | DESIGN.md, diagramas, historias, backlog Planner |
 | 2. Backend y configuración | ✅ Completa | API + Socket.io + Prisma + Postgres Docker |
-| 3. Frontend | 🔄 En curso | Vite + React + TS, auth, kanban dnd-kit, presencia |
+| 3. Frontend | ✅ Completa* | Vite + React + TS, auth, kanban dnd-kit, presencia. *Falta formulario de crear tarea (ver Fase 3) |
 | 4. BI y Dashboards | ⬜ Pendiente | ECharts: gauges, heatmap, radar, KPI cards + tests |
 | 5. Despliegue | ⬜ Pendiente | CI/CD GitHub Actions, VPS, Caddy, backups |
 
@@ -65,6 +65,29 @@ Auth: header `Authorization: Bearer <JWT>`. El JWT lleva `{userId, organizationI
 5. IDs son `String @default(uuid())` → columna **text** en Postgres, no tipo `uuid` (no castear `::uuid` en SQL crudo).
 6. `req.params.id` se normaliza con `String()` (Express 5 lo tipa `string | string[]` con middleware intercalado).
 7. Token en el frontend: `localStorage` (decisión de Fase 3; refresh token queda para más adelante si el profesor lo exige).
+
+## Fase 3 — qué quedó funcionando
+
+- **Stack**: Vite 7 + React 18 + TS estricto, CSS3 plano con tokens de DESIGN.md (`src/styles/tokens.css` es la traducción literal). Fuentes por Google Fonts (Space Grotesk + Public Sans). Sin Tailwind, sin UI kits, sin Inter.
+- **Auth**: `AuthContext` con login, JWT en `localStorage` (clave `matriz.auth`), logout automático ante cualquier 401 (`api.setOnUnauthorized`). Carga terminología del tenant desde `/auth/me` (HU-1.3 parcial: los textos de unidad usan el término configurado).
+- **Rutas**: `/login`, `/` (tubo), `/dashboard` (placeholder Fase 4). Sin token → redirect a login.
+- **Kanban (HU-3.1)**: dnd-kit con `useDraggable`/`useDroppable` (NO sortable: no hay orden intra-columna, decisión Fase 2 nº3; columnas ordenan por fechaCompromiso). PointerSensor + TouchSensor (móvil OK). Actualización optimista con revert + toast de 5s si el PATCH falla. DragOverlay con rotación 2° y sombra-2 según DESIGN.
+- **Tiempo real**: hook `useUnidadSocket` — join al room en cada `connect` (el servidor no recuerda rooms de sockets caídos), **recarga completa de tareas al reconectar** (HU-3.4), handlers idempotentes por id (el PATCH y el evento pueden llegar en cualquier orden).
+- **Permisos en UI (HU-3.3)**: `puedeMoverTarea` espejo del backend (que sigue siendo la autoridad); gerente en unidad ajena ve banner "Solo lectura" y tarjetas no arrastrables.
+- **Presencia (HU-6.1)**: barra con avatares de conectados, actualizada por `presencia:actualizada`.
+- Build verificado: `npm run build` limpio, 0 vulnerabilidades npm, bundle ~90KB gzip.
+
+### Decisiones de Fase 3
+
+8. **React 18.3 (no 19)**: `echarts-for-react` aún declara peers hasta 18; evita `--legacy-peer-deps` en Fase 4.
+9. **fetch, no axios**: el spec permitía ambos; una dependencia menos.
+10. **echarts/echarts-for-react NO instalados aún**: se agregan en Fase 4 para resolver sus peers de una vez.
+11. Colores de categoría: paleta fija de 6 tonos apagados en `src/lib/kanban.ts`, asignados por `ordenPrioridad`.
+
+### Pendiente dentro de Fase 3 (detectado al cerrar)
+
+- **Formulario "Nueva tarea" en la UI** (parte de HU-3.2; el endpoint POST /tareas ya existe y está probado). Requiere además un `GET /usuarios` en el backend para elegir responsable (hoy no existe ese endpoint). → Primera tarea al retomar (antes o durante Fase 4).
+- Editar/eliminar tarea desde la UI (modal de detalle) — mismo bloque de trabajo que el punto anterior.
 
 ## Cabos sueltos conocidos (no bloqueantes)
 

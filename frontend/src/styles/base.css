@@ -1,0 +1,118 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-cuerpo);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: var(--fondo);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 { font-size: 1.9375rem; } /* 31px */
+h2 { font-size: 1.5625rem; } /* 25px */
+h3 { font-size: 1.25rem; }   /* 20px */
+
+button {
+  font-family: var(--font-cuerpo);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+input,
+select {
+  font-family: var(--font-cuerpo);
+  font-size: 0.875rem;
+  color: var(--tinta);
+}
+
+/* Botones (DESIGN §5): sin gradientes, sin glow, sin iconos decorativos */
+.btn-primario {
+  background: var(--acento);
+  color: #fff;
+  border: none;
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-4);
+  font-weight: 600;
+}
+.btn-primario:hover { background: var(--acento-hover); }
+.btn-primario:disabled { background: var(--tinta-3); cursor: default; }
+
+.btn-secundario {
+  background: transparent;
+  color: var(--tinta);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-4);
+  font-weight: 500;
+}
+.btn-secundario:hover { background: var(--superficie); }
+
+/* Inputs */
+.campo {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--superficie);
+}
+.campo:focus {
+  outline: none;
+  border-color: var(--borde-fuerte);
+  box-shadow: 0 0 0 2px var(--acento-suave);
+}
+
+.etiqueta {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+  margin-bottom: var(--esp-1);
+}
+
+/* Toast de error (DESIGN §7): revert de actualización optimista */
+.toast {
+  position: fixed;
+  top: var(--esp-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--estado-rojo-bg);
+  color: var(--estado-rojo);
+  border: 1px solid var(--estado-rojo);
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-4);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--sombra-2);
+}
+
+/* Estado vacío (DESIGN §7): texto + acción, sin ilustraciones */
+.vacio {
+  color: var(--tinta-2);
+  font-size: 0.875rem;
+  padding: var(--esp-6);
+  text-align: center;
+}

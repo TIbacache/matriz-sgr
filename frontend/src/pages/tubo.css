@@ -1,0 +1,43 @@
+.tubo-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--esp-5);
+}
+
+.tubo-solo-lectura {
+  font-size: 0.75rem;
+  color: var(--estado-amarillo);
+  background: var(--estado-amarillo-bg);
+  border-radius: var(--radio-control);
+  padding: 2px var(--esp-2);
+  display: inline-block;
+  margin-top: var(--esp-1);
+  font-weight: 600;
+}
+
+.tubo-header-derecha {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+}
+
+.tubo-selector {
+  width: auto;
+  min-width: 200px;
+}
+
+/* Skeleton con la geometría real (DESIGN §7): tres columnas grises */
+.tubo-skeleton {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--esp-4);
+}
+
+.tubo-skeleton > div {
+  height: 320px;
+  border-radius: var(--radio-tarjeta);
+  background: #ececea;
+}

@@ -1,0 +1,48 @@
+/* Tokens de DESIGN.md — normativo. No inventar valores fuera de estas escalas. */
+:root {
+  /* Estado (núcleo de identidad): siempre en par color fuerte + fondo pálido */
+  --estado-verde: #1f7a3d;
+  --estado-verde-bg: #e3f2e8;
+  --estado-amarillo: #b87e00;
+  --estado-amarillo-bg: #fcf0d4;
+  --estado-rojo: #c0392b;
+  --estado-rojo-bg: #fadbd7;
+
+  /* Neutros */
+  --tinta: #1a1d1f;
+  --tinta-2: #5b6166;
+  --tinta-3: #8a9094;
+  --fondo: #f4f4f2;
+  --superficie: #ffffff;
+  --borde: #dddfe0;
+  --borde-fuerte: #b9bdbf;
+
+  /* Acento único (azul petróleo, no tech-blue) */
+  --acento: #153b50;
+  --acento-hover: #0e2a3a;
+  --acento-suave: #e8eef1;
+
+  /* Tipografía */
+  --font-titulo: "Space Grotesk", system-ui, sans-serif;
+  --font-cuerpo: "Public Sans", system-ui, sans-serif;
+
+  /* Espaciado: 4/8/12/16/24/32/48/64 */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  --esp-7: 48px;
+  --esp-8: 64px;
+
+  /* Radios */
+  --radio-tarjeta: 8px;
+  --radio-kanban: 6px;
+  --radio-control: 4px;
+
+  /* Sombras */
+  --sombra-1: 0 1px 2px rgba(26, 29, 31, 0.08);
+  --sombra-2: 0 4px 12px rgba(26, 29, 31, 0.12);
+  --sombra-3: 0 12px 32px rgba(26, 29, 31, 0.18);
+}

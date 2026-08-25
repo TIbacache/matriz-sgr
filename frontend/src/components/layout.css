@@ -1,0 +1,130 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar fija 240px (DESIGN §6): superficie blanca, borde derecho, sin píldoras */
+.layout-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--superficie);
+  border-right: 1px solid var(--borde);
+  display: flex;
+  flex-direction: column;
+  padding: var(--esp-4);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.layout-marca {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--esp-2) var(--esp-3) var(--esp-5);
+}
+
+.layout-marca-nombre {
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.layout-marca-org {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+}
+
+.layout-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  flex: 1;
+}
+
+.layout-nav-item {
+  padding: var(--esp-2) var(--esp-3);
+  border-radius: var(--radio-control);
+  text-decoration: none;
+  color: var(--tinta);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.layout-nav-item:hover {
+  background: var(--fondo);
+}
+
+.layout-nav-item.active {
+  background: var(--acento-suave);
+  color: var(--acento);
+  font-weight: 600;
+}
+
+.layout-usuario {
+  border-top: 1px solid var(--borde);
+  padding-top: var(--esp-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2);
+}
+
+.layout-usuario-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.layout-usuario-nombre {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout-usuario-rol {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+}
+
+.layout-salir {
+  padding: var(--esp-1) var(--esp-2);
+  font-size: 0.75rem;
+}
+
+.layout-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 1440px;
+  padding: var(--esp-5);
+}
+
+@media (max-width: 800px) {
+  .layout {
+    flex-direction: column;
+  }
+  .layout-sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--esp-3);
+  }
+  .layout-marca {
+    padding: 0;
+  }
+  .layout-nav {
+    flex-direction: row;
+  }
+  .layout-usuario {
+    border-top: none;
+    padding-top: 0;
+    margin-left: auto;
+  }
+  .layout-usuario-info {
+    display: none;
+  }
+}
