@@ -39,7 +39,7 @@ unidadesRouter.patch("/:id", requireRol("admin", "supervisor"), async (req, res)
 
   // 404 y no 403 si es de otro tenant: no revelar existencia (HU-1.2).
   const existente = await prisma.unidadTerritorial.findFirst({
-    where: { id: req.params.id, organizationId: req.auth!.organizationId },
+    where: { id: String(req.params.id), organizationId: req.auth!.organizationId },
   });
   if (!existente) return res.status(404).json({ error: "No encontrado" });
 
@@ -53,7 +53,7 @@ unidadesRouter.patch("/:id", requireRol("admin", "supervisor"), async (req, res)
 
 unidadesRouter.delete("/:id", requireRol("admin", "supervisor"), async (req, res) => {
   const existente = await prisma.unidadTerritorial.findFirst({
-    where: { id: req.params.id, organizationId: req.auth!.organizationId },
+    where: { id: String(req.params.id), organizationId: req.auth!.organizationId },
   });
   if (!existente) return res.status(404).json({ error: "No encontrado" });
 

@@ -101,7 +101,7 @@ metasRouter.patch("/:id/avance", requireRol("admin", "supervisor", "gerente"), a
   const auth = req.auth!;
 
   const existente = await prisma.meta.findFirst({
-    where: { id: req.params.id, organizationId: auth.organizationId },
+    where: { id: String(req.params.id), organizationId: auth.organizationId },
     include: { unidad: { select: { responsableId: true } } },
   });
   if (!existente) return res.status(404).json({ error: "No encontrado" });
@@ -119,7 +119,7 @@ metasRouter.patch("/:id/avance", requireRol("admin", "supervisor", "gerente"), a
 
 metasRouter.delete("/:id", requireRol("admin", "supervisor"), async (req, res) => {
   const existente = await prisma.meta.findFirst({
-    where: { id: req.params.id, organizationId: req.auth!.organizationId },
+    where: { id: String(req.params.id), organizationId: req.auth!.organizationId },
   });
   if (!existente) return res.status(404).json({ error: "No encontrado" });
   await prisma.meta.delete({ where: { id: existente.id } });

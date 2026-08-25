@@ -37,7 +37,7 @@ categoriasRouter.patch("/:id", requireRol("admin", "supervisor"), async (req, re
   if (!parsed.success) return res.status(400).json({ error: "Datos inválidos" });
 
   const existente = await prisma.categoriaGestion.findFirst({
-    where: { id: req.params.id, organizationId: req.auth!.organizationId },
+    where: { id: String(req.params.id), organizationId: req.auth!.organizationId },
   });
   if (!existente) return res.status(404).json({ error: "No encontrado" });
 
@@ -51,7 +51,7 @@ categoriasRouter.patch("/:id", requireRol("admin", "supervisor"), async (req, re
 
 categoriasRouter.delete("/:id", requireRol("admin", "supervisor"), async (req, res) => {
   const existente = await prisma.categoriaGestion.findFirst({
-    where: { id: req.params.id, organizationId: req.auth!.organizationId },
+    where: { id: String(req.params.id), organizationId: req.auth!.organizationId },
   });
   if (!existente) return res.status(404).json({ error: "No encontrado" });
 
