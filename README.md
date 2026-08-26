@@ -16,6 +16,7 @@ Sistema multi-tenant de gestión territorial para municipalidades y empresas: tu
 | [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente clasificados (con citas de la reunión) |
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, con calendario y ruta crítica |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
+| [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
 
 ## Estructura
 

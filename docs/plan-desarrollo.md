@@ -7,18 +7,23 @@ Este documento es la vista humana del plan; la fuente cargable es [plan-desarrol
 
 ## Cómo cargarlo
 
+👉 **Paso a paso detallado en [guia-cargar-planner.md](guia-cargar-planner.md)** (incluye qué esperar en pantalla y los errores frecuentes).
+
+Resumen para quien ya conoce PowerShell, desde la raíz del repositorio:
+
 ```powershell
-# 1. Una sola vez, instalar los módulos
-Install-Module Microsoft.Graph.Planner, Microsoft.Graph.Groups, Microsoft.Graph.Users -Scope CurrentUser
+# 1. Una sola vez: módulos y permiso de ejecución en esta sesión
+Install-Module Microsoft.Graph.Authentication, Microsoft.Graph.Planner -Scope CurrentUser -Force
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 # 2. Simular primero (no escribe nada, muestra qué crearía)
 .\scripts\cargar-plan-planner.ps1 -SoloSimular
 
-# 3. Cargar de verdad, con responsables
+# 3. Cargar de verdad (los correos son opcionales, para asignar responsables)
 .\scripts\cargar-plan-planner.ps1 -EmailA tu@correo.cl -EmailB companero@correo.cl
 ```
 
-El script es re-ejecutable: omite las tareas que ya existen, así que después de editar el CSV se puede volver a correr para agregar solo lo nuevo.
+El script solo pide el permiso `Tasks.ReadWrite`, que un usuario normal puede aprobar por sí mismo, y es re-ejecutable: omite las tareas que ya existen, así que después de editar el CSV se puede volver a correr para agregar solo lo nuevo.
 
 ## Reparto de trabajo
 

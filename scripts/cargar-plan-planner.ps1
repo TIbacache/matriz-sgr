@@ -11,7 +11,12 @@ tarea ya existe (mismo título) la omite, así que se puede correr de nuevo tras
 editar el CSV para agregar solo lo nuevo.
 
 .PREREQUISITOS
-  Install-Module Microsoft.Graph.Planner, Microsoft.Graph.Groups, Microsoft.Graph.Users -Scope CurrentUser
+  Install-Module Microsoft.Graph.Authentication, Microsoft.Graph.Planner -Scope CurrentUser
+
+  Solo pide el permiso Tasks.ReadWrite (que un usuario normal puede aprobar por
+  sí mismo). El permiso para buscar personas se pide únicamente si entregas
+  correos con -EmailA/-EmailB; si tu universidad lo bloquea, carga el plan sin
+  asignar y reparte las tareas a mano en Planner.
 
 .EXAMPLE
   # Ver qué haría, sin escribir nada en Planner:
@@ -66,20 +71,31 @@ if (-not (Test-Path $CsvPath)) { throw "No se encontró el CSV en $CsvPath" }
 $filas = Import-Csv -Path $CsvPath -Delimiter ";" -Encoding UTF8
 Write-Host "Filas leídas del CSV: $($filas.Count)" -ForegroundColor Cyan
 
-Connect-MgGraph -Scopes "Tasks.ReadWrite", "Group.Read.All", "User.Read.All" | Out-Null
+# Permisos mínimos: Tasks.ReadWrite basta para leer y escribir en los planes a
+# los que ya tienes acceso. El de personas solo se pide si vas a asignar.
+$permisos = @("Tasks.ReadWrite")
+if ($EmailA -or $EmailB) { $permisos += "User.ReadBasic.All" }
+Connect-MgGraph -Scopes $permisos | Out-Null
+Write-Host "Conectado como: $((Get-MgContext).Account)" -ForegroundColor Green
 
-# Buscar el plan entre los grupos del usuario (el plan ya existe, no se crea)
-$plan = $null
-foreach ($grupo in (Get-MgGroup -All)) {
-    try { $planes = Get-MgGroupPlannerPlan -GroupId $grupo.Id -ErrorAction Stop } catch { continue }
-    $encontrado = $planes | Where-Object { $_.Title -eq $NombrePlan }
-    if ($encontrado) { $plan = $encontrado; break }
+# Buscar el plan entre los que el usuario ya tiene (/me/planner/plans).
+# Se consulta por REST para no depender del módulo de Grupos ni de permisos
+# de directorio, que en tenants universitarios suelen requerir aprobación.
+$respuesta = Invoke-MgGraphRequest -Method GET -Uri "/v1.0/me/planner/plans"
+$misPlanes = @($respuesta.value)
+if (-not $misPlanes) { throw "Tu cuenta no tiene planes visibles en Planner." }
+
+$plan = $misPlanes | Where-Object { $_.title -eq $NombrePlan } | Select-Object -First 1
+if (-not $plan) {
+    Write-Host "Planes disponibles para tu cuenta:" -ForegroundColor Yellow
+    $misPlanes | ForEach-Object { Write-Host "  - $($_.title)" }
+    throw "No se encontró el plan '$NombrePlan'. Copia el nombre exacto de la lista de arriba y pásalo con -NombrePlan."
 }
-if (-not $plan) { throw "No se encontró el plan '$NombrePlan'. Verifica el nombre exacto o que tengas acceso." }
-Write-Host "Plan encontrado: $($plan.Title) [$($plan.Id)]" -ForegroundColor Green
+$planId = $plan.id
+Write-Host "Plan encontrado: $($plan.title)" -ForegroundColor Green
 
 # Mapear los buckets reales del plan a las claves del CSV
-$bucketsReales = Get-MgPlannerPlanBucket -PlannerPlanId $plan.Id
+$bucketsReales = Get-MgPlannerPlanBucket -PlannerPlanId $planId
 Write-Host "Buckets en el plan:" -ForegroundColor Cyan
 $bucketsReales | ForEach-Object { Write-Host "  - $($_.Name)" }
 
@@ -95,9 +111,14 @@ foreach ($clave in $patronBucket.Keys) {
 $usuarioPorLetra = @{}
 foreach ($par in @(@{ L = "A"; M = $EmailA }, @{ L = "B"; M = $EmailB })) {
     if ($par.M) {
-        $u = Get-MgUser -Filter "mail eq '$($par.M)' or userPrincipalName eq '$($par.M)'" | Select-Object -First 1
-        if ($u) { $usuarioPorLetra[$par.L] = $u.Id; Write-Host "Responsable $($par.L): $($u.DisplayName)" -ForegroundColor Green }
-        else { Write-Warning "No se encontró el usuario $($par.M); esas tareas quedarán sin asignar." }
+        try {
+            $u = Invoke-MgGraphRequest -Method GET -Uri "/v1.0/users/$($par.M)"
+            $usuarioPorLetra[$par.L] = $u.id
+            Write-Host "Responsable $($par.L): $($u.displayName)" -ForegroundColor Green
+        }
+        catch {
+            Write-Warning "No se pudo buscar a $($par.M) (¿permiso denegado o correo incorrecto?). Esas tareas quedarán sin asignar; puedes asignarlas a mano en Planner."
+        }
     }
 }
 
@@ -123,7 +144,7 @@ function ComoFechaUtc([string]$fecha) {
     return [datetime]::SpecifyKind([datetime]::ParseExact("$fecha 12:00", "yyyy-MM-dd HH:mm", $null), [DateTimeKind]::Utc)
 }
 
-$existentes = Get-MgPlannerPlanTask -PlannerPlanId $plan.Id
+$existentes = Get-MgPlannerPlanTask -PlannerPlanId $planId
 $titulosExistentes = @($existentes | ForEach-Object { $_.Title })
 $creadas = 0; $omitidas = 0
 
@@ -136,7 +157,7 @@ foreach ($fila in $filas) {
     if (-not $bucketPorClave.ContainsKey($fila.BucketClave)) { $omitidas++; continue }
 
     $params = @{
-        PlanId          = $plan.Id
+        PlanId          = $planId
         BucketId        = $bucketPorClave[$fila.BucketClave]
         Title           = $fila.Titulo
         PercentComplete = $avancePorEstado[$fila.Estado]
