@@ -116,6 +116,13 @@ Además: metáfora central propia (ebus tiene el electrocardiograma; nosotros el
 - Seed: los 3 totales de cumplimiento dan 73% (amarillo) porque rota los mismos avances; los colores por categoría sí varían. Si se quiere demo más vistosa, variar avances en `prisma/seed.ts`.
 - El servidor dev suele quedar corriendo en background de la sesión de Claude (`tsx watch`); si el puerto 4000 está ocupado al levantar, ya hay una instancia viva.
 
+## Requerimientos reales de la reunión con el cliente
+
+**[anotaciones-clase.md](anotaciones-clase.md)** procesa los apuntes de la reunión de requerimientos con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. Leerlo antes de tocar el modelo. Lo más importante:
+- ⚠ **Umbrales del semáforo distintos a lo implementado** (verde ≥100 / naranjo 60-100 / rojo ≤60; "ojo" bajo 80) — corregir al retomar.
+- 🆕 **La medición real es por persona** (pestaña por funcionario en el Sheet), con solicitudes de vecinos por RUT, trazabilidad cross-delegación, evidencias con foto, aprobación del supervisor y anti-trampa de emergencias — todo pendiente de diseño, con 10 preguntas listas para el profesor.
+- Existe grabación de 1h43m de la reunión sin transcribir.
+
 ## Pendientes bloqueados por terceros
 
 (Detalle en [restricciones-y-pendientes.md](restricciones-y-pendientes.md))
