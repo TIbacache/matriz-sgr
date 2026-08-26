@@ -3,7 +3,8 @@
   min-height: 100vh;
 }
 
-/* Sidebar fija 240px (DESIGN §6): superficie blanca, borde derecho, sin píldoras */
+/* Sidebar 240px ↔ 64px, colapso con la curva del sistema (CSS puro, sin JS
+   de animación: el ancho transiciona y los textos se desvanecen) */
 .layout-sidebar {
   width: 240px;
   flex-shrink: 0;
@@ -11,28 +12,46 @@
   border-right: 1px solid var(--borde);
   display: flex;
   flex-direction: column;
-  padding: var(--esp-4);
+  padding: var(--esp-4) var(--esp-3);
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow: hidden;
+  transition: width var(--dur-3) var(--ease-expo);
+}
+
+.layout-sidebar--colapsada {
+  width: 64px;
 }
 
 .layout-marca {
   display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-2) var(--esp-2) var(--esp-5);
+  white-space: nowrap;
+}
+
+.layout-marca-textos {
+  display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: var(--esp-2) var(--esp-3) var(--esp-5);
+  gap: 1px;
+  min-width: 0;
+  transition: opacity var(--dur-2) var(--ease-expo);
 }
 
 .layout-marca-nombre {
   font-family: var(--font-titulo);
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
 }
 
 .layout-marca-org {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--tinta-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .layout-nav {
@@ -43,16 +62,26 @@
 }
 
 .layout-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
   padding: var(--esp-2) var(--esp-3);
   border-radius: var(--radio-control);
   text-decoration: none;
-  color: var(--tinta);
+  color: var(--tinta-2);
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
+  transition: background var(--dur-1) var(--ease-expo), color var(--dur-1) var(--ease-expo);
+}
+
+.layout-nav-item svg {
+  flex-shrink: 0;
 }
 
 .layout-nav-item:hover {
   background: var(--fondo);
+  color: var(--tinta);
 }
 
 .layout-nav-item.active {
@@ -61,23 +90,78 @@
   font-weight: 600;
 }
 
-.layout-usuario {
+.layout-nav-texto {
+  transition: opacity var(--dur-2) var(--ease-expo);
+}
+
+/* Colapsada: solo iconos, textos desvanecidos */
+.layout-sidebar--colapsada .layout-nav-texto,
+.layout-sidebar--colapsada .layout-marca-textos,
+.layout-sidebar--colapsada .layout-usuario-info {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.layout-sidebar--colapsada .layout-nav-item {
+  justify-content: center;
+  padding: var(--esp-2);
+}
+
+.layout-pie {
   border-top: 1px solid var(--borde);
   padding-top: var(--esp-3);
   display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.layout-acciones {
+  display: flex;
+  gap: var(--esp-1);
+  justify-content: flex-end;
+}
+
+.layout-sidebar--colapsada .layout-acciones {
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+}
+
+.layout-usuario {
+  display: flex;
+  align-items: center;
   gap: var(--esp-2);
+  min-width: 0;
+}
+
+.layout-usuario-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--acento-suave);
+  color: var(--acento);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.layout-sidebar--colapsada .layout-usuario {
+  flex-direction: column;
 }
 
 .layout-usuario-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
+  transition: opacity var(--dur-2) var(--ease-expo);
 }
 
 .layout-usuario-nombre {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -85,13 +169,8 @@
 }
 
 .layout-usuario-rol {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--tinta-2);
-}
-
-.layout-salir {
-  padding: var(--esp-1) var(--esp-2);
-  font-size: 0.75rem;
 }
 
 .layout-main {
@@ -105,26 +184,40 @@
   .layout {
     flex-direction: column;
   }
-  .layout-sidebar {
+  .layout-sidebar,
+  .layout-sidebar--colapsada {
     width: 100%;
     height: auto;
     position: static;
     flex-direction: row;
     align-items: center;
     gap: var(--esp-3);
+    padding: var(--esp-3);
   }
   .layout-marca {
     padding: 0;
   }
+  .layout-marca-org {
+    display: none;
+  }
   .layout-nav {
     flex-direction: row;
   }
-  .layout-usuario {
+  .layout-nav-texto {
+    display: none;
+  }
+  .layout-pie {
     border-top: none;
     padding-top: 0;
     margin-left: auto;
+    flex-direction: row;
+    align-items: center;
   }
   .layout-usuario-info {
     display: none;
+  }
+  /* En móvil el colapso no aplica */
+  .layout-sidebar--colapsada .layout-marca-textos {
+    opacity: 1;
   }
 }

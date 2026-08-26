@@ -84,6 +84,26 @@ Auth: header `Authorization: Bearer <JWT>`. El JWT lleva `{userId, organizationI
 10. **echarts/echarts-for-react NO instalados aún**: se agregan en Fase 4 para resolver sus peers de una vez.
 11. Colores de categoría: paleta fija de 6 tonos apagados en `src/lib/kanban.ts`, asignados por `ordenPrioridad`.
 
+### Rediseño visual v1.1 (post-Fase 3, referencia ebus-test)
+
+El usuario aportó su app https://ebus-test.vercel.app como referencia de diseño. Evaluación tecnología por tecnología (decisión persistente — no re-evaluar sin motivo):
+
+| Tecnología de ebus | ¿Se adopta? | Cómo/por qué |
+|---|---|---|
+| Sistema de tokens en 2 capas + dark mode | ✅ | Portado a CSS puro en `tokens.css` (`:root` claro + `[data-theme="oscuro"]`). Es la pieza clave y no necesita Tailwind. |
+| Receta de acabado (tabular-nums, ::selection, scrollbars, focus-visible) | ✅ | En `base.css`, global. |
+| 4 keyframes + curva única `cubic-bezier(0.16,1,0.3,1)` | ✅ | Adaptados: pulso-crítico (vencidas/rojo), pulso-vivo (presencia), entrada en cascada, brillo skeleton. |
+| Primitiva única `.card` + hover lift | ✅ | En `base.css`; kanban con su propio radio 6px. |
+| Anti-parpadeo de tema (script inline + localStorage) | ✅ | En `index.html`, clave `matriz.tema`, sync entre pestañas. |
+| lucide-react | ✅ | Instalado; DESIGN.md ya nombraba Lucide. |
+| General Sans (Fontshare, gratis) | ✅ | Nuevo cuerpo; Space Grotesk se queda en títulos (par propio = menos genérico que la referencia). |
+| motion (lib) | ⏳ Fase 4 | Solo para counter-up de KPIs y overlays, como en la receta original ("Motion solo 6 archivos"). |
+| Tailwind v4 | ❌ | Documento Maestro manda CSS3 + DESIGN.md. Se adoptó su ARQUITECTURA de tokens, no la herramienta. |
+| Next.js / Vercel | ❌ | El profesor exige backend Express+Socket.io propio y despliegue VPS+Docker. Vite se queda. |
+| Recharts | ❌ | ECharts es mandatorio (heatmap matrix, gauges y radar nativos). |
+
+Además: metáfora central propia (ebus tiene el electrocardiograma; nosotros el **semáforo**, con marca ●▲■), sidebar colapsable 240↔64px (CSS width transition, sin JS de animación), tema oscuro completo, login rediseñado. DESIGN.md subido a v1.1 con todo esto como norma.
+
 ### Pendiente dentro de Fase 3 (detectado al cerrar)
 
 - **Formulario "Nueva tarea" en la UI** (parte de HU-3.2; el endpoint POST /tareas ya existe y está probado). Requiere además un `GET /usuarios` en el backend para elegir responsable (hoy no existe ese endpoint). → Primera tarea al retomar (antes o durante Fase 4).

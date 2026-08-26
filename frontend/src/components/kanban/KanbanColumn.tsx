@@ -23,12 +23,13 @@ export function KanbanColumn({ estado, titulo, tareas, colorPorCategoria, esArra
         <span className="kanban-columna-contador">{tareas.length}</span>
       </header>
       <div className="kanban-columna-lista">
-        {tareas.map((t) => (
+        {tareas.map((t, i) => (
           <TareaCard
             key={t.id}
             tarea={t}
             colorCategoria={colorPorCategoria(t.categoriaId)}
             arrastrable={esArrastrable(t)}
+            indice={i}
           />
         ))}
         {tareas.length === 0 && <p className="kanban-columna-vacia">Sin tareas</p>}

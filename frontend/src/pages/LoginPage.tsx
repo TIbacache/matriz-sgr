@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { MarcaSemaforo } from "../components/Marca";
 import "./login.css";
 
 export function LoginPage() {
@@ -27,9 +29,16 @@ export function LoginPage() {
 
   return (
     <div className="login-pagina">
-      <form className="login-tarjeta" onSubmit={onSubmit}>
+      <div className="login-tema">
+        <ThemeToggle />
+      </div>
+
+      <form className="login-tarjeta card entrada" onSubmit={onSubmit}>
+        <MarcaSemaforo />
         <h1 className="login-titulo">Matriz SGR</h1>
-        <p className="login-subtitulo">Gestión territorial con seguimiento en tiempo real</p>
+        <p className="login-subtitulo">
+          Seguimiento territorial en tiempo real: tareas, metas y semáforos de cumplimiento.
+        </p>
 
         <label className="etiqueta" htmlFor="email">
           Correo
@@ -63,6 +72,8 @@ export function LoginPage() {
           {cargando ? "Ingresando…" : "Ingresar"}
         </button>
       </form>
+
+      <p className="login-pie">Origami SpA</p>
     </div>
   );
 }

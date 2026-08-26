@@ -1,7 +1,8 @@
 # DESIGN.md — Especificación visual Matriz SGR
 
-**Versión**: 1.0 · **Fecha**: 25 de agosto de 2026
+**Versión**: 1.1 · **Fecha**: 25 de agosto de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.1**: cuerpo pasa a General Sans; se agregan tema oscuro, sistema de movimiento y marca ●▲■ (receta portada de la app de referencia ebus-test, adaptada a CSS3 puro). La implementación viva de los tokens es `frontend/src/styles/tokens.css`.
 
 ---
 
@@ -18,11 +19,12 @@ Principio: **la interfaz es un tablero de control municipal, no un SaaS genéric
 | Uso | Fuente | Fallback | Pesos |
 |---|---|---|---|
 | Títulos (h1–h3), cifras grandes de KPI | **Space Grotesk** | `system-ui, sans-serif` | 500, 700 |
-| Cuerpo, tablas, formularios, etiquetas | **Public Sans** | `system-ui, sans-serif` | 400, 500, 600 |
-| Datos tabulares/numéricos alineados | **Public Sans** con `font-variant-numeric: tabular-nums` | — | 400, 600 |
+| Cuerpo, tablas, formularios, etiquetas | **General Sans** (Fontshare, gratis) | `Public Sans, system-ui` | 400, 500, 600 |
+| Datos tabulares/numéricos alineados | **General Sans** con `font-variant-numeric: tabular-nums` (aplicado global a `th, td, .tnum`) | — | 400, 600 |
 
 - **PROHIBIDO usar Inter** en cualquier parte.
-- Carga vía Google Fonts (`Space+Grotesk`, `Public+Sans`) con `font-display: swap`.
+- El par Space Grotesk (display) + General Sans (cuerpo) es deliberado: General Sans sola es el look de la referencia; el par lo hace propio.
+- Carga: Space Grotesk vía Google Fonts, General Sans vía Fontshare CDN, ambas con `font-display: swap`. En producción (Fase 5) evaluar auto-hospedar los woff2.
 - Escala tipográfica (base 16px): `12 / 14 / 16 / 20 / 25 / 31 / 39` (ratio ~1.25).
 - Line-height: 1.2 en títulos, 1.5 en cuerpo, 1.35 en celdas de tabla.
 - Cifras de KPI: Space Grotesk 700, tamaño 39–48px, `tabular-nums`.
@@ -73,6 +75,30 @@ Reglas:
 
 De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C0392B`.
 (Verde pálido → amarillo → ámbar → rojo. Coherente con el semáforo; no usar viridis ni azules por defecto de ECharts.)
+
+### 3.5 Tema oscuro
+
+- Arquitectura de **dos capas**: `:root` define el tema claro completo; `[data-theme="oscuro"]` SOLO redefine lo que cambia. Ningún componente usa colores fuera de tokens, por lo que no existe ni una regla `dark:` en el código.
+- Valores exactos en `frontend/src/styles/tokens.css` (fuente de verdad). Ideas clave: fondos carbón (no negro puro), acento petróleo se invierte a celeste `#9CC7DC` (por eso el botón primario tiene tokens propios `--btn-*`), estados suben luminosidad y sus fondos pálidos pasan a transparencias del color.
+- **Sin parpadeo**: script inline en `index.html` aplica `data-theme` desde `localStorage` (clave `matriz.tema`) o `prefers-color-scheme` ANTES del primer paint. El toggle sincroniza entre pestañas vía evento `storage`.
+
+## 3.6 Movimiento (el movimiento significa estado, no decora)
+
+- **Una sola curva** para todo el sistema: `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-expo`). Duraciones: 150ms micro-hovers, 240ms entradas, 420ms paneles.
+- **CSS primero**: la sensación de vida sale de keyframes CSS, no de JavaScript. Los cuatro del sistema (en `base.css`):
+  1. `pulso-critico` — halo rojo expansivo (box-shadow, no dispara layout). **Solo** para estado crítico real: tareas vencidas, semáforo en rojo.
+  2. `pulso-vivo` — halo verde del indicador de presencia (la señal de "sistema vivo").
+  3. `entrada` — opacity + translateY(8px), en cascada con `animation-delay: i*50ms` inline.
+  4. `brillo` — skeleton shimmer para estados de carga.
+- Micro-interacciones: `.card--interactiva` y tarjetas kanban levantan 2px con sombra-2 al hover.
+- La librería **Motion** se reserva para Fase 4 y solo para: counter-up de KPIs, colapsos de alto/ancho complejos y overlays con AnimatePresence. Todo lo demás, CSS.
+- **Obligatorio**: bloque `@media (prefers-reduced-motion: reduce)` apagando todas las animaciones.
+- Acabados incluidos siempre: `tabular-nums` en `th/td/.tnum`, `::selection` teñida con el acento, scrollbars tematizadas, `:focus-visible` con anillo del acento.
+
+## 3.7 Marca
+
+- La marca es el **trío del semáforo ● ▲ ■** (verde, amarillo, rojo, siempre en ese orden) — componente `MarcaSemaforo`. No es decoración: son los tres símbolos de estado del sistema (legibles sin color), usados como identidad en sidebar y login.
+- Wordmark "Matriz SGR" en Space Grotesk 700 con tracking -0.01em.
 
 ---
 
@@ -165,6 +191,8 @@ Un PR **se rechaza** si aparece cualquiera de estos:
 6. Sombras de color, glassmorphism, blur decorativo.
 7. Estado comunicado solo con color, sin texto ni símbolo.
 8. Valores de espaciado/radio fuera de las escalas definidas aquí.
+9. Animación decorativa sin significado de estado (pulsos en cosas no críticas, parallax, entrada aparatosa de páginas), o cualquier animación sin su apagado en `prefers-reduced-motion`.
+10. Colores fuera de tokens (hex sueltos en componentes) o una regla de tema oscuro escrita a mano en un componente.
 
 ## 9. Referencias de estilo (dirección, no copia)
 

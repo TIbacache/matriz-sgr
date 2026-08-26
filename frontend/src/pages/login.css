@@ -1,29 +1,36 @@
 .login-pagina {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--esp-4);
+  position: relative;
+}
+
+.login-tema {
+  position: absolute;
+  top: var(--esp-4);
+  right: var(--esp-4);
 }
 
 .login-tarjeta {
   width: 100%;
-  max-width: 360px;
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio-tarjeta);
-  box-shadow: var(--sombra-1);
+  max-width: 380px;
   padding: var(--esp-6);
 }
 
 .login-titulo {
   font-size: 1.5625rem;
+  letter-spacing: -0.01em;
+  margin-top: var(--esp-3);
 }
 
 .login-subtitulo {
   font-size: 0.875rem;
   color: var(--tinta-2);
-  margin-bottom: var(--esp-5);
+  margin: var(--esp-2) 0 var(--esp-5);
+  line-height: 1.5;
 }
 
 .login-campo-password {
@@ -42,4 +49,10 @@
 .login-boton {
   width: 100%;
   margin-top: var(--esp-5);
+}
+
+.login-pie {
+  margin-top: var(--esp-4);
+  font-size: 0.75rem;
+  color: var(--tinta-3);
 }

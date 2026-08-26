@@ -36,6 +36,7 @@ button {
   font-family: var(--font-cuerpo);
   font-size: 0.875rem;
   cursor: pointer;
+  color: var(--tinta);
 }
 
 input,
@@ -45,16 +46,149 @@ select {
   color: var(--tinta);
 }
 
-/* Botones (DESIGN §5): sin gradientes, sin glow, sin iconos decorativos */
+/* ---- Acabado de producto (receta portada de ebus-test, en CSS puro) ---- */
+
+/* Los números no bailan al cambiar */
+th,
+td,
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Selección teñida con el acento */
+::selection {
+  background: color-mix(in srgb, var(--acento) 30%, transparent);
+}
+
+/* Scrollbars tematizadas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--borde-fuerte) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--borde-fuerte);
+  border-radius: 4px;
+}
+
+/* Foco visible consistente (teclado) */
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* ---- Primitiva única de superficie ---- */
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-1);
+}
+
+.card--interactiva {
+  transition:
+    transform var(--dur-1) var(--ease-expo),
+    box-shadow var(--dur-1) var(--ease-expo);
+}
+.card--interactiva:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-2);
+}
+
+/* ---- Keyframes del sistema (el movimiento significa estado, no decora) ---- */
+
+/* Halo expansivo: SOLO para estado crítico (rojo/vencido) */
+@keyframes pulso-critico {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--estado-rojo) 45%, transparent); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.pulso-critico {
+  animation: pulso-critico 2s var(--ease-expo) infinite;
+  border-radius: 50%;
+}
+
+/* Halo verde: presencia en vivo */
+@keyframes pulso-vivo {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--estado-verde) 40%, transparent); }
+  70% { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.pulso-vivo {
+  animation: pulso-vivo 2.4s var(--ease-expo) infinite;
+  border-radius: 50%;
+}
+
+/* Entrada en cascada (con animation-delay por índice inline) */
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.entrada {
+  animation: entrada var(--dur-2) var(--ease-expo) both;
+}
+
+/* Skeleton con brillo */
+@keyframes brillo {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.skeleton {
+  border-radius: var(--radio-tarjeta);
+  background: linear-gradient(90deg, var(--fondo-2) 25%, var(--superficie) 50%, var(--fondo-2) 75%);
+  background-size: 200% 100%;
+  animation: brillo 1.4s linear infinite;
+}
+
+/* Cierre obligatorio: respetar reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .pulso-critico,
+  .pulso-vivo,
+  .entrada,
+  .skeleton,
+  .card--interactiva {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---- Marca: trío del semáforo ● ▲ ■ (también es la leyenda de estados) ---- */
+.marca-semaforo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.marca-semaforo i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+}
+.marca-semaforo .ms-verde {
+  border-radius: 50%;
+  background: var(--estado-verde);
+}
+.marca-semaforo .ms-amarillo {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: var(--estado-amarillo);
+}
+.marca-semaforo .ms-rojo {
+  background: var(--estado-rojo);
+}
+
+/* ---- Controles ---- */
 .btn-primario {
-  background: var(--acento);
-  color: #fff;
+  background: var(--btn-bg);
+  color: var(--btn-texto);
   border: none;
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-4);
   font-weight: 600;
+  transition: background var(--dur-1) var(--ease-expo);
 }
-.btn-primario:hover { background: var(--acento-hover); }
+.btn-primario:hover { background: var(--btn-bg-hover); }
 .btn-primario:disabled { background: var(--tinta-3); cursor: default; }
 
 .btn-secundario {
@@ -64,10 +198,28 @@ select {
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-4);
   font-weight: 500;
+  transition: background var(--dur-1) var(--ease-expo);
 }
 .btn-secundario:hover { background: var(--superficie); }
 
-/* Inputs */
+/* Botón de icono (tema, colapso): funcional, nunca decorativo */
+.btn-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radio-control);
+  color: var(--tinta-2);
+  transition: background var(--dur-1) var(--ease-expo), color var(--dur-1) var(--ease-expo);
+}
+.btn-icono:hover {
+  background: var(--acento-suave);
+  color: var(--acento);
+}
+
 .campo {
   display: block;
   width: 100%;
@@ -75,6 +227,7 @@ select {
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-3);
   background: var(--superficie);
+  transition: border-color var(--dur-1) var(--ease-expo), box-shadow var(--dur-1) var(--ease-expo);
 }
 .campo:focus {
   outline: none;
@@ -92,7 +245,7 @@ select {
   margin-bottom: var(--esp-1);
 }
 
-/* Toast de error (DESIGN §7): revert de actualización optimista */
+/* Toast de error (DESIGN §7) */
 .toast {
   position: fixed;
   top: var(--esp-4);
@@ -107,6 +260,7 @@ select {
   font-size: 0.875rem;
   font-weight: 500;
   box-shadow: var(--sombra-2);
+  animation: entrada var(--dur-2) var(--ease-expo) both;
 }
 
 /* Estado vacío (DESIGN §7): texto + acción, sin ilustraciones */

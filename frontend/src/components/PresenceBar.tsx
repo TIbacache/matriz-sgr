@@ -7,7 +7,10 @@ import "./presence.css";
 export function PresenceBar({ conectados }: { conectados: Conectado[] }) {
   return (
     <div className="presencia" aria-label="Usuarios conectados">
-      <span className="presencia-punto" aria-hidden="true">●</span>
+      <span
+        className={conectados.length > 0 ? "presencia-punto pulso-vivo" : "presencia-punto"}
+        aria-hidden="true"
+      />
       <span className="presencia-texto">
         {conectados.length === 0
           ? "Nadie conectado"

@@ -17,16 +17,18 @@
   }
 }
 
-/* Columna: contenedor de nivel 1 sobre el fondo de página (máx. 2 niveles) */
+/* Columna: superficie hundida de nivel 1 (máx. 2 niveles anidados) */
 .kanban-columna {
-  background: #ededeb;
+  background: var(--fondo-2);
   border-radius: var(--radio-tarjeta);
   padding: var(--esp-3);
-  border: 1px solid transparent;
+  border: 1px dashed transparent;
+  transition: border-color var(--dur-1) var(--ease-expo), background var(--dur-1) var(--ease-expo);
 }
 
 .kanban-columna--sobre {
-  border: 1px dashed var(--borde-fuerte);
+  border-color: var(--acento);
+  background: var(--acento-suave);
 }
 
 .kanban-columna-header {
@@ -50,6 +52,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--tinta-2);
   background: var(--superficie);
+  border: 1px solid var(--borde);
   border-radius: var(--radio-control);
   padding: 0 var(--esp-2);
 }
@@ -68,7 +71,8 @@
   padding: var(--esp-3);
 }
 
-/* Tarjeta kanban (DESIGN §5): radio 6px, franja izquierda 3px = categoría */
+/* Tarjeta kanban (DESIGN §5): radio 6px, franja izquierda 3px = categoría.
+   Hereda de .card pero con su propio radio, así que define sus superficies. */
 .tarea-card {
   position: relative;
   background: var(--superficie);
@@ -78,11 +82,19 @@
   box-shadow: var(--sombra-1);
   padding: var(--esp-3);
   padding-right: var(--esp-6);
+  transition:
+    transform var(--dur-1) var(--ease-expo),
+    box-shadow var(--dur-1) var(--ease-expo);
 }
 
 .tarea-card--arrastrable {
   cursor: grab;
   touch-action: none;
+}
+
+.tarea-card--arrastrable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-2);
 }
 
 .tarea-card--fantasma {
@@ -110,12 +122,20 @@
   align-items: baseline;
 }
 
+/* La categoría en texto neutro: el color de identidad va SOLO en la franja
+   (evita problemas de contraste del color sobre ambos temas) */
 .tarea-card-categoria {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
 }
 
 .tarea-card-fecha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-1);
   font-size: 0.75rem;
   color: var(--tinta-2);
   font-variant-numeric: tabular-nums;
@@ -124,6 +144,14 @@
 .tarea-card-fecha--vencida {
   color: var(--estado-rojo);
   font-weight: 600;
+}
+
+/* Punto crítico con halo pulsante: SOLO en tareas vencidas */
+.tarea-card-punto-critico {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--estado-rojo);
 }
 
 .tarea-card-avatar {

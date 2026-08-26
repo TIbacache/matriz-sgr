@@ -4,15 +4,20 @@
   gap: var(--esp-2);
 }
 
+/* Punto verde con halo: la señal de "sistema vivo" (Efecto Hawthorne) */
 .presencia-punto {
-  color: var(--estado-verde);
-  font-size: 0.625rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--estado-verde);
+  flex-shrink: 0;
 }
 
 .presencia-texto {
   font-size: 0.75rem;
   color: var(--tinta-2);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .presencia-avatares {
@@ -32,6 +37,7 @@
   align-items: center;
   justify-content: center;
   margin-left: -6px;
+  animation: entrada var(--dur-2) var(--ease-expo) both;
 }
 
 .presencia-avatar:first-child {

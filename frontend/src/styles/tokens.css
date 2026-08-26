@@ -1,6 +1,9 @@
-/* Tokens de DESIGN.md — normativo. No inventar valores fuera de estas escalas. */
+/* Tokens de DESIGN.md v1.1 — normativo. Dos capas: :root define el tema claro
+   completo; [data-theme="oscuro"] SOLO redefine lo que cambia. Ningún color
+   se usa fuera de estas variables. */
 :root {
-  /* Estado (núcleo de identidad): siempre en par color fuerte + fondo pálido */
+  /* Estado (núcleo de identidad): siempre en par color fuerte + fondo pálido.
+     El estado nunca se comunica solo con color (símbolo ● ▲ ■ o texto). */
   --estado-verde: #1f7a3d;
   --estado-verde-bg: #e3f2e8;
   --estado-amarillo: #b87e00;
@@ -13,18 +16,24 @@
   --tinta-2: #5b6166;
   --tinta-3: #8a9094;
   --fondo: #f4f4f2;
+  --fondo-2: #ededeb; /* superficies hundidas: columnas kanban, skeletons */
   --superficie: #ffffff;
   --borde: #dddfe0;
   --borde-fuerte: #b9bdbf;
 
-  /* Acento único (azul petróleo, no tech-blue) */
+  /* Acento único (azul petróleo). --acento es el color interactivo (texto
+     activo, enlaces, focos); el botón primario usa sus propios tokens porque
+     en oscuro el acento se invierte a claro. */
   --acento: #153b50;
   --acento-hover: #0e2a3a;
   --acento-suave: #e8eef1;
+  --btn-bg: #153b50;
+  --btn-bg-hover: #0e2a3a;
+  --btn-texto: #ffffff;
 
-  /* Tipografía */
+  /* Tipografía: General Sans (Fontshare) cuerpo, Space Grotesk títulos/cifras */
   --font-titulo: "Space Grotesk", system-ui, sans-serif;
-  --font-cuerpo: "Public Sans", system-ui, sans-serif;
+  --font-cuerpo: "General Sans", "Public Sans", system-ui, sans-serif;
 
   /* Espaciado: 4/8/12/16/24/32/48/64 */
   --esp-1: 4px;
@@ -45,4 +54,39 @@
   --sombra-1: 0 1px 2px rgba(26, 29, 31, 0.08);
   --sombra-2: 0 4px 12px rgba(26, 29, 31, 0.12);
   --sombra-3: 0 12px 32px rgba(26, 29, 31, 0.18);
+
+  /* Movimiento: UNA curva compartida para todo el sistema */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 150ms; /* micro-hovers */
+  --dur-2: 240ms; /* entradas, colapsos */
+  --dur-3: 420ms; /* paneles */
+}
+
+[data-theme="oscuro"] {
+  --estado-verde: #62b980;
+  --estado-verde-bg: rgba(31, 122, 61, 0.22);
+  --estado-amarillo: #d9a430;
+  --estado-amarillo-bg: rgba(184, 126, 0, 0.2);
+  --estado-rojo: #e2695b;
+  --estado-rojo-bg: rgba(192, 57, 43, 0.22);
+
+  --tinta: #e6e9ea;
+  --tinta-2: #a2abaf;
+  --tinta-3: #6d777b;
+  --fondo: #0f1214;
+  --fondo-2: #1d2224;
+  --superficie: #171b1d;
+  --borde: #272d30;
+  --borde-fuerte: #3a4246;
+
+  --acento: #9cc7dc;
+  --acento-hover: #b7d8e8;
+  --acento-suave: rgba(156, 199, 220, 0.12);
+  --btn-bg: #9cc7dc;
+  --btn-bg-hover: #b7d8e8;
+  --btn-texto: #0f1518;
+
+  --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --sombra-2: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --sombra-3: 0 12px 32px rgba(0, 0, 0, 0.6);
 }

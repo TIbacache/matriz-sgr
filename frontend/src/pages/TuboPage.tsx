@@ -141,7 +141,9 @@ export function TuboPage() {
 
       {cargando ? (
         <div className="tubo-skeleton" aria-hidden="true">
-          <div /><div /><div />
+          <div className="skeleton" />
+          <div className="skeleton" />
+          <div className="skeleton" />
         </div>
       ) : (
         <KanbanBoard

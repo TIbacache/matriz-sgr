@@ -29,7 +29,7 @@
   min-width: 200px;
 }
 
-/* Skeleton con la geometría real (DESIGN §7): tres columnas grises */
+/* Skeleton con la geometría real (DESIGN §7): tres columnas con brillo */
 .tubo-skeleton {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -38,6 +38,4 @@
 
 .tubo-skeleton > div {
   height: 320px;
-  border-radius: var(--radio-tarjeta);
-  background: #ececea;
 }
