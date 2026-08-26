@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useUnidadSocket } from "../lib/useUnidadSocket";
 import { KanbanBoard } from "../components/kanban/KanbanBoard";
 import { PresenceBar } from "../components/PresenceBar";
+import { NuevaTareaModal } from "../components/NuevaTareaModal";
 import { useToast } from "../components/Toast";
 import "./tubo.css";
 
@@ -19,6 +20,7 @@ export function TuboPage() {
   const [tareas, setTareas] = useState<Tarea[]>([]);
   const [conectados, setConectados] = useState<Conectado[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const terminoUnidad = terminologia.unidad ?? "unidad";
 
@@ -108,6 +110,13 @@ export function TuboPage() {
 
   if (!usuario) return null;
 
+  // Crear tareas: admin y supervisor siempre; gerente solo en su delegación
+  // (espejo del requireRol + check de unidad del backend).
+  const puedeCrear =
+    usuario.rol === "admin" ||
+    usuario.rol === "supervisor" ||
+    (usuario.rol === "gerente" && unidadActual?.responsableId === usuario.id);
+
   return (
     <div className="tubo">
       {toast}
@@ -117,6 +126,11 @@ export function TuboPage() {
         </div>
         <div className="tubo-header-derecha">
           <PresenceBar conectados={conectados} />
+          {puedeCrear && unidadActual && (
+            <button className="btn-primario" onClick={() => setModalAbierto(true)}>
+              Nueva tarea
+            </button>
+          )}
           <select
             className="campo tubo-selector"
             value={unidadId ?? ""}
@@ -144,6 +158,18 @@ export function TuboPage() {
           colorPorCategoria={colorPorCategoria}
           esArrastrable={(t) => puedeMoverTarea(usuario, t, unidadActual)}
           onMover={onMover}
+        />
+      )}
+
+      {modalAbierto && unidadActual && (
+        <NuevaTareaModal
+          unidadId={unidadActual.id}
+          unidadNombre={unidadActual.nombre}
+          categorias={categorias}
+          onCerrar={() => setModalAbierto(false)}
+          onCreada={(t) =>
+            setTareas((prev) => (prev.some((x) => x.id === t.id) ? prev : [...prev, t]))
+          }
         />
       )}
     </div>

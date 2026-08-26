@@ -10,6 +10,17 @@
   --estado-amarillo-bg: #fcf0d4;
   --estado-rojo: #c0392b;
   --estado-rojo-bg: #fadbd7;
+  /* Variantes para TEXTO pequeño sobre fondo pálido (WCAG 4.5:1, validadas):
+     las marcas gráficas usan --estado-*, el texto usa --estado-*-texto. */
+  --estado-verde-texto: #1f7a3d;
+  --estado-amarillo-texto: #8a5e00;
+  --estado-rojo-texto: #a52e20;
+
+  /* Rampa ordinal del tubo (estados pendiente→en_proceso→realizado):
+     un solo tono petróleo, claro→oscuro, validada con --ordinal. */
+  --tubo-1: #9db9c9;
+  --tubo-2: #4e7e96;
+  --tubo-3: #153b50;
 
   /* Neutros */
   --tinta: #1a1d1f;
@@ -69,6 +80,15 @@
   --estado-amarillo-bg: rgba(184, 126, 0, 0.2);
   --estado-rojo: #e2695b;
   --estado-rojo-bg: rgba(192, 57, 43, 0.22);
+  /* En oscuro los tonos base ya superan 4.5:1 sobre la superficie */
+  --estado-verde-texto: #62b980;
+  --estado-amarillo-texto: #d9a430;
+  --estado-rojo-texto: #e2695b;
+
+  /* Rampa ordinal invertida para superficie oscura (validada) */
+  --tubo-1: #3a5a6e;
+  --tubo-2: #6f9cb4;
+  --tubo-3: #b7d8e8;
 
   --tinta: #e6e9ea;
   --tinta-2: #a2abaf;

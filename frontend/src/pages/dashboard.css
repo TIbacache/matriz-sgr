@@ -1,0 +1,247 @@
+.dash-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--esp-5);
+}
+
+/* Una sola fila de filtros, alineada, sobre todo lo que filtra */
+.dash-filtros {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+}
+
+.dash-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.dash-filtro .campo {
+  width: auto;
+  min-width: 160px;
+}
+
+/* Refetch conserva el marco a opacidad reducida (regla de la skill) */
+.dash-contenido {
+  transition: opacity var(--dur-2) var(--ease-expo);
+}
+.dash-contenido--refrescando {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--esp-4);
+  margin-bottom: var(--esp-4);
+}
+
+.kpi-tile {
+  padding: var(--esp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.kpi-tile-etiqueta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+
+/* Cifra display: Space Grotesk con figuras PROPORCIONALES (la skill prohíbe
+   tabular-nums a tamaño display; tabular queda para la tabla) */
+.kpi-tile-valor {
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.kpi-tile-contexto {
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+}
+
+/* Grid de tarjetas de gráficos */
+.dash-contenido {
+  display: block;
+}
+.dash-contenido > .dash-card,
+.dash-contenido > .dash-kpis {
+  margin-bottom: var(--esp-4);
+}
+
+.dash-card {
+  padding: var(--esp-4) var(--esp-5) var(--esp-5);
+}
+
+.dash-card--completa {
+  width: 100%;
+}
+
+/* Dos columnas para las tarjetas intermedias en pantallas anchas */
+@media (min-width: 1100px) {
+  .dash-contenido {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--esp-4);
+    align-items: start;
+  }
+  .dash-contenido > .dash-kpis,
+  .dash-contenido > .dash-card--completa {
+    grid-column: 1 / -1;
+  }
+  .dash-contenido > * {
+    margin-bottom: 0;
+  }
+}
+
+.dash-card-titulo {
+  font-size: 1rem;
+}
+
+.dash-card-sub {
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+  margin: 2px 0 var(--esp-3);
+}
+
+/* Gauges */
+.gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--esp-3);
+}
+
+.gauge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-1);
+  padding: var(--esp-3);
+  border: 1px solid var(--borde);
+  cursor: pointer;
+  font-family: var(--font-cuerpo);
+  transition:
+    transform var(--dur-1) var(--ease-expo),
+    box-shadow var(--dur-1) var(--ease-expo),
+    border-color var(--dur-1) var(--ease-expo),
+    opacity var(--dur-1) var(--ease-expo);
+}
+
+.gauge-card--activa {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 2px var(--acento-suave);
+}
+
+.gauge-card--apagada {
+  opacity: 0.45;
+}
+
+.gauge-nombre {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tinta);
+  text-align: center;
+}
+
+.gauge-chip {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: var(--radio-control);
+  padding: 2px var(--esp-2);
+}
+
+/* Tabla detalle */
+.tabla-detalle-envoltura {
+  overflow-x: auto;
+}
+
+.tabla-detalle {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tabla-detalle th {
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--fondo);
+}
+
+.tabla-orden {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+  cursor: pointer;
+}
+.tabla-orden:hover {
+  color: var(--tinta);
+}
+
+.tabla-detalle td {
+  border-bottom: 1px solid var(--borde);
+  padding: var(--esp-2) var(--esp-3);
+  line-height: 1.35;
+}
+
+.tabla-detalle th.num,
+.tabla-detalle td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-detalle tbody tr {
+  cursor: pointer;
+}
+
+.tabla-detalle tbody tr:hover {
+  background: var(--fondo);
+}
+
+.tabla-fila--activa {
+  background: var(--acento-suave) !important;
+}
+
+.chip-semaforo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radio-control);
+  padding: 2px var(--esp-2);
+  white-space: nowrap;
+}
+.chip-semaforo--verde { background: var(--estado-verde-bg); color: var(--estado-verde-texto); }
+.chip-semaforo--naranjo { background: var(--estado-amarillo-bg); color: var(--estado-amarillo-texto); }
+.chip-semaforo--rojo { background: var(--estado-rojo-bg); color: var(--estado-rojo-texto); }
+
+.tabla-nota {
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+  margin-top: var(--esp-3);
+}
+
+.dash-skeleton {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--esp-4);
+  margin-top: var(--esp-5);
+}
+.dash-skeleton > div {
+  height: 110px;
+}

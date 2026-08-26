@@ -1,9 +1,15 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
 import { TuboPage } from "./pages/TuboPage";
-import { DashboardPage } from "./pages/DashboardPage";
+
+// Carga perezosa: ECharts pesa; solo se descarga al entrar al dashboard,
+// y el tubo (la pantalla de todos los días) queda liviano.
+const DashboardPage = lazy(() =>
+  import("./pages/DashboardPage").then((m) => ({ default: m.DashboardPage }))
+);
 
 function RutasProtegidas() {
   const { token } = useAuth();
@@ -19,7 +25,14 @@ export function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<RutasProtegidas />}>
             <Route path="/" element={<TuboPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <Suspense fallback={<div className="skeleton" style={{ height: 320 }} />}>
+                  <DashboardPage />
+                </Suspense>
+              }
+            />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

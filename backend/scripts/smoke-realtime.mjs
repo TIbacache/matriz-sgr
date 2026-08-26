@@ -105,6 +105,45 @@ const evento = await Promise.race([
 ]).catch(() => null);
 check("evento tarea:actualizada llega al room", evento?.id === tareaPropia.id && evento?.estado === "en_proceso");
 
+// 8. Endpoints de Fase 4: directorio de usuarios y estadísticas del tubo
+const delegada = await login("delegado.centro@demo.cl");
+const equipo = await (await fetch(`${API}/usuarios?unidad=${centro.id}`, {
+  headers: { Authorization: `Bearer ${delegada.token}` },
+})).json();
+check("GET /usuarios con cargos", equipo.some((m) => m.cargo === "Territorial 1"),
+  `${equipo.length} miembros`);
+const tuboStats = await (await fetch(`${API}/kpis/tubo`, {
+  headers: { Authorization: `Bearer ${funcionaria.token}` },
+})).json();
+const statCentro = tuboStats.find((s) => s.unidadNombre === "Centro");
+check("GET /kpis/tubo agregado", tuboStats.length === 6 && typeof statCentro?.vencidas === "number",
+  `Centro: ${JSON.stringify(statCentro?.estados)} vencidas=${statCentro?.vencidas}`);
+
+// 9. La delegada crea una tarea (HU-3.2) → 201 y el room recibe tarea:creada
+const creadaPromise = new Promise((res) => socket.once("tarea:creada", res));
+const rCrear = await fetch(`${API}/tareas`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${delegada.token}` },
+  body: JSON.stringify({
+    titulo: "Tarea de prueba smoke",
+    unidadTerritorialId: centro.id,
+    categoriaId: tareaPropia.categoriaId,
+    responsableId: funcionaria.usuario.id,
+  }),
+});
+const creada = await rCrear.json();
+check("delegada crea tarea", rCrear.status === 201, `status ${rCrear.status}`);
+const eventoCreada = await Promise.race([
+  creadaPromise,
+  new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000)),
+]).catch(() => null);
+check("evento tarea:creada llega al room", eventoCreada?.id === creada.id);
+// limpieza
+await fetch(`${API}/tareas/${creada.id}`, {
+  method: "DELETE",
+  headers: { Authorization: `Bearer ${delegada.token}` },
+});
+
 socket.close();
 console.log(resultados.join("\n"));
 process.exit(resultados.some((r) => r.startsWith("FAIL")) ? 1 : 0);

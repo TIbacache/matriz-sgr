@@ -9,9 +9,9 @@ Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fa
 |---|---|---|
 | 1. Documentación y diseño | ✅ Completa | DESIGN.md, diagramas, historias, backlog Planner |
 | 2. Backend y configuración | ✅ Completa | API + Socket.io + Prisma + Postgres Docker |
-| 3. Frontend | ✅ Completa* | Vite + React + TS, auth, kanban dnd-kit, presencia. *Falta formulario de crear tarea (ver Fase 3) |
-| 4. BI y Dashboards | ⬜ Pendiente | ECharts: gauges, heatmap, radar, KPI cards + tests |
-| 5. Despliegue | ⬜ Pendiente | CI/CD GitHub Actions, VPS, Caddy, backups |
+| 3. Frontend | ✅ Completa | Vite + React + TS, auth, kanban dnd-kit, presencia, formulario Nueva tarea |
+| 4. BI y Dashboards | ✅ Completa | ECharts modular: gauges, heatmap semántico, dumbbell de proyección, radar énfasis, tubo apilado, tabla WCAG + KPI tiles con counter-up |
+| 5. Despliegue | ⬜ Pendiente | CI/CD GitHub Actions, VPS, Caddy, backups + tests formales (Jest/RTL) |
 
 ## Fase 2 — qué quedó funcionando (verificado)
 
@@ -108,6 +108,27 @@ Además: metáfora central propia (ebus tiene el electrocardiograma; nosotros el
 
 - **Formulario "Nueva tarea" en la UI** (parte de HU-3.2; el endpoint POST /tareas ya existe y está probado). Requiere además un `GET /usuarios` en el backend para elegir responsable (hoy no existe ese endpoint). → Primera tarea al retomar (antes o durante Fase 4).
 - Editar/eliminar tarea desde la UI (modal de detalle) — mismo bloque de trabajo que el punto anterior.
+
+## Fase 4 — qué quedó funcionando (26-08-2026)
+
+**Dashboard BI interactivo** en `/dashboard`, construido con el método de la skill dataviz (cada forma elegida por el trabajo que hace, colores validados por script, nunca a ojo):
+
+- **Fila única de filtros** (trimestre + delegación + recalcular para admin/supervisor) que alcanza todo lo de abajo; el refetch conserva el marco a opacidad reducida (sin parpadeo de skeleton).
+- **Cross-filtering**: click en un gauge, celda del heatmap, barra del tubo o fila de la tabla selecciona la delegación y filtra/resalta todo el tablero.
+- **KPI row** (4 stat tiles con counter-up de `motion`, en cascada, apagado con `prefers-reduced-motion`): avance relativo, delegaciones en verde, proyección al cierre, tareas vencidas. Cifras display en proporcionales (tabular-nums solo en la tabla).
+- **Gauges por delegación** (mandato del doc maestro): avance relativo sobre bandas fijas del semáforo.
+- **Heatmap delegación × pilar** con escala semántica DISCRETA del semáforo (visualMap piecewise = el modelo mental del cliente), valor rotulado en celda, gap de 2px de superficie.
+- **Dumbbell de proyección** "hoy → cierre a ritmo actual" (un tono, dos intensidades, rampa `--tubo-*` validada `--ordinal` en ambos temas) con referencias en Meta 100% y Ojo 80%.
+- **Radar en énfasis**: delegación seleccionada (acento) vs promedio org (gris) — nunca 6 series.
+- **Tubo apilado** por delegación con rampa ordinal (estados = etapas ordenadas, no categorías) y vencidas en tooltip.
+- **Tabla detalle ordenable** = la "table view" WCAG: todo valor legible sin hover, chips ●▲■ + texto con tokens `--estado-*-texto` (4.5:1 validado). Nota visible: columnas de asistencia pendientes de la definición del cliente.
+- ECharts **modular** + `DashboardPage` con carga perezosa: app base 94KB gzip, chunk del dashboard 251KB solo al entrar. Todos los gráficos leen los tokens vivos (`useTokens` + MutationObserver): cambian con el tema sin recargar.
+
+**Formulario "Nueva tarea"** (cierra HU-3.2): modal desde el tubo (admin/supervisor/gerente en su delegación), responsable elegido del directorio `GET /usuarios?unidad=` (nuevo endpoint con cargo), sincronizado por socket. **Deliberadamente NO se construyó la ficha completa de solicitud de vecino** (RUT, categoría/subcategoría, canal): espera la parametrización de columnas del cliente — regla de no inventar contenedores.
+
+Backend nuevo: `GET /usuarios` (directorio con cargos), `GET /kpis/tubo` (conteos agregados por estado + vencidas; público como el semáforo, sin detalle del libro). Smoke test ampliado a **17 checks, 17/17 PASS**.
+
+Tokens nuevos en `tokens.css`: `--estado-*-texto` (contraste 4.5:1 para texto pequeño) y rampa `--tubo-1/2/3` (ordinal petróleo, validada en claro y oscuro).
 
 ## Cabos sueltos conocidos (no bloqueantes)
 

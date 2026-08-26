@@ -12,6 +12,7 @@ import { categoriasRouter } from "./routes/categorias.routes.js";
 import { tareasRouter } from "./routes/tareas.routes.js";
 import { metasRouter } from "./routes/metas.routes.js";
 import { kpisRouter } from "./routes/kpis.routes.js";
+import { usuariosRouter } from "./routes/usuarios.routes.js";
 
 const app = express();
 app.use(cors({ origin: env.corsOrigin }));
@@ -32,7 +33,9 @@ app.get("/", (_req, res) =>
         "GET|POST|PATCH|DELETE /tareas",
         "GET|PUT|PATCH|DELETE /metas",
         "GET /kpis/cumplimiento",
+        "GET /kpis/tubo",
         "POST /kpis/recalcular",
+        "GET /usuarios",
       ],
     },
   })
@@ -45,6 +48,7 @@ app.use("/categorias", categoriasRouter);
 app.use("/tareas", tareasRouter);
 app.use("/metas", metasRouter);
 app.use("/kpis", kpisRouter);
+app.use("/usuarios", usuariosRouter);
 
 // Manejador de errores al final: Express 5 captura rechazos async solo.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

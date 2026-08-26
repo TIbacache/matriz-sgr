@@ -1,0 +1,61 @@
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(15, 18, 20, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--esp-4);
+}
+
+.modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: var(--esp-5);
+  box-shadow: var(--sombra-3);
+}
+
+.modal-titulo {
+  font-size: 1.25rem;
+}
+
+.modal-sub {
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  margin: var(--esp-1) 0 var(--esp-4);
+}
+
+.modal .etiqueta {
+  margin-top: var(--esp-3);
+}
+
+.modal-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--esp-3);
+}
+
+.modal-textarea {
+  resize: vertical;
+  min-height: 64px;
+  font-family: var(--font-cuerpo);
+}
+
+.modal-error {
+  margin-top: var(--esp-3);
+  font-size: 0.875rem;
+  color: var(--estado-rojo-texto);
+  background: var(--estado-rojo-bg);
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-3);
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+  margin-top: var(--esp-5);
+}
