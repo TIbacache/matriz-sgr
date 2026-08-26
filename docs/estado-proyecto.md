@@ -118,10 +118,12 @@ Además: metáfora central propia (ebus tiene el electrocardiograma; nosotros el
 
 ## Requerimientos reales de la reunión con el cliente
 
-**[anotaciones-clase.md](anotaciones-clase.md)** procesa los apuntes de la reunión de requerimientos con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. Leerlo antes de tocar el modelo. Lo más importante:
-- ⚠ **Umbrales del semáforo distintos a lo implementado** (verde ≥100 / naranjo 60-100 / rojo ≤60; "ojo" bajo 80) — corregir al retomar.
-- 🆕 **La medición real es por persona** (pestaña por funcionario en el Sheet), con solicitudes de vecinos por RUT, trazabilidad cross-delegación, evidencias con foto, aprobación del supervisor y anti-trampa de emergencias — todo pendiente de diseño, con 10 preguntas listas para el profesor.
-- Existe grabación de 1h43m de la reunión sin transcribir.
+**[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:
+- 🔓 **El "Objetivo al día" YA NO ESTÁ BLOQUEADO**: `dias_efectivos = 90 − licencia − vacaciones − compensatorios − emergencia`; `objetivo_al_dia = dias_transcurridos / dias_efectivos × 100`. La meta se prorratea por días trabajados.
+- ⚠ **Correcciones pendientes a lo implementado**: umbrales verde ≥100 / naranjo 60-99 / rojo <60 (normalizados contra el objetivo al día), tope por ítem 150% (hoy 100%), y la visibilidad entre delegaciones (el cliente dice que NO se ven entre ellas).
+- 🆕 **La medición es por persona** (cargo → funciones → metas), y **nada suma hasta que el supervisor valida** poniendo el punto tras revisar la foto verificadora.
+- Cifras confirmadas: reclamo −20%, felicitación +10% (máx. 1/mes), emergencia = meta con ponderador 5%, mínimo esperado 80%.
+- Product Owners = los profesores; los requerimientos se canalizan por ellos.
 
 ## Pendientes bloqueados por terceros
 

@@ -17,11 +17,11 @@
 | Pendiente | Bloqueado por | Acción cuando se destrabe |
 |---|---|---|
 | Cargar backlog en Planner | Acceso al plan del equipo Origami SpA | Ejecutar `scripts/crear-backlog-planner.ps1 -GroupName "Origami SpA"` (o el nombre exacto del grupo M365) con la cuenta universitaria. Si el plan ya existe, el script reutiliza plan y buckets y solo agrega tareas faltantes. |
-| Columnas exactas de asistencia (licencia, vacaciones, compensatorios, días totales, "objetivo al día") | Definición de los profesores | Agregar tabla `asistencia` (o columnas en `metas`) + migración Prisma; completar la tabla de detalle del semáforo (HU-5.1). El ERD ya deja el hueco sin romper nada. |
+| ~~Fórmula de "Objetivo al día"~~ **DESBLOQUEADO 25-08-2026** | — | El cliente la explicó en la reunión (01:05:31 y 00:35:17). Fórmula en [anotaciones-clase.md §1](anotaciones-clase.md). Falta solo el **nombre exacto de las columnas** de la planilla, que el cliente se comprometió a enviar por los profesores. |
 | Matriz de roles definitiva | Definición del profesor | Ajustar middleware de autorización (los roles están centralizados en un solo módulo para que el cambio sea barato). |
 
 ## Riesgos aceptados y su tratamiento
 
-1. **CRÍTICO — "Objetivo al día" depende de datos de asistencia no definidos.** Tratamiento: se diseña y construye todo lo que no depende de esas columnas (cumplimiento ponderado, semáforo, gauges, heatmap). La columna "Objetivo al día" y las de asistencia se dejan explícitamente pendientes en la UI (columna con estado "pendiente de definición") hasta que llegue la especificación. **No inventar el cálculo.**
+1. ~~**CRÍTICO — "Objetivo al día" depende de datos de asistencia no definidos.**~~ **RESUELTO** el 25-08-2026 con la transcripción de la reunión: el cliente dictó la fórmula (descuento de días por licencia/vacaciones/compensatorios/emergencia y prorrateo de la meta). Ver [anotaciones-clase.md §1](anotaciones-clase.md). Ya no aplica la prohibición de calcular; sí sigue vigente **no inventar más allá de lo que el cliente dijo**.
 2. **Rooms de Socket.io por unidad territorial se diseñan desde el primer commit** del backend (refactorizar después es costoso). Implementado en la capa de sockets desde Fase 2.
 3. **Costo cero** (ver restricción 1).
