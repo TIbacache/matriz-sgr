@@ -72,6 +72,37 @@ Relación `solicitud → tarea`: la solicitud del vecino puede generar tareas en
 9. **Evidencias**: ¿tamaño/cantidad de fotos, es obligatoria por tipo de tarea?
 10. **RUT**: ¿formato de almacenamiento preferido para la evaluación (sin puntos con guión vs con puntos)?
 
-## 7. Regla de cierre
+## 7. Transcripción de la reunión — hallazgos (primeros 30 min de 103)
+
+**Fuente**: `TranscripcionReunionConClienteMuniLaSerena.txt` (transcripción IA, con errores de audio). ⚠ **Está truncada**: TurboScribe gratis cortó a los 30 minutos; faltan ~73 min, justamente donde ocurrió el Q&A con los alumnos.
+
+### 7.1 Confirma lo que ya teníamos ✔
+
+- **Matemática del cumplimiento ponderado: EXACTA a la nuestra.** Ejemplo textual de las galletas: ponderador 20% (grado de importancia), meta trimestre 30, avance 20 → 66% de cumplimiento → **13% ponderado** (66 × 0.20). La suma de los ponderados da el total. Nuestra vista materializada calcula esto correctamente.
+- **El trimestre es LA unidad de medición**: "No, todo es trimestre. El trimestre es la medición."
+- Las 6 delegaciones y los 4 pilares. Estados del tubo (pendiente/en proceso/realizado). Trabajo fuera de las metas no cuenta.
+
+### 7.2 NUEVO — el flujo real de tres niveles 🔑
+
+Lo más importante de la transcripción. El sistema no son dos piezas (tubo + metas) sino **tres**:
+
+1. **Tubo de trabajo** = "las cosas que **tienes que hacer**" (agenda colectiva, entra la solicitud del vecino).
+2. **Pestaña personal** = "las cosas que **tú hiciste**" — cada puesto (apoyo administrativo, territorial, gestor público, gestor social, coordinador) tiene su pestaña donde anota las acciones realizadas.
+3. **Medición de metas** = alguien (en el ejemplo, "Juan Francisco") **verifica con las fotos** que se realizó y **lo sube a la meta**, recién ahí suma al porcentaje.
+
+Cita textual: *"tú la realizas, Juan Francisco ve que está realizado, porque le manda fotos sobre eso, y una vez que la realiza, él lo sube a la medición de meta"*. La foto es el puente entre "yo digo que lo hice" y "cuenta para el cumplimiento" — esto le da semántica precisa al requisito de aprobación del supervisor (§3.5) y de evidencias (§3.6).
+
+### 7.3 NUEVO — otros hallazgos
+
+1. **Los pilares varían por delegación en ORDEN y en CONTENIDO.** No solo cambia la prioridad: el mismo pilar significa cosas distintas. Textual: en la Antena DISECO es *basura*; en otro sector DISECO es *limpieza y rayado*; en La Pampa va primero por las 400 plazas. Además **Centro/Rural agregaron un 5º pilar: "patrimonio"**. → Las categorías no son 4 fijas por organización: son configurables **por delegación**, con sus propios puntos de interés.
+2. **"Soluciones de ingresos al tubo" es en sí misma una meta medida**: las solicitudes ingresadas y resueltas se contabilizan, *"para motivar que ellos trabajen ingresando solicitudes"*. Es el puente formal tubo → metas.
+3. **Campo "interés externo / interno"** en el tubo: el ejemplo del camino cortado se registra como *"interés externo"* (viene del vecino) vs. trabajo interno.
+4. **Campos del tubo confirmados**: fecha de inicio del problema, descripción, delegación, responsable, fecha de compromiso, avances, estado.
+5. **Puestos que tienen pestaña personal**: apoyo administrativo, territorial, coordinador (¿"radicero"? audio poco claro), gestor público, gestor social. Más los del organigrama: asistente social (≈DIDECO), encargado DISECO, organizaciones comunitarias, seguridad, y un **segundo a cargo que hace "el control"** mientras el delegado sale a terreno.
+6. **Metas de ejemplo reales** (útiles para el seed): talleres de limpieza y reciclaje (12 al trimestre = 1 por semana), operativos de limpieza, informes semanales de limpieza, informes semanales de salud, soluciones de ingresos al tubo.
+7. **Escala poblacional atendida**: Las Compañías 120-130 mil personas, La Pampa 67 mil, Avenida del Mar 40 mil en 32 km. (Contexto, no modelo.)
+8. **"Tubo de cartas"** (de los apuntes, §"modelo de trabajo conjunto"): existe un **segundo tubo** para cartas formales, con "cartas vencidas" en la ficha de consulta semanal. No modelado.
+
+## 8. Regla de cierre
 
 Cuando llegue una respuesta (profesor, cliente o la transcripción de la grabación), se actualiza este archivo: la etiqueta cambia a [CONFIRMADO] o [DESCARTADO], y solo entonces se planifica el cambio en schema/UI. Este documento es el buffer entre "lo que se dijo" y "lo que se construye".
