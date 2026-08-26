@@ -24,6 +24,10 @@ export interface UnidadTerritorial {
   nombre: string;
   responsableId: string | null;
   responsable: { id: string; nombre: string; email: string } | null;
+  // El libro/tubo es privado por delegación (regla del cliente): true si este
+  // rol puede abrir el tubo de esta unidad. El semáforo consolidado es aparte
+  // y lo ven todos.
+  puedeVerLibro: boolean;
 }
 
 export interface CategoriaGestion {

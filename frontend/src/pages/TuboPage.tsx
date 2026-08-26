@@ -22,8 +22,9 @@ export function TuboPage() {
 
   const terminoUnidad = terminologia.unidad ?? "unidad";
 
-  // Carga inicial: unidades + categorías; la unidad por defecto del gerente
-  // es la suya (responsableId), para el resto la primera.
+  // Carga inicial: unidades + categorías. El selector solo ofrece las
+  // delegaciones cuyo libro este rol puede abrir (privacidad por delegación);
+  // por defecto la propia (responsable) o la primera visible.
   useEffect(() => {
     if (!usuario) return;
     Promise.all([
@@ -31,10 +32,11 @@ export function TuboPage() {
       api.get<CategoriaGestion[]>("/categorias"),
     ])
       .then(([us, cs]) => {
-        setUnidades(us);
+        const visibles = us.filter((u) => u.puedeVerLibro);
+        setUnidades(visibles);
         setCategorias(cs);
-        const propia = us.find((u) => u.responsableId === usuario.id);
-        setUnidadId((actual) => actual ?? propia?.id ?? us[0]?.id ?? null);
+        const propia = visibles.find((u) => u.responsableId === usuario.id);
+        setUnidadId((actual) => actual ?? propia?.id ?? visibles[0]?.id ?? null);
       })
       .catch((e) => mostrarError(e instanceof Error ? e.message : "Error al cargar datos"));
   }, [usuario, mostrarError]);
@@ -71,12 +73,8 @@ export function TuboPage() {
     [unidades, unidadId]
   );
 
-  // Gerente/usuario en unidad ajena: tablero en solo lectura (HU-3.3).
-  const soloLectura =
-    !!usuario &&
-    usuario.rol === "gerente" &&
-    unidadActual !== undefined &&
-    unidadActual.responsableId !== usuario.id;
+  // Con los libros privados por delegación, el selector ya solo ofrece
+  // unidades visibles; el drag por tarjeta lo decide puedeMoverTarea.
 
   const indicePorCategoria = useMemo(() => {
     const mapa = new Map<string, number>();
@@ -116,11 +114,6 @@ export function TuboPage() {
       <header className="tubo-header">
         <div>
           <h2>Tubo de trabajo</h2>
-          {soloLectura && (
-            <p className="tubo-solo-lectura">
-              Solo lectura: esta {terminoUnidad} no está a su cargo
-            </p>
-          )}
         </div>
         <div className="tubo-header-derecha">
           <PresenceBar conectados={conectados} />
@@ -149,7 +142,7 @@ export function TuboPage() {
         <KanbanBoard
           tareas={tareas}
           colorPorCategoria={colorPorCategoria}
-          esArrastrable={(t) => !soloLectura && puedeMoverTarea(usuario, t, unidadActual)}
+          esArrastrable={(t) => puedeMoverTarea(usuario, t, unidadActual)}
           onMover={onMover}
         />
       )}

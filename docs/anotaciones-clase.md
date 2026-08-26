@@ -86,15 +86,15 @@ La emergencia **es una meta más, con ponderador 5%**. Así el trabajo de emerge
 
 ---
 
-## 2. ⚠ Correcciones a lo YA implementado
+## 2. ⚠ Correcciones a lo implementado — ✅ APLICADAS el 26-08-2026
 
-| Qué | Implementado | Correcto | Dónde |
-|---|---|---|---|
-| Umbrales del semáforo | verde ≥80 / amarillo 50-79 / rojo <50 | **verde ≥100 / naranjo 60-99 / rojo <60**, normalizado contra el objetivo al día | migración `vista_cumplimiento`, DESIGN.md §3.1 |
-| Tope por ítem | 100% (`LEAST(...,1)`) | **150%** (`LEAST(...,1.5)`) | misma migración |
-| Días del período | no existe | descuento de licencia/vacaciones/compensatorios/emergencia | tabla `asistencia` nueva |
-| Visibilidad entre delegaciones | gerente ve otras en solo lectura | ⚠ **el cliente dice lo contrario** (ver §5) | `tareas.routes.ts` |
-| Nombres del seed | pilares y delegaciones inventados | los reales (§3.1) | `prisma/seed.ts` |
+| Qué | Estado |
+|---|---|
+| Umbrales verde ≥100 / naranjo 60-99 / rojo <60, normalizados contra el **objetivo al día** | ✅ Migración `vista_cumplimiento_v2` (expone `objetivo_al_dia`, `dias_efectivos`, `dias_transcurridos`, `avance_relativo`) |
+| Tope por ítem 150% | ✅ Misma migración (`LEAST(...,1.5)`) |
+| Visibilidad: libro privado por delegación; semáforo consolidado visible por todos (resolución de la contradicción §5, confirmada por el usuario) | ✅ `services/alcance.ts` + filtro en `GET /tareas`, `unidad:join` del socket y selector del frontend. `GET /unidades` expone `puedeVerLibro` |
+| Seed con datos reales (6 delegaciones, 4 pilares + Patrimonio, cargos del organigrama) | ✅ `prisma/seed.ts`; membresía ahora lleva `unidadTerritorialId` y `cargo` (migración `miembro_unidad_y_cargo`) |
+| Descuento de días por licencia/vacaciones/compensatorios/emergencia **por persona** | ⏳ Pendiente: requiere el modelo por funcionario (tabla `asistencia`). Hoy `dias_efectivos` = días calendario del trimestre; el hueco quedó anotado en la migración v2 |
 
 ---
 

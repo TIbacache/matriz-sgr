@@ -37,12 +37,14 @@ Principio: **la interfaz es un tablero de control municipal, no un SaaS genéric
 
 | Token | Hex | Uso |
 |---|---|---|
-| `--estado-verde` | `#1F7A3D` | Cumplimiento ≥ 80% |
+| `--estado-verde` | `#1F7A3D` | Al día o mejor: avance relativo al objetivo del día ≥ 100% |
 | `--estado-verde-bg` | `#E3F2E8` | Fondo de chip/celda verde |
-| `--estado-amarillo` | `#B87E00` | Cumplimiento 50–79% (texto/borde; el amarillo puro no contrasta) |
-| `--estado-amarillo-bg` | `#FCF0D4` | Fondo de chip/celda amarilla |
-| `--estado-rojo` | `#C0392B` | Cumplimiento < 50% |
+| `--estado-amarillo` | `#B87E00` | **Naranjo** del cliente: avance relativo 60–99% (el token conserva el nombre; el hex ámbar ya es naranjo) |
+| `--estado-amarillo-bg` | `#FCF0D4` | Fondo de chip/celda naranja |
+| `--estado-rojo` | `#C0392B` | Avance relativo < 60% |
 | `--estado-rojo-bg` | `#FADBD7` | Fondo de chip/celda roja |
+
+Umbrales dictados por el cliente (reunión 00:48:16; fórmulas en `docs/anotaciones-clase.md §1`): el % que se colorea es el **avance relativo al objetivo del día**, no el avance crudo. Referencia de gestión adicional: bajo 80% al cierre "se le pone el ojo" a la persona (no es un color, puede ser una línea de referencia en gráficos).
 
 Reglas:
 - El color de estado se aplica **siempre en par** (color fuerte para texto/indicador + fondo pálido). Nunca texto oscuro sobre el color fuerte.

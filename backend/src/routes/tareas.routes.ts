@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, type AuthPayload } from "../middleware/auth.js";
 import { requireRol } from "../middleware/roles.js";
 import { emitEvent, roomUnidad } from "../services/broadcast.js";
+import { unidadesVisibles } from "../services/alcance.js";
 
 export const tareasRouter = Router();
 tareasRouter.use(requireAuth);
@@ -38,12 +39,22 @@ async function puedeEditar(
 
 // GET /tareas?unidad=<id> — también es el mecanismo de RECUPERACIÓN tras
 // reconexión de Socket.io (HU-3.4): el cliente recarga el estado completo.
+// El libro es privado por delegación: un gerente/funcionario solo ve el tubo
+// de la suya (ver services/alcance.ts).
 tareasRouter.get("/", async (req, res) => {
   const unidadId = typeof req.query.unidad === "string" ? req.query.unidad : undefined;
+  const visibles = await unidadesVisibles(req.auth!);
+  if (unidadId && visibles !== null && !visibles.includes(unidadId)) {
+    return res.status(404).json({ error: "No encontrado" });
+  }
   const tareas = await prisma.tarea.findMany({
     where: {
       organizationId: req.auth!.organizationId,
-      ...(unidadId ? { unidadTerritorialId: unidadId } : {}),
+      ...(unidadId
+        ? { unidadTerritorialId: unidadId }
+        : visibles !== null
+          ? { unidadTerritorialId: { in: visibles } }
+          : {}),
     },
     include: {
       responsable: { select: { id: true, nombre: true } },

@@ -120,7 +120,7 @@ Además: metáfora central propia (ebus tiene el electrocardiograma; nosotros el
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:
 - 🔓 **El "Objetivo al día" YA NO ESTÁ BLOQUEADO**: `dias_efectivos = 90 − licencia − vacaciones − compensatorios − emergencia`; `objetivo_al_dia = dias_transcurridos / dias_efectivos × 100`. La meta se prorratea por días trabajados.
-- ⚠ **Correcciones pendientes a lo implementado**: umbrales verde ≥100 / naranjo 60-99 / rojo <60 (normalizados contra el objetivo al día), tope por ítem 150% (hoy 100%), y la visibilidad entre delegaciones (el cliente dice que NO se ven entre ellas).
+- ✅ **Correcciones del 26-08-2026 (aplicadas y con smoke test 13/13)**: vista `cumplimiento_v2` con umbrales del cliente (verde ≥100 / naranjo 60-99 / rojo <60 sobre el avance relativo al objetivo del día, tope 150% por ítem); libros privados por delegación (`services/alcance.ts`, `puedeVerLibro`) con semáforo consolidado visible por todos; seed con las 6 delegaciones y pilares reales; membresía con `unidadTerritorialId` y `cargo`. Login demo: `javier.godoy@demo.cl`, `jf.labra@demo.cl`, `delegado.centro@demo.cl`, `territorial1.centro@demo.cl` (todos `matriz123`).
 - 🆕 **La medición es por persona** (cargo → funciones → metas), y **nada suma hasta que el supervisor valida** poniendo el punto tras revisar la foto verificadora.
 - Cifras confirmadas: reclamo −20%, felicitación +10% (máx. 1/mes), emergencia = meta con ponderador 5%, mínimo esperado 80%.
 - Product Owners = los profesores; los requerimientos se canalizan por ellos.

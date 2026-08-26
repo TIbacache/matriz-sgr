@@ -2,6 +2,7 @@ import type { Server, Socket } from "socket.io";
 import { verificarToken, type AuthPayload } from "../middleware/auth.js";
 import { prisma } from "../lib/prisma.js";
 import { roomOrganizacion, roomUnidad } from "../services/broadcast.js";
+import { puedeVerUnidad } from "../services/alcance.js";
 
 // Presencia en vivo (Efecto Hawthorne, Documento Maestro §3.4).
 // Estado en memoria: suficiente para un solo proceso Node (arquitectura B).
@@ -61,13 +62,16 @@ export function configurarSockets(io: Server) {
     socket.on("unidad:join", async (unidadId: unknown, ack?: (ok: boolean) => void) => {
       if (typeof unidadId !== "string") return ack?.(false);
 
-      // Verificar que la unidad pertenece a la organización del token:
-      // impide cruzar tenants aunque se adivine un UUID ajeno.
+      // Doble verificación: (1) la unidad pertenece a la organización del
+      // token — impide cruzar tenants aunque se adivine un UUID ajeno; y
+      // (2) el rol tiene visibilidad sobre ese libro — el tubo de una
+      // delegación no se transmite a las demás.
       const unidad = await prisma.unidadTerritorial.findFirst({
         where: { id: unidadId, organizationId: auth.organizationId },
         select: { id: true },
       });
       if (!unidad) return ack?.(false);
+      if (!(await puedeVerUnidad(auth, unidadId))) return ack?.(false);
 
       await socket.join(roomUnidad(unidadId));
       if (!presencia.has(unidadId)) presencia.set(unidadId, new Map());

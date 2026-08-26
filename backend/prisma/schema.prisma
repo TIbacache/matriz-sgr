@@ -63,11 +63,21 @@ model OrganizationMember {
   organizationId String @map("organization_id")
   userId         String @map("user_id")
   rol            Rol
+  // Delegación a la que pertenece la persona. Null para admin/supervisor
+  // (nivel central). Define qué libro/tubo puede ver: el cliente confirmó que
+  // las delegaciones NO se ven entre ellas, pero cada integrante ve todo el
+  // libro de la suya (reunión 00:37:11).
+  unidadTerritorialId String? @map("unidad_territorial_id")
+  // Cargo textual del organigrama (ej. "Coordinador DISERCO", "Territorial 1").
+  // El cliente modela cargo → funciones → metas (reunión 00:59:16).
+  cargo          String?
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unidad       UnidadTerritorial? @relation(fields: [unidadTerritorialId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, userId])
+  @@index([organizationId, unidadTerritorialId])
   @@map("organization_members")
 }
 
@@ -77,10 +87,11 @@ model UnidadTerritorial {
   nombre         String
   responsableId  String? @map("responsable_id")
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  responsable  User?        @relation("responsable_unidad", fields: [responsableId], references: [id], onDelete: SetNull)
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  responsable  User?                @relation("responsable_unidad", fields: [responsableId], references: [id], onDelete: SetNull)
   tareas       Tarea[]
   metas        Meta[]
+  integrantes  OrganizationMember[]
 
   @@index([organizationId])
   @@map("unidades_territoriales")

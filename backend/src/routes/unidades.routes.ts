@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireRol } from "../middleware/roles.js";
 import { emitEvent, roomOrganizacion } from "../services/broadcast.js";
+import { unidadesVisibles } from "../services/alcance.js";
 
 export const unidadesRouter = Router();
 unidadesRouter.use(requireAuth);
@@ -13,13 +14,24 @@ const unidadSchema = z.object({
   responsableId: z.string().uuid().nullable().optional(),
 });
 
+// Devuelve TODAS las unidades de la organización (sus nombres se necesitan
+// para el semáforo consolidado, que todos pueden ver), pero marca con
+// `puedeVerLibro` cuáles tienen el tubo accesible para este rol.
 unidadesRouter.get("/", async (req, res) => {
-  const unidades = await prisma.unidadTerritorial.findMany({
-    where: { organizationId: req.auth!.organizationId },
-    include: { responsable: { select: { id: true, nombre: true, email: true } } },
-    orderBy: { nombre: "asc" },
-  });
-  res.json(unidades);
+  const [unidades, visibles] = await Promise.all([
+    prisma.unidadTerritorial.findMany({
+      where: { organizationId: req.auth!.organizationId },
+      include: { responsable: { select: { id: true, nombre: true, email: true } } },
+      orderBy: { nombre: "asc" },
+    }),
+    unidadesVisibles(req.auth!),
+  ]);
+  res.json(
+    unidades.map((u) => ({
+      ...u,
+      puedeVerLibro: visibles === null || visibles.includes(u.id),
+    }))
+  );
 });
 
 unidadesRouter.post("/", requireRol("admin", "supervisor"), async (req, res) => {

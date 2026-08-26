@@ -1,5 +1,5 @@
-// Prueba de humo del tiempo real y permisos de Matriz SGR.
-// Ejecutar desde /backend: node <ruta>/smoke-realtime.mjs
+// Prueba de humo del tiempo real, permisos y visibilidad de Matriz SGR.
+// Ejecutar desde /backend con el servidor corriendo: npm run smoke
 import { io } from "socket.io-client";
 
 const API = "http://localhost:4000";
@@ -29,26 +29,53 @@ await new Promise((resolve) => {
   s.on("connect_error", (e) => { check("handshake sin token rechazado", true, e.message); resolve(); });
 });
 
-const admin = await login("admin@demo.cl");
-const func1 = await login("funcionario1@demo.cl");
+const admin = await login("javier.godoy@demo.cl");
+const funcionaria = await login("territorial1.centro@demo.cl"); // Gloria, delegación Centro
 
-// 2. Datos base: unidad Norte y una tarea de funcionaria2 (ajena a funcionario1)
-const unidades = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
-const norte = unidades.find((u) => u.nombre.includes("Norte"));
-const tareas = await (await fetch(`${API}/tareas?unidad=${norte.id}`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
-const tareaAjena = tareas.find((t) => t.responsable?.nombre.includes("Francisca"));
-const tareaPropia = tareas.find((t) => t.responsable?.nombre.includes("Fernando"));
+// 2. Datos base: delegaciones Centro y Avenida del Mar; tareas del Centro
+const unidadesAdmin = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
+const centro = unidadesAdmin.find((u) => u.nombre === "Centro");
+const avmar = unidadesAdmin.find((u) => u.nombre === "Avenida del Mar");
+const tareas = await (await fetch(`${API}/tareas?unidad=${centro.id}`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
+const tareaAjena = tareas.find((t) => t.responsable?.nombre.includes("Génesis"));
+const tareaPropia = tareas.find((t) => t.responsable?.nombre.includes("Gloria"));
 
-// 3. funcionario1 NO puede mover tarea ajena → 403
+// 3. VISIBILIDAD (libro privado por delegación, reunión 00:37:11):
+// la funcionaria del Centro ve su libro pero NO el de Avenida del Mar.
+const unidadesFunc = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${funcionaria.token}` } })).json();
+const avmarFunc = unidadesFunc.find((u) => u.nombre === "Avenida del Mar");
+const centroFunc = unidadesFunc.find((u) => u.nombre === "Centro");
+check("funcionaria: Centro con libro visible", centroFunc?.puedeVerLibro === true);
+check("funcionaria: Avenida del Mar sin libro", avmarFunc?.puedeVerLibro === false);
+const rLibroAjeno = await fetch(`${API}/tareas?unidad=${avmar.id}`, {
+  headers: { Authorization: `Bearer ${funcionaria.token}` },
+});
+check("GET tareas de otra delegación → 404", rLibroAjeno.status === 404, `status ${rLibroAjeno.status}`);
+
+// 4. El semáforo consolidado SÍ es visible para todos (Efecto Hawthorne)
+const rKpis = await fetch(`${API}/kpis/cumplimiento?trimestre=2026-Q3`, {
+  headers: { Authorization: `Bearer ${funcionaria.token}` },
+});
+const kpis = await rKpis.json();
+check("funcionaria ve semáforo consolidado", rKpis.status === 200 && kpis.length >= 20, `${kpis.length} filas`);
+const colores = new Set(kpis.map((f) => f.semaforo_color));
+check("semáforo con verde/naranjo/rojo", ["verde", "naranjo", "rojo"].every((c) => colores.has(c)),
+  [...colores].join(","));
+const fila = kpis.find((f) => f.unidad_nombre === "Avenida del Mar");
+check("vista expone objetivo_al_dia y avance_relativo",
+  typeof fila?.objetivo_al_dia === "number" && typeof fila?.avance_relativo === "number",
+  `objetivo=${fila?.objetivo_al_dia} relativo=${fila?.avance_relativo}`);
+
+// 5. Permisos de edición: la funcionaria no mueve tareas ajenas
 const r403 = await fetch(`${API}/tareas/${tareaAjena.id}`, {
   method: "PATCH",
-  headers: { "Content-Type": "application/json", Authorization: `Bearer ${func1.token}` },
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionaria.token}` },
   body: JSON.stringify({ estado: "realizado" }),
 });
 check("usuario no mueve tarea ajena", r403.status === 403, `status ${r403.status}`);
 
-// 4. Socket autenticado entra al room Norte y recibe presencia + evento de tarea
-const socket = io(API, { auth: { token: func1.token }, reconnection: false });
+// 6. Socket: join a su delegación OK (con presencia), join a ajena rechazado
+const socket = io(API, { auth: { token: funcionaria.token }, reconnection: false });
 await new Promise((resolve, reject) => {
   socket.on("connect", resolve);
   socket.on("connect_error", reject);
@@ -56,27 +83,26 @@ await new Promise((resolve, reject) => {
 // El servidor emite presencia ANTES de responder el ack del join:
 // registrar el listener primero para no perder el evento.
 const presenciaPromise = new Promise((res) => socket.once("presencia:actualizada", res));
-const joinOk = await new Promise((res) => socket.emit("unidad:join", norte.id, res));
-check("join al room de su unidad", joinOk === true);
-
+const joinOk = await new Promise((res) => socket.emit("unidad:join", centro.id, res));
+check("join al room de su delegación", joinOk === true);
 const presencia = await presenciaPromise;
-check("presencia en vivo", presencia.conectados.some((c) => c.nombre.includes("Fernando")),
+check("presencia en vivo", presencia.conectados.some((c) => c.nombre.includes("Gloria")),
   `${presencia.conectados.length} conectados`);
+const joinAjeno = await new Promise((res) => socket.emit("unidad:join", avmar.id, res));
+check("join al room de otra delegación rechazado", joinAjeno === false);
 
-// join a unidad de otra org inexistente → false
-const joinMalo = await new Promise((res) => socket.emit("unidad:join", "00000000-0000-0000-0000-00000000dead", res));
-check("join a unidad ajena/inexistente rechazado", joinMalo === false);
-
-// 5. funcionario1 mueve SU tarea → 200 y el room recibe tarea:actualizada
+// 7. Mueve SU tarea → 200 y el room recibe tarea:actualizada
 const eventoPromise = new Promise((res) => socket.once("tarea:actualizada", res));
 const rOk = await fetch(`${API}/tareas/${tareaPropia.id}`, {
   method: "PATCH",
-  headers: { "Content-Type": "application/json", Authorization: `Bearer ${func1.token}` },
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionaria.token}` },
   body: JSON.stringify({ estado: "en_proceso" }),
 });
 check("usuario mueve su propia tarea", rOk.status === 200, `status ${rOk.status}`);
-const evento = await Promise.race([eventoPromise, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000))])
-  .catch((e) => null);
+const evento = await Promise.race([
+  eventoPromise,
+  new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000)),
+]).catch(() => null);
 check("evento tarea:actualizada llega al room", evento?.id === tareaPropia.id && evento?.estado === "en_proceso");
 
 socket.close();

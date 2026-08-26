@@ -83,8 +83,8 @@ Prioridad: **P1** = MVP obligatorio · **P2** = segunda iteración · **P3** = d
 ### HU-4.2 (P1) Cálculo de cumplimiento ponderado
 **Como** supervisor, **quiero** que el sistema calcule `Σ(avance/meta × ponderador)` por unidad, **para** comparar delegaciones con una sola cifra.
 
-- **Dado** metas con avance registrado, **cuando** corre el cron de recálculo, **entonces** la vista materializada se refresca y expone `cumplimiento_total` y `semaforo_color`.
-- **Dado** el umbral definido, **cuando** el cumplimiento es ≥ 80% / 50–79% / < 50%, **entonces** el color es verde / amarillo / rojo respectivamente.
+- **Dado** metas con avance registrado, **cuando** corre el cron de recálculo, **entonces** la vista materializada se refresca y expone `cumplimiento_total`, `objetivo_al_dia`, `avance_relativo` y `semaforo_color` (tope 150% por ítem).
+- **Dado** el avance relativo al objetivo del día, **cuando** es ≥ 100% / 60–99% / < 60%, **entonces** el color es verde / naranjo / rojo (umbrales del cliente, reunión 00:48:16).
 
 ### HU-4.3 (P2) Reportar avance
 **Como** funcionario, **quiero** registrar el avance de mis ítems de meta, **para** que el semáforo refleje la realidad sin esperar a la reunión semanal.
