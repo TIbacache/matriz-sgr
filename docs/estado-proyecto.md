@@ -150,7 +150,7 @@ Tokens nuevos en `tokens.css`: `--estado-*-texto` (contraste 4.5:1 para texto pe
 
 (Detalle en [restricciones-y-pendientes.md](restricciones-y-pendientes.md))
 
-1. **Planner**: sin acceso al plan de Origami SpA todavía → ejecutar `scripts/crear-backlog-planner.ps1` cuando llegue.
+1. ~~**Planner**: sin acceso~~ **RESUELTO 26-08-2026**: plan `DesarrolloSW-MuniLS-OrigamiSpA` disponible con la plantilla del profesor. Plan de 58 tareas del ciclo de vida completo en [plan-desarrollo.md](plan-desarrollo.md), cargable con `scripts/cargar-plan-planner.ps1`.
 2. **Columnas de asistencia** (licencia, vacaciones, compensatorios, días totales, "objetivo al día"): sin definición de profesores. **CRÍTICO: no inventar el cálculo**; la tabla del semáforo mostrará esas columnas como "pendiente de definición".
 3. **Matriz de roles definitiva**: hoy rige la del Documento Maestro §4; ajustes solo tocarán `src/middleware/roles.ts` y los checks de alcance en controladores.
 

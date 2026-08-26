@@ -16,7 +16,7 @@
 
 | Pendiente | Bloqueado por | Acción cuando se destrabe |
 |---|---|---|
-| Cargar backlog en Planner | Acceso al plan del equipo Origami SpA | Ejecutar `scripts/crear-backlog-planner.ps1 -GroupName "Origami SpA"` (o el nombre exacto del grupo M365) con la cuenta universitaria. Si el plan ya existe, el script reutiliza plan y buckets y solo agrega tareas faltantes. |
+| ~~Cargar backlog en Planner~~ **DESBLOQUEADO 26-08-2026** | — | Ya hay acceso al plan `DesarrolloSW-MuniLS-OrigamiSpA` con la plantilla del profesor (buckets: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación). Plan completo en [plan-desarrollo.md](plan-desarrollo.md); cargar con `scripts/cargar-plan-planner.ps1` (usar `-SoloSimular` primero). |
 | ~~Fórmula de "Objetivo al día"~~ **DESBLOQUEADO 25-08-2026** | — | El cliente la explicó en la reunión (01:05:31 y 00:35:17). Fórmula en [anotaciones-clase.md §1](anotaciones-clase.md). Falta solo el **nombre exacto de las columnas** de la planilla, que el cliente se comprometió a enviar por los profesores. |
 | Matriz de roles definitiva | Definición del profesor | Ajustar middleware de autorización (los roles están centralizados en un solo módulo para que el cambio sea barato). |
 

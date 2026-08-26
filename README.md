@@ -13,7 +13,9 @@ Sistema multi-tenant de gestión territorial para municipalidades y empresas: tu
 | [docs/diagramas.md](docs/diagramas.md) | Contexto, casos de uso, ERD y secuencia de tiempo real |
 | [docs/historias-usuario.md](docs/historias-usuario.md) | 8 épicas, 20 historias con criterios de aceptación |
 | [docs/restricciones-y-pendientes.md](docs/restricciones-y-pendientes.md) | Restricciones del equipo, bloqueos y riesgos |
-| [docs/backlog-planner.csv](docs/backlog-planner.csv) | Backlog para cargar en Microsoft Planner |
+| [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente clasificados (con citas de la reunión) |
+| [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, con calendario y ruta crítica |
+| [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
 
 ## Estructura
 
