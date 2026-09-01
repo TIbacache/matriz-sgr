@@ -225,7 +225,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. **Esta lista es la que se lleva a la reunión.**
 
-Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras tanto** y **qué cambia cuando llegue la respuesta**. Ninguna está bloqueando el desarrollo: las nº 1 y 3 viven en la tabla `parametro` con `confirmado: false` y se corrigen sin tocar código; las demás son decisiones provisionales acotadas a un archivo. La nº 10 es la única que puede implicar un costo.
+Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras tanto** y **qué cambia cuando llegue la respuesta**. Ninguna está bloqueando el desarrollo: las nº 1 y 3 viven en la tabla `parametro` con `confirmado: false` y se corrigen sin tocar código; las demás son decisiones provisionales acotadas a un archivo. La nº 10 es la única que puede implicar un costo, y la nº 11 la única con implicancia legal (protección de datos personales).
 
 | Nº | Consulta | Impacto si cambia la respuesta |
 |---|---|---|
@@ -239,6 +239,7 @@ Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras 
 | 8 | ¿Una aprobación puede revertirse? | Quitar una guarda en la validación |
 | 9 | ¿El verificador es transversal o por delegación? | Una línea en `services/alcance.ts` |
 | 10 | Antivirus y retención de evidencias (RNF-017) | Infraestructura y costo |
+| 11 | ¿Un funcionario ve las metas de sus pares? | Un filtro en la pantalla de metas |
 
 1. **Ajustes por felicitación y reclamo**: el PDF (RN-011) menciona −20% y −30%; la planilla muestra **+10% (máx. 3)** y **−20%**; el audio dijo "+10, máximo 1 mensual". ¿Cuál rige?
 2. **Objetivo al día por persona**: en la planilla el cuadro global marca 61,54% (56 de 91 días) pero la tabla usa 50,55% por persona. ¿Se descuentan los días no trabajados del **numerador** (días transcurridos de la persona) manteniendo el denominador total? Es lo que sugieren los datos.
@@ -262,3 +263,10 @@ Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras 
     - **Qué sí está implementado** (defensa en profundidad, verificado con 5 comprobaciones): lista blanca de tipos MIME en el catálogo `formato_evidencia`; tamaño máximo en el parámetro `evidencia_tamano_max_mb`; **el nombre en disco lo deriva el servidor del código inmutable de la actividad**, nunca el que envía el cliente (probado con `../../etc/passwd.jpg`); los archivos viven fuera del árbol público y se descargan por un endpoint autenticado, no como estáticos; y nada se ejecuta ni se interpreta.
     - **Por qué falta el antivirus**: no es un problema de licencia — ClamAV es libre y gratuito. Es de **hardware**: su demonio necesita cerca de 1 GB de RAM solo para mantener las firmas en memoria, más de lo que da la VPS mínima que contempla nuestra restricción de costo cero, y actualizar firmas exige salida a internet y una tarea programada.
     - **Preguntas concretas**: (a) ¿se exige antivirus **operativo** para la evaluación, o basta con declarar la mitigación anterior como limitación conocida? (b) Si se exige, ¿se autoriza el gasto de una VPS con 2 GB de RAM, o se acepta un análisis **diferido** (la evidencia queda en cuarentena y no se puede validar hasta pasar el análisis)? (c) ¿Qué **política de retención y eliminación** de evidencias espera? RNF-009 pide "definir conservación y eliminación" y hoy no tenemos plazo definido: sin ese dato no podemos programar el borrado, y borrar por nuestra cuenta sería peor que no borrar.
+
+11. **¿Un funcionario puede ver las metas y el avance de sus pares?** (surgida al revisar la pantalla de metas con las seis cuentas).
+
+    - **Lo que dice cada fuente**: el cliente fue tajante con que *"cada delegación tiene un libro, no se pueden ver entre ellos, pero cada integrante de la delegación puede ver todo el libro de la suya"* (reunión 00:37:11) — eso habla del **libro de actividades**, no de las metas. El PDF no distingue: RNF-004 y RNF-005 piden control de acceso por rol y mínimo privilegio, sin decir dónde cae la evaluación de desempeño. La **Ley 19.628 y la Ley 21.719 de protección de datos personales** sí tiran para un lado: las metas y el avance de una persona son datos de su desempeño laboral, y el principio de finalidad limita su acceso a quien tiene necesidad de conocerlos.
+    - **Qué hicimos mientras tanto**: rige lo restrictivo. Un funcionario (rol `usuario`) ve **solo sus propias metas**; la jefatura (`gerente`) ve las de su delegación y el nivel central (`admin`, `supervisor`) todas. Es además lo coherente con la ficha personal, donde `puedeElegirPersona` ya excluía al rol `usuario` — la pantalla de metas era, sin querer, más permisiva que el resto del sistema.
+    - **Qué cambia con la respuesta**: si el docente indica que la transparencia entre pares es deseable (el cliente habló del "efecto Hawthorne" y de la sana competencia), se amplía el filtro `configurables` en `MetasPage.tsx`. Es una condición en un archivo; no toca modelo, API ni permisos del backend.
+    - **Pregunta concreta**: ¿la medición de una persona es información del equipo, como su libro de actividades, o información reservada entre ella y su jefatura? Y si es lo primero, ¿alcanza al detalle (metas y ponderadores) o solo al consolidado que ya muestra el dashboard?

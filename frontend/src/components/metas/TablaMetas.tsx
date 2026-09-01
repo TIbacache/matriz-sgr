@@ -12,17 +12,29 @@ interface Props {
 // - **Todos los ítems del cargo se muestran**, tengan meta o no: uno oculto es
 //   uno que nadie recuerda repartir. Los que no se miden van desmarcados.
 // - **Lo que ya sumó puntaje no se puede desmarcar** (RN-009, CA-01): la casilla
-//   se desactiva y la razón se escribe al lado. Un botón que siempre falla es
-//   peor que un botón ausente.
+//   se desactiva y el ítem se marca como «fijo». Un botón que siempre falla es
+//   peor que un botón ausente. La explicación va **una sola vez** sobre la
+//   tabla: repetirla en cada fila la convertía en ruido y empujaba el dato
+//   fuera de la vista.
 // - El ponderador se pide y se muestra en **porcentaje**; la conversión a
 //   fracción vive en `lib/metas.ts`, nunca aquí.
 // - Los ítems inversos llevan marca **textual** (ADR-009): sin ella nadie
 //   entiende por qué 11 sobre una meta de 10 da 90%.
 export function TablaMetas({ filas, problemas, editable, onCambiar }: Props) {
   const problemaDe = (itemId: string) => problemas.find((p) => p.itemId === itemId);
+  const hayFijos = filas.some((f) => f.incluido && f.avance > 0);
 
   return (
     <div className="tabla-envoltura">
+      {hayFijos && (
+        <p className="metas-leyenda">
+          Los ítems marcados <span className="metas-chip-fijo">fijo</span> ya tienen avance aprobado
+          en este período
+          {editable
+            ? ": puedes ajustar su meta o su peso, pero no quitarlos (RN-009)."
+            : " y no se pueden quitar (RN-009)."}
+        </p>
+      )}
       <table className="tabla-sgr metas-tabla">
         <thead>
           <tr>
@@ -66,9 +78,11 @@ export function TablaMetas({ filas, problemas, editable, onCambiar }: Props) {
                     <span className="metas-marca-inverso"> · menor es mejor</span>
                   )}
                   {bloqueada && f.incluido && (
-                    <span className="metas-nota-bloqueo">
-                      Ya tiene avance aprobado en este período: puedes ajustar su meta o su peso,
-                      pero no quitarla (RN-009).
+                    <span
+                      className="metas-chip-fijo"
+                      title="Ya tiene avance aprobado en este período: no se puede quitar (RN-009)"
+                    >
+                      fijo
                     </span>
                   )}
                   {problema && (

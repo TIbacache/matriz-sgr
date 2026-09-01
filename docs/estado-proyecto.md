@@ -376,7 +376,19 @@ Las dos aparecieron recorriendo el ciclo completo con cuentas distintas, y las d
 
 El segundo lo encontró **la verificación por roles**, no la vista: `verificador=0, consulta=0` personas configurables. Es la primera vez que la regla de los seis roles se ejecuta automatizada en vez de a mano.
 
-⚠ **Pendiente honesto**: la comprobación *visual* con las seis cuentas (que es lo que detectó los dos errores anteriores) **no se ha hecho** en esta pantalla. Lo verificado es el contrato que consume, con los seis roles.
+### Lo que encontró la revisión visual con las seis cuentas
+
+Hecha con un navegador real, entrando con cada cuenta y mirando la pantalla. Ninguna de las tres cosas la podía ver una prueba de API — y la primera no es estética:
+
+| Hallazgo | Qué se veía | Corrección |
+|---|---|---|
+| **Un funcionario veía las metas de sus pares** | Gabriel (rol `usuario`) abría la pantalla y aparecían las metas y el avance de Elena, su compañera de delegación | Solo la jefatura ve las de otros. Es coherente con `/ficha`, donde `puedeElegirPersona` ya excluía al rol `usuario`: **la pantalla de metas era, sin querer, más permisiva que el resto del sistema**. Queda como [consulta abierta nº 11](requerimientos-oficiales.md) por su lado legal |
+| La nota de RN-009 se repetía en **cada fila** | Dos líneas de texto idéntico por ítem —doce líneas con seis ítems— empujaban el dato fuera de la vista, y en modo lectura decían "puedes ajustar" a quien no puede | Un chip corto `fijo` por fila y la explicación **una sola vez** sobre la tabla, redactada según se pueda editar o no |
+| Controles vacíos y un mensaje de más | Al verificador le aparecía un selector de funcionario **vacío pero activo**, y dos avisos seguidos diciendo cosas parecidas | Sin nadie que configurar, los filtros no se muestran; con una sola persona, tampoco el selector. El aviso de lectura no se repite sobre el vacío explicado |
+
+También salió un defecto tipográfico con causa de fondo: el aviso era un contenedor `flex`, así que cada `<strong>` se volvía un ítem con su `gap` y el texto quedaba con huecos delante de la puntuación ("Ficha personal ."). **Un bloque de texto corrido no debe ser flex.**
+
+**Cómo se hizo**: Playwright instalado **fuera del repo** (en el scratchpad de la sesión), recorriendo las seis cuentas y dejando una captura por rol. No agrega dependencias al proyecto. El guion comprueba lo que ninguna prueba de API alcanza: esqueletos perpetuos, toasts de error, errores de consola, y qué ve realmente cada rol.
 
 ## Requerimientos reales de la reunión con el cliente
 

@@ -271,6 +271,12 @@ Es la pantalla donde alguien decide **qué se le mide a una persona y con qué p
 
 **Regla que se generaliza**: *un selector que ofrece opciones que el servidor va a rechazar es un error de diseño, no de permisos.* Antes de poblar cualquier lista de elección, filtrarla por el mismo alcance que aplica el backend.
 
+**Lo que encontró mirarla con las seis cuentas** (y ninguna prueba de API podía ver):
+
+1. **Una pantalla nueva no puede ser más permisiva que las que ya existen.** Un funcionario veía las metas de sus pares, cuando `/ficha` ya se lo impedía. Antes de definir quién ve qué, mirar qué decidió la pantalla equivalente: la incoherencia entre dos pantallas confunde más que una restricción de más.
+2. **Una nota que se repite en cada fila es ruido, no ayuda.** La explicación va una sola vez sobre la tabla; en la fila queda una marca corta. Y el texto cambia según se pueda editar o no: decirle "puedes ajustar" a quien está en modo lectura es peor que no decir nada.
+3. **Un bloque de texto corrido no debe ser `flex`.** Cada `<strong>` se vuelve un ítem con su `gap` y aparecen huecos delante de la puntuación. `flex` es para disponer cajas, no para párrafos.
+
 ### Ficha del vecino y trazabilidad (ADR-008, CA-04)
 
 - Buscador por RUT arriba, con resultado inmediato.

@@ -97,7 +97,8 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
 | ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2; ~~falta su pantalla~~ → **resuelta** en el Bloque B2 (`/metas`) | — | ✅ |
 | ~~`PUT /metas-item` no aplica bloqueo optimista~~ → **resuelto** en el Bloque B2: cada meta existente debe traer su `version` | — | ✅ |
-| **Falta la prueba visual de `/metas` con las seis cuentas**: lo verificado es el contrato, no la vista. Las dos correcciones anteriores del proyecto solo se vieron mirando la pantalla | frontend | Alta |
+| ~~Falta la prueba visual de `/metas` con las seis cuentas~~ → **hecha**: encontró tres cosas, la mayor que un funcionario veía las metas de sus pares. Detalle en [estado-proyecto.md](estado-proyecto.md) | — | ✅ |
+| **Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719 de datos personales**: no están reflejadas en los requisitos ni en la documentación. El sistema trata datos de vecinos y de desempeño de funcionarios de un organismo público | documentación y RNF | Alta |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
