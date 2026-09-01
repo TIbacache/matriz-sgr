@@ -2,7 +2,7 @@
 
 **Exigida por el PDF (§15.1)**: *"Cada equipo deberá mantener una matriz con: HU, requisito relacionado, tarea o commit, caso de prueba, resultado, responsable y enlace a la evidencia. **Una historia no se considera terminada si no puede demostrarse su trazabilidad.**"*
 
-**Actualizada**: 31 de agosto de 2026 · **Se actualiza en cada cierre de sprint.**
+**Actualizada**: 1 de septiembre de 2026 (Bloque A — API del registro y la validación) · **Se actualiza en cada cierre de sprint.**
 
 Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada · ⬜ no iniciada
 
@@ -12,35 +12,37 @@ Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada
 
 | Épica | Historias | ✅ | 🟡 | ⬜ |
 |---|---|---|---|---|
-| EP-01 Registro y gestión de actividades | HU-01…04 | 0 | 1 | 3 |
-| EP-02 Medición y desempeño | HU-05…08 | 1 | 2 | 1 |
-| EP-03 Evidencias y verificación | HU-09…11 | 0 | 0 | 3 |
-| EP-04 Agenda colectiva y compromisos | HU-12…15 | 1 | 2 | 1 |
+| EP-01 Registro y gestión de actividades | HU-01…04 | 2 | 1 | 1 |
+| EP-02 Medición y desempeño | HU-05…08 | 1 | 3 | 0 |
+| EP-03 Evidencias y verificación | HU-09…11 | 3 | 0 | 0 |
+| EP-04 Agenda colectiva y compromisos | HU-12…15 | 1 | 3 | 0 |
 | EP-05 Monitoreo y control de gestión | HU-16…19 | 2 | 1 | 1 |
 | EP-06 Reportabilidad | HU-20…22 | 0 | 1 | 2 |
-| EP-07 Plataforma colaborativa | HU-23…25 | 0 | 2 | 1 |
-| EP-08 Administración, seguridad y trazabilidad | HU-26…31 | 1 | 1 | 4 |
-| **Total** | **31** | **5** | **10** | **16** |
+| EP-07 Plataforma colaborativa | HU-23…25 | 1 | 1 | 1 |
+| EP-08 Administración, seguridad y trazabilidad | HU-26…31 | 3 | 2 | 1 |
+| **Total** | **31** | **13** | **12** | **6** |
+
+Salto del Bloque A (commit `b1f3e75`): **EP-03 queda completa** y EP-01 pasa de 0 a 2 historias demostrables. Lo que falta de EP-01 son pantallas y el registro de servicios (HU-03), no la API.
 
 ---
 
 ## 2. Matriz detallada
 
-Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las pruebas `smoke-N` corresponden a las verificaciones de `backend/scripts/smoke-realtime.mjs` (`npm run smoke`).
+Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las pruebas `smoke-N` corresponden a `backend/scripts/smoke-realtime.mjs` (`npm run smoke`); las `api:"…"` son verificaciones nombradas de `backend/scripts/verificar-api-v2.ts` (`npm run verificar:api`) y las `calculo-N` de `verificar-cumplimiento.ts`.
 
 | HU oficial | Requisitos | Nuestra HU | Implementación (commit) | Prueba | Resultado | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
-| HU-01 Registro de actividades | RF-009, RF-010, RF-014, RF-022 | — | — | — | — | A | ⬜ |
+| HU-01 Registro de actividades | RF-009, RF-010, RF-014, RF-022 | — | `b1f3e75` `backend/src/routes/actividades.routes.ts` | api:"RF-009 registrar actividad", "no se puede sumar a un ítem de otro cargo", "fecha fuera del período", "RUT inválido", "teléfono inválido" | PASS (5/5) | A | ✅ falta la pantalla |
 | HU-02 Registro de compromisos ciudadanos | RF-016…021 | HU-3.2 | `91e8fcb` `b5e7eff` `backend/src/routes/tareas.routes.ts` · `frontend/src/components/NuevaTareaModal.tsx` | smoke-16, smoke-17 | PASS | A | 🟡 falta solicitante/territorio/INT-EXT |
 | HU-03 Registro de servicios entregados | RF-004, RF-015 | — | — | — | — | B | ⬜ |
-| HU-04 Administración de funciones por cargo | RF-003, RF-006, RF-007 | — | Parcial: `cargo` en `OrganizationMember` (`8de89a5`) | — | — | A | ⬜ |
-| HU-05 Definición de metas | RF-005…007 | HU-4.1 | `91e8fcb` `backend/src/routes/metas.routes.ts` | — | — | A | 🟡 falta versionado y período |
-| HU-06 Seguimiento de avance | RF-008, RF-022, RF-023, RF-028 | HU-4.3 | `metas.routes.ts` (PATCH avance) | — | — | A | 🟡 falta panel personal |
+| HU-04 Administración de funciones por cargo | RF-003, RF-006, RF-007 | — | `b1f3e75` `backend/src/routes/cargos.routes.ts` (`/cargos` y `/items`) | api:"RF-003 GET /cargos con sus ítems", "crear cargo", "duplicado rechazado", "ADR-009 tipo y dirección", "se desactivan, no se borran" | PASS (5/5) | A | ✅ falta metas por funcionario (`MetaItem`) |
+| HU-05 Definición de metas | RF-005…007 | HU-4.1 | `91e8fcb` `metas.routes.ts` (v1, por unidad) + `b1f3e75` períodos | api:"RF-005 crear período calcula sus días" | PASS | A | 🟡 falta la API de `MetaItem` (meta y ponderador por funcionario) |
+| HU-06 Seguimiento de avance | RF-008, RF-022, RF-023, RF-028 | HU-4.3 | `b1f3e75` `GET /cumplimiento/:periodoId?funcionario=` | api:"RF-022 el cálculo por funcionario se expone por API" | PASS (7 funcionarios) | A | 🟡 falta la ficha personal (pantalla) |
 | HU-07 Cálculo automático de cumplimiento | RF-023…026 | HU-4.2 | `8de89a5` migración `vista_cumplimiento_v2` | smoke-7 | PASS (`objetivo=62 relativo=161.4`) | A | ✅ |
 | HU-08 Desempeño organizacional | RF-029, RF-031 | HU-5.1, HU-5.3 | `b5e7eff` `frontend/src/pages/DashboardPage.tsx` | verificación visual | OK | A | 🟡 falta vista por cargos |
-| HU-09 Evidencia fotográfica | RF-012, RNF-017 | — | — | — | — | B | ⬜ |
-| HU-10 Códigos verificadores | RF-011 | — | Diseño en [ADR-004](decisiones-tecnicas.md) | — | — | B | ⬜ |
-| HU-11 Validación de actividades | RF-013, RF-014, RF-036 | — | — | — | — | A | ⬜ |
+| HU-09 Evidencia fotográfica | RF-012, RNF-017 | — | `b1f3e75` `POST /actividades/:id/evidencias` + `services/almacenamiento.ts` | api:"RF-012 subir evidencia asociada al código", "formato no permitido (415)", "tamaño máximo (413)", "la ruta la deriva el servidor", "descarga por endpoint controlado" | PASS (5/5) | B | ✅ antivirus declarado fuera de alcance |
+| HU-10 Códigos verificadores | RF-011 | — | `91f1917` `services/codigos.ts` + trigger · `b1f3e75` uso en el alta | api:"RF-011 código no ambiguo" (`TOO-20260715-0004`), "el correlativo avanza"; calculo-19, calculo-20 | PASS | B | ✅ |
+| HU-11 Validación de actividades | RF-013, RF-014, RF-036 | — | `b1f3e75` `backend/src/routes/evidencias.routes.ts` | api:"la evidencia entra a la bandeja", "rechazar exige observación", "tres decisiones", "no valida su propia evidencia", "el punto se suma solo tras la aprobación", "una aprobada no se re-decide" | PASS (6/6) | A | ✅ falta la bandeja en pantalla |
 | HU-12 Agenda compartida | RF-016, RF-017 | HU-3.1 | `91e8fcb` `3eeb705` kanban dnd-kit + Socket.io | smoke-12, smoke-13 | PASS | A | ✅ |
 | HU-13 Actualización de estados | RF-018, RF-036 | HU-3.1 | `tareas.routes.ts` PATCH | smoke-12 | PASS | A | 🟡 falta historial de transición |
 | HU-14 Seguimiento de compromisos | RF-019, RF-021, RF-037 | HU-5.1 | `b5e7eff` `GET /kpis/tubo`, vencidas | smoke-15 | PASS (`vencidas=2`) | A | 🟡 faltan "próximo a vencer" y alertas |
@@ -52,14 +54,14 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-20 Generación de informes | RF-032, RF-033 | — | Filtros del dashboard | — | — | B | 🟡 falta exportación |
 | HU-21 Funcionarios rezagados | RF-027, RF-029, RF-037 | HU-5.3 | Tabla ordenable + línea "Ojo 80%" | visual | OK | B | ⬜ sin alerta |
 | HU-22 Brechas de productividad | RF-031, RF-038 | — | — | — | — | B | ⬜ |
-| HU-23 Trabajo colaborativo en línea | RF-034, RNF-003 | HU-3.1, HU-6.1 | `91e8fcb` Socket.io rooms + presencia | smoke-10, smoke-13 | PASS | A | 🟡 falta bloqueo optimista |
+| HU-23 Trabajo colaborativo en línea | RF-034, RNF-003 | HU-3.1, HU-6.1 | `91e8fcb` Socket.io rooms + presencia · `b1f3e75` `services/concurrencia.ts` | smoke-10, smoke-13; api:"CA-08 edición con versión vieja → 409", "PATCH de actividad con versión errada → 409" | PASS | A | ✅ en el modelo v2; las rutas v1 aún no comparan `version` |
 | HU-24 Comunicación entre delegaciones | RF-035 | — | — | — | — | B | ⬜ |
 | HU-25 Adaptación continua | RF-038 | HU-2.2 | CRUD de categorías | — | — | A | 🟡 sin versionado |
 | HU-26 Administración de delegaciones, usuarios y roles | RF-001, RF-002, RNF-004, RNF-005 | HU-1.1, HU-1.2, HU-2.1, HU-3.3 | `91e8fcb` auth + `8de89a5` alcance.ts | smoke-1…5, smoke-8, smoke-11 | PASS | A | ✅ |
 | HU-27 Administración de catálogos | RF-004 | HU-2.2 | `categorias.routes.ts` | — | — | A | 🟡 falta desactivación |
-| HU-28 Administración de períodos | RF-005, RN-013 | — | — | — | — | A | ⬜ |
+| HU-28 Administración de períodos | RF-005, RN-013 | — | `b1f3e75` `backend/src/routes/periodos.routes.ts` | api:"días calculados desde las fechas", "solapados rechazados", "cierre", "un período cerrado no se modifica", "la reapertura exige autorización y motivo", "el motivo queda en la bitácora" | PASS (8/8) | A | ✅ falta la pantalla |
 | HU-29 Búsqueda y filtros | RF-032 | HU-5.2 | Filtros del dashboard | visual | OK | B | 🟡 |
-| HU-30 Auditoría de cambios | RF-036, RNF-008 | — | Diseño en [ADR-006](decisiones-tecnicas.md) | — | — | A | ⬜ |
+| HU-30 Auditoría de cambios | RF-036, RNF-008 | — | `91f1917` tabla + triggers · `b1f3e75` `auditarDesde()` en cada write crítico del modelo v2 | api:"el ciclo del período queda auditado con valor anterior y nuevo", "la validación queda auditada con usuario" | PASS (crear → actualizar → cerrar_periodo → reabrir_periodo) | A | ✅ falta auditar las rutas v1 y la pantalla de consulta |
 | HU-31 Alertas operativas | RF-037 | — | — | — | — | B | ⬜ |
 
 ---
@@ -70,20 +72,20 @@ El modelo de datos de las historias pendientes ya existe y está verificado; fal
 
 | Requisito | Base implementada | Verificación | Falta |
 |---|---|---|---|
-| RF-003 Cargos e ítems | `Cargo`, `ItemMedicion` con `tipo` y `direccion` | calculo-3, calculo-4 (ítem inverso) | CRUD y pantalla |
-| RF-005 Períodos | `Periodo` con fechas y días calculados | calculo-13 (92 días desde las fechas) | CRUD, cierre y reapertura |
-| RF-007 Metas por funcionario | `MetaItem` | calculo-15 (RN-001: ponderadores suman 100%) | CRUD y versionado |
-| RF-009/011 Actividades y código | `Actividad` + `services/codigos.ts` | calculo-19, calculo-20 (1.126 códigos únicos, formato no ambiguo) | API y pantalla |
-| RF-012/013/014 Evidencias y validación | `Evidencia`, `Validacion` | calculo-17 (solo lo aprobado suma) | subida de archivo, bandeja del verificador |
-| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` | calculo-1 a 10, 16 | exponerlo por API y en el dashboard |
+| RF-003 Cargos e ítems | `Cargo`, `ItemMedicion` con `tipo` y `direccion` + **API `b1f3e75`** | calculo-3, calculo-4; api (5 checks) | pantalla |
+| RF-005 Períodos | `Periodo` con fechas y días calculados + **API con cierre y reapertura `b1f3e75`** | calculo-13; api (8 checks) | pantalla |
+| RF-007 Metas por funcionario | `MetaItem` | calculo-15 (RN-001: ponderadores suman 100%) | **API y pantalla** |
+| RF-009/011 Actividades y código | `Actividad` + `services/codigos.ts` + **API `b1f3e75`** | calculo-19, calculo-20; api (11 checks) | pantalla |
+| RF-012/013/014 Evidencias y validación | `Evidencia`, `Validacion` + **API `b1f3e75`** | calculo-17; api (11 checks) | bandeja en pantalla; antivirus fuera de alcance (declarado) |
+| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` + **`GET /cumplimiento/:periodoId`** | calculo-1 a 10, 16; api (4 checks) | migrar el dashboard del cálculo v1 al v2 (Bloque C) |
 | RF-025 Ajustes | `Ajuste` + parámetros | calculo-11, calculo-12 | API y pantalla |
-| RF-036 / RNF-008 Auditoría | `Auditoria` + triggers anti-UPDATE/DELETE | verificado contra la base | llamarla desde los controladores |
-| RF-038 Parámetros | `Parametro` con vigencia | calculo-11 | pantalla de configuración |
-| ADR-008 Trazabilidad del vecino | `PersonaUsuaria` con RUT único por organización | calculo-21 (un vecino aparece en Centro y Rural) | ficha con historial cruzado |
+| RF-036 / RNF-008 Auditoría | `Auditoria` + triggers + **`auditarDesde()` en los controladores v2** | api (2 checks: ciclo del período y validación) | auditar las rutas v1; pantalla de consulta |
+| RF-038 Parámetros | `Parametro` con vigencia | calculo-11; api ("devuelve los parámetros y marca los no confirmados") | pantalla de configuración |
+| ADR-008 Trazabilidad del vecino | `PersonaUsuaria` con RUT único + **alerta al registrar** | calculo-21; api ("se detecta a la misma persona en otra delegación", "no se duplicó la ficha") | ficha con historial cruzado |
 
 ## 3. Verificaciones automatizadas vigentes
 
-**38 comprobaciones, todas en verde** al 01-09-2026.
+**95 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 57 del Bloque A).
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -130,7 +132,20 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 16-17 | Crear tarea y su evento | RF-016, HU-02 |
 
-⚠ **Brecha de pruebas que queda**: las 38 comprobaciones cubren fórmulas, validadores, integración y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque menor que antes.
+### `npm run verificar:api` — 57/57 (nuevo, Bloque A)
+
+Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
+
+| Bloque | Comprobaciones | Cubre |
+|---|---|---|
+| Períodos (12) | días calculados desde las fechas (90 para 1/1–31/3/2027), solapamiento rechazado, funcionario sin permiso, **409 por versión vieja**, cierre, cerrado no editable, reapertura solo de admin y con motivo, ciclo completo auditado, motivo en la bitácora, lectura por rol consulta | RF-005, RF-010, RN-013, CA-08, CA-09, CA-10, RNF-005, RNF-008 |
+| Cargos e ítems (6) | cargos con sus ítems, alta, duplicado rechazado, ítem con `tipo`+`direccion`, desactivación con incremento de versión, funcionario sin permiso | RF-003, RF-006, ADR-009, RNF-005 |
+| Actividades (16) | alta, código no ambiguo, delegación derivada de la membresía, correlativo, ítem de otro cargo rechazado, fecha fuera del período, RUT sucio (`216944`) y teléfono inválidos, RUT normalizado, **alerta de la misma persona en otra delegación**, ficha no duplicada, 409 por versión, corrección previa a validar, verificador y consulta sin permiso de registro, libro ajeno → 404 | RF-009, RF-010, RF-011, RN-010, ADR-001, ADR-008, CA-04, CA-07, CA-08 |
+| Evidencias (5) | formato fuera del catálogo → 415, tamaño sobre el parámetro → 413, ruta derivada del código, nombre `../../etc/passwd.jpg` saneado, descarga por endpoint controlado | RF-012, RNF-017 |
+| Validación (11) | nadie valida lo propio, consulta no valida, rechazo sin observación → 400, corrección solicitada, aprobación, **el punto suma solo al aprobar y una sola vez**, aprobada no se re-decide, validada no se edita, anulación con motivo, lo anulado deja de sumar, validación auditada | RF-013, RF-014, RN-003, RN-009, CA-01, CA-02, CA-09, RNF-005, ADR-006 |
+| Cumplimiento (5) | cálculo por funcionario expuesto, días del período, parámetros con marca `confirmado`, semáforo visible por el rol consulta, tenant ajeno → 404 | RF-022…RF-027, RF-038, ADR-007 |
+
+⚠ **Brecha de pruebas que queda**: las 95 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
 
 ---
 

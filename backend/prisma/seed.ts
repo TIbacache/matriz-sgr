@@ -122,6 +122,9 @@ const CATALOGOS: { catalogo: string; area?: string; valores: string[] }[] = [
   { catalogo: "territorio", valores: ["Sector Norte", "Sector Sur", "Sector Poniente", "Sector Oriente", "Zona Rural"] },
   { catalogo: "area_apoyo", valores: ["DISERCO", "Tránsito", "Alumbrado Público", "Sección Aseo", "Área Mujeres", "Seguridad Ciudadana"] },
   { catalogo: "canal_ajuste", valores: ["WhatsApp", "Correo", "Libro de reclamos y sugerencias", "Presencial"] },
+  // RNF-017: los formatos de evidencia aceptados son CONFIGURABLES (catálogo),
+  // igual que el tamaño máximo es un parámetro. Nada de listas en el código.
+  { catalogo: "formato_evidencia", valores: ["image/jpeg", "image/png", "image/webp", "application/pdf"] },
 ];
 
 async function main() {

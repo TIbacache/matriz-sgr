@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 1 de septiembre de 2026 · Último commit: `33bafc4`
+**Actualizado**: 1 de septiembre de 2026 (cierre del Bloque A) · Último commit de código: `b1f3e75` (rama `feat/bloque-a-api-registro-validacion`)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -13,12 +13,13 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 17/17 verificaciones |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** | ⬜ **No existe** ← aquí se retoma |
-| Pantallas del modelo v2 | ⬜ No existen (criterios ya fijados en DESIGN §8.2) |
+| **API del modelo v2** (Bloque A) | ✅ Períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento — 57/57 |
+| API pendiente del modelo v2 | ⬜ `MetaItem`, `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
+| Pantallas del modelo v2 | ⬜ No existen ← **aquí se retoma** (criterios ya fijados en DESIGN §8.2) |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **5 ✅ · 13 🟡 · 20 ⬜**. La brecha se concentra en el eje **actividad → código → evidencia → validación → puntaje** (épicas EP-01 y EP-03), que es el corazón del sistema.
+Cumplimiento contra los 38 RF oficiales: **13 ✅ · 16 🟡 · 9 ⬜** (antes del Bloque A: 5 · 13 · 20). El eje **actividad → código → evidencia → validación → puntaje** ya funciona de extremo a extremo por API; lo que falta de él es la interfaz.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -32,25 +33,25 @@ Es la regla 1 de CLAUDE.md y el error más caro sería ignorarla. En este punto 
 
 ## 3. Orden recomendado
 
-### Bloque A — API del registro y la validación (EP-01 + EP-03) ← empezar aquí
+### ~~Bloque A — API del registro y la validación (EP-01 + EP-03)~~ ✅ TERMINADO (`b1f3e75`)
 
-Es lo que desbloquea todo lo demás y lo que más pesa en la evaluación.
+Los siete puntos del plan quedaron construidos y verificados (`npm run verificar:api` → 57/57). El contrato completo está en [estado-proyecto.md §API del modelo v2](estado-proyecto.md). Resumen:
 
-1. **`GET/POST /periodos`** + cierre y reapertura (RF-005, RN-013, HU-28). Sin período abierto no se puede registrar nada, así que va primero.
-2. **`GET/POST/PATCH /cargos` e `/items`** (RF-003, HU-04).
-3. **`POST /actividades`** (RF-009, RF-010, HU-01): valida con Zod, normaliza el RUT con `lib/rut.ts`, genera el código con `services/codigos.ts`, audita con `services/auditoria.ts` y emite su evento con `emitEvent()`.
-4. **`POST /actividades/:id/evidencias`** (RF-012, HU-09): subida de archivo. Definir formatos y tamaño máximo como parámetros (RNF-017). Guardar en disco local con nombre seguro derivado del código, **nunca el nombre que envía el cliente**.
-5. **`POST /evidencias/:id/validacion`** (RF-013, RF-014, HU-11): aprobar, rechazar o solicitar corrección. Solo rol `verificador`, `supervisor` o `admin`. Audita y recalcula.
-6. **`GET /cumplimiento/:periodoId`**: expone `services/cumplimiento.ts`, que ya está construido y probado.
+1. ✅ `/periodos` con cierre y **reapertura solo de admin, con motivo en la bitácora** (RF-005, RN-013, HU-28).
+2. ✅ `/cargos` e `/items`, que se **desactivan en vez de borrarse** (RF-003, HU-04).
+3. ✅ `POST /actividades` con código generado por el servidor, RUT y teléfono normalizados, ítem validado contra el cargo y alerta de trazabilidad del vecino (RF-009…011, ADR-008).
+4. ✅ `POST /actividades/:id/evidencias` — cuerpo crudo, formato del catálogo, tamaño del parámetro, ruta derivada del código (RF-012, RNF-017).
+5. ✅ `POST /evidencias/:id/validacion` con tres decisiones y segregación de funciones (RF-013, RF-014, RNF-005).
+6. ✅ `GET /cumplimiento/:periodoId` expone el motor v2 con los parámetros usados y su marca `confirmado`.
+7. ✅ `version` → 409 y `auditoria` en todos los writes del modelo v2.
 
-**Cuidados de este bloque**:
-- Aplicar `version` (409 en conflicto) en todo PATCH — la columna existe pero **ningún endpoint la usa todavía**.
-- Llamar a `auditoria` en cada write crítico — el servicio existe pero **ningún controlador lo llama todavía**.
-- Las actividades validadas **no se editan**: se anulan con motivo y se crea una nueva (ADR-006).
+**Lo que quedó fuera y hay que hacer**: la API de `MetaItem` (meta y ponderador por funcionario, RF-007), `Ajuste` (RF-025), `AtencionSocial` (RF-015), `Comentario` (RF-035), `Ausencia`, y el CRUD de catálogos y parámetros. Sin la de `MetaItem`, las metas solo se cargan por seed.
 
-### Bloque B — Pantallas (RF-008, HU-06, HU-11)
+### Bloque B — Pantallas (RF-008, HU-06, HU-11) ← **empezar aquí**
 
-Ficha personal, formulario de actividad con evidencia, bandeja del verificador. Criterios de diseño **ya fijados** en [DESIGN.md §8.2](../DESIGN.md) — leerlos antes de maquetar.
+Ficha personal, formulario de actividad con evidencia, bandeja del verificador. Criterios de diseño **ya fijados** en [DESIGN.md §8.2](../DESIGN.md) — leerlos antes de maquetar. La API ya existe entera: no hace falta backend nuevo para estas tres pantallas.
+
+**Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: la UI debe ofrecer **anular con motivo**.
 
 ### Bloque C — Migrar el dashboard al cálculo v2
 
@@ -68,22 +69,24 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
-| `services/auditoria.ts` existe pero **ningún controlador lo llama** | rutas del backend | Alta |
-| Columna `version` creada pero **ningún endpoint la compara** | rutas del backend | Alta |
-| Roles `verificador` y `consulta` en el enum, pero `requireRol` no los usa en ninguna ruta | `middleware/roles.ts` y rutas | Alta |
+| ~~`auditoria` sin llamadas~~ → resuelto en el modelo v2; **las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar** | rutas v1 | Media |
+| ~~`version` sin comparar~~ → resuelto en el modelo v2; **las rutas v1 siguen sin bloqueo optimista** | rutas v1 | Media |
+| ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
+| Falta la API de `MetaItem`: sin ella las metas por funcionario solo se cargan por seed | backend | Alta |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
+| El frontend aún no consume ningún endpoint del modelo v2 | `frontend/src/lib/` | Alta |
 | El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `frontend/src/lib/dashboard.ts` | Media |
 | `Comentario`, `AtencionSocial` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
-| Sin estrategia de ramas documentada (la exige el PDF §15, entregable 01) | README | Media |
+| ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |
 | El plan del Planner (`docs/plan-desarrollo.csv`) **aún no se ha cargado** | `scripts/cargar-plan-planner.ps1` | Media |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
-## 5. Las 7 consultas al docente
+## 5. Las 10 consultas al docente
 
-Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md). **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Las dos que más impactan:
+Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con tabla de impacto al inicio. **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Tres nacieron en el Bloque A: la **8** (si una aprobación puede revertirse), la **9** (si el verificador es transversal o por delegación) y la **10** (antivirus y retención de evidencias, RNF-017 — la única que puede implicar costo). Las dos que más impactan en el cálculo:
 
 1. **Felicitación y reclamo**: el PDF dice −20% y −30%; la planilla muestra +10% (máx. 3) y −20%; el audio decía "+10, máx. 1 mensual".
 2. **Tope de 150%**: la planilla lo declara en el encabezado pero muestra valores de 154% y 206% sin recortar. ¿Se aplica o solo se informa?
@@ -97,6 +100,8 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **`prisma generate` falla si el servidor dev está corriendo** (bloquea el `.dll` del motor). Detenerlo antes.
 - **Here-strings de PowerShell con comillas dobles rompen `git commit -m`.** Usar `git commit -F archivo.txt`.
 - El puerto 4000 puede quedar ocupado por un `tsx watch` huérfano de una sesión anterior: revisar con `Get-Process node`.
+- **`npm run verificar:api` necesita el servidor corriendo** (como el smoke) y toca la base: crea un período, un cargo, ítems, actividades y una evidencia, y **los borra al terminar**. Si se interrumpe a la mitad, quedan datos de prueba: `npx prisma db seed` los limpia.
+- Al agregar un parámetro nuevo a `services/parametros.ts` hay que **volver a sembrar** (`npx prisma db seed`) o el endpoint que lo lee falla con "parámetro no configurado".
 
 ## 7. Definición de terminado
 

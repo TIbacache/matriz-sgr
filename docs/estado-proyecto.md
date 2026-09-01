@@ -1,6 +1,6 @@
 # Estado del proyecto — Matriz SGR
 
-**Actualizado**: 25 de agosto de 2026 (fin de Fase 3)
+**Actualizado**: 1 de septiembre de 2026 (Bloque A — API del registro y la validación)
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fase.
 
 ## Resumen por fases
@@ -195,13 +195,57 @@ Dos de esas comprobaciones detectaron errores reales durante el desarrollo (pond
 |---|---|---|
 | ~~Umbrales y tope fijos en SQL~~ → el **motor nuevo** (`services/cumplimiento.ts`) los lee de `parametro`. Falta migrar la vista materializada v1, que aún los tiene fijos y sigue alimentando el dashboard actual | RNF-015, RF-038 | Alta |
 | ~~El período se deriva del string `2026-Q3`~~ → existe la tabla `Periodo`; falta que la **vista materializada y el dashboard** la usen en vez del string | RF-005, §13.1 | Alta |
-| ~~Falta bloqueo optimista~~ → columna `version` creada; falta **aplicarla en los endpoints** (comparar y devolver 409) | RF-034, CA-08 | Alta |
-| ~~Falta tabla `auditoria`~~ → creada y protegida por triggers; falta **llamarla desde los controladores** | RNF-008, RF-036 | Alta |
+| ~~Falta bloqueo optimista~~ → **resuelto en el Bloque A**: todo PATCH del modelo v2 compara `version` y responde 409. Falta aplicarlo en las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) | RF-034, CA-08 | Media |
+| ~~Falta tabla `auditoria`~~ → **resuelto en el Bloque A** para el modelo v2; las rutas v1 aún no auditan | RNF-008, RF-036 | Media |
 | ~~El seed usa nombres reales~~ → **resuelto**: seed 100% ficticio | §Condiciones del caso | ✅ |
-| ~~Faltan roles Verificador y Usuario de consulta~~ → **resuelto**: en el enum y en el seed. Falta aplicarlos en `requireRol` | §3 Actores | Media |
-| **Faltan las rutas API del modelo v2** (actividades, evidencias, validación, períodos, cargos, ítems, ajustes) y sus pantallas | EP-01, EP-03 | Alta |
+| ~~Faltan roles Verificador y Usuario de consulta~~ → **resuelto**: en el enum, en el seed y ahora **en las rutas** (`requireRol("verificador"…)` en validación) | §3 Actores | ✅ |
+| ~~Faltan las rutas API del modelo v2~~ → **resuelto en el Bloque A** para períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento. **Faltan** metas por funcionario (`MetaItem`), ajustes, atención social, comentarios y ausencias | EP-01, EP-03 | Alta |
+| **Faltan las pantallas del modelo v2** (ficha personal, formulario de actividad, bandeja del verificador) | RF-008, HU-06, HU-11 | Alta |
 | Sin pruebas unitarias (Jest) ni de componentes (RTL) | §14.3 | Alta |
 | Falta alternativa por teclado en el drag & drop | RNF-012, DESIGN §8.1 | Media |
+
+## API del modelo v2 — Bloque A (1 de septiembre de 2026)
+
+El eje **actividad → código → evidencia → validación → puntaje** ya funciona de extremo a extremo por API. Verificado con `npm run verificar:api` → **57/57**.
+
+### Contrato (puerto 4000, mismo JWT)
+
+| Endpoint | Roles | Notas |
+|---|---|---|
+| `GET /periodos[?estado=abierto]` · `GET /periodos/:id` | todos | Devuelve `diasTotales`, `diasTranscurridos` y `porcentajeTranscurrido` **calculados desde las fechas** (§13.1: prohibido fijar 90/91) |
+| `POST /periodos` | admin, supervisor | Rechaza solapamiento con otro período (422) y nombre duplicado (422) |
+| `PATCH /periodos/:id` | admin, supervisor | Exige `version`; período cerrado → 422 |
+| `POST /periodos/:id/cierre` | admin, supervisor | `{version}`. Congela el período (RN-013) |
+| `POST /periodos/:id/reapertura` | **solo admin** | `{version, motivo}` — el motivo queda en la bitácora inmutable (RN-013, CA-10) |
+| `GET /cargos[?incluirInactivos=1]` · `GET /items[?cargo=]` | todos | El funcionario necesita ver qué se le mide (RF-008) |
+| `POST/PATCH /cargos` · `POST/PATCH /items` | admin, supervisor | No hay DELETE: se desactiva (`activo:false`). `PATCH` exige `version`. `cargoId` de un ítem no se puede mover |
+| `GET /actividades?periodo=&funcionario=&item=&unidad=&fechaDesde=&fechaHasta=&limite=&desde=` | todos, **acotado por delegación** | Paginado (`{total, limite, desde, actividades}`); delegación ajena → 404 |
+| `POST /actividades` | usuario, gerente, supervisor, admin | La delegación se deriva de la membresía, no del cliente. Valida período abierto, fecha dentro del período, ítem del cargo, RUT y teléfono. Devuelve `alertaTrazabilidad` si esa persona ya fue atendida en otra delegación (ADR-008) |
+| `PATCH /actividades/:id` | autor, jefatura, nivel central | Exige `version`. Con evidencia **aprobada** → 422 con `accionSugerida` |
+| `POST /actividades/:id/anulacion` | ídem | `{version, motivo}` — baja lógica, deja de sumar (ADR-006) |
+| `POST /actividades/:id/evidencias?nombre=` | ídem | **Cuerpo = archivo crudo**, `Content-Type` = su MIME. Formato → catálogo `formato_evidencia` (415); tamaño → parámetro `evidencia_tamano_max_mb` (413) |
+| `GET /evidencias?estado=pendiente\|aprobada\|rechazada\|correccion_solicitada&periodo=&unidad=` | todos; el **verificador ve todas** | Bandeja ordenada por antigüedad |
+| `GET /evidencias/:id` · `GET /evidencias/:id/archivo` | ídem | El archivo no se sirve como estático: pasa por autorización |
+| `POST /evidencias/:id/validacion` | verificador, supervisor, admin | `{decision, observacion}`. Tres decisiones (RF-013); observación obligatoria si no se aprueba; **nadie valida lo propio** (RNF-005); una aprobación no se re-decide (CA-01) |
+| `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
+
+### Eventos Socket.io nuevos
+
+- room unidad: `actividad:creada`, `actividad:actualizada`, `actividad:anulada`, `evidencia:creada`, `validacion:registrada`
+- room org: `periodo:creado/actualizado/cerrado/reabierto`, `cargo:creado/actualizado`, `item:creado/actualizado`, `evidencia:pendiente` (avisa a la bandeja), `cumplimiento:cambiado` (solo al aprobar: es lo único que mueve el puntaje)
+
+### Decisiones del Bloque A (no re-discutir sin motivo)
+
+12. **Subida de evidencia sin multipart**: el cuerpo es el archivo crudo. Evita una dependencia (costo cero) y el nombre del cliente nunca llega al disco — la ruta se deriva del código inmutable de la actividad (`<org>/<CODIGO>-NN.<ext>`). El nombre enviado se guarda saneado, solo como metadato.
+13. **El tope de subida tiene dos capas**: `LIMITE_SUBIDA_HTTP` (env, guarda de infraestructura, 25 MB) y `evidencia_tamano_max_mb` (parámetro de negocio, 10 MB). Los formatos viven en el catálogo `formato_evidencia`, no en el código.
+14. **Una aprobación es final**: cambiarla alteraría un puntaje ya contabilizado (CA-01). Para corregir se anula la actividad y se registra otra.
+15. **El verificador ve todas las delegaciones** (`unidadesParaVerificacion`), pero **solo para evidencias**: no se amplió su acceso al libro ni al tubo. Es una función transversal del PDF §3, no un permiso general.
+16. **Los períodos no se solapan**: si lo hicieran, una actividad podría caer en dos y el avance se contaría dos veces.
+17. **La anulación se audita como `eliminar`** (baja lógica): la fila permanece, deja de sumar y conserva su motivo.
+
+### Limitación declarada
+
+RNF-017 pide además **antivirus** sobre las evidencias. Queda fuera de alcance por la restricción de costo cero; está declarado, no oculto.
 
 ## Requerimientos reales de la reunión con el cliente
 
