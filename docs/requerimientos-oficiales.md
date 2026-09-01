@@ -43,23 +43,23 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 |---|---|---|---|
 | RF-001 | Administrar delegaciones (crear, modificar, activar, desactivar) | 🟡 | Falta activar/desactivar (hoy se elimina) |
 | RF-002 | Administrar usuarios y roles (estado, cargo, delegación, uno o más roles) | 🟡 | Existe membresía con cargo y unidad; falta **múltiples roles** y estado, y la UI de administración |
-| RF-003 | Configurar cargos y funciones: asociar a cada cargo los ítems medidos | ⬜ | Entidad `cargo` + `item_medicion` |
-| RF-004 | Catálogo de actividades, servicios, atenciones y subatenciones por área | ⬜ | Catálogos reales ya levantados en [estructura-planilla-real.md](estructura-planilla-real.md) §4 |
-| RF-005 | Configurar períodos: inicio, término, estado y **días computables** | ⬜ | Hoy derivamos el trimestre del string `2026-Q3` → **debe pasar a tabla** |
-| RF-006 | Configurar ponderaciones por ítem, cargo y período | 🟡 | Validamos suma ≤ 100% en metas por unidad; falta por cargo/ítem |
-| RF-007 | Configurar metas y umbrales, **versionado**, rige desde el período | ⬜ | Falta versionado (RF-038) |
+| RF-003 | Configurar cargos y funciones: asociar a cada cargo los ítems medidos | ✅ | `GET/POST/PATCH /cargos` y `/items` (`b1f3e75`). Falta la pantalla |
+| RF-004 | Catálogo de actividades, servicios, atenciones y subatenciones por área | 🟡 | Tabla `CatalogoItem` sembrada y **ya consumida** (`formato_evidencia`); falta su CRUD |
+| RF-005 | Configurar períodos: inicio, término, estado y **días computables** | ✅ | `/periodos` con cierre y reapertura auditada (`b1f3e75`); los días se calculan desde las fechas |
+| RF-006 | Configurar ponderaciones por ítem, cargo y período | 🟡 | Validamos suma ≤ 100% en metas por unidad; falta la API de `MetaItem` (por cargo/ítem) |
+| RF-007 | Configurar metas y umbrales, **versionado**, rige desde el período | 🟡 | `MetaItem` existe y el período ya es una entidad; falta su API y el versionado (RF-038) |
 
 ### 3.2 Registro personal y evidencias
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-008 | Ficha personal: funcionario, cargo, delegación, ítems, metas, avance, ponderado | ⬜ | Es la "pestaña personal". Pantalla central que falta |
-| RF-009 | Registrar actividades (fecha, actividad, acción, contacto, teléfono, ítem, ingreso a tubo) | ⬜ | Columnas exactas en estructura-planilla-real §3 |
-| RF-010 | Validar campos: obligatoriedad, formatos, coherencia | 🟡 | Zod en el backend; falta validación de RUT y teléfono |
-| RF-011 | Generar código de evidencia único e **inmutable** | ⬜ | Formato definido en [ADR-004](decisiones-tecnicas.md) |
-| RF-012 | Asociar evidencia (foto) al código, con fecha y autor de carga | ⬜ | |
-| RF-013 | Validar evidencia: aprobar, rechazar o **solicitar corrección**, con observación | ⬜ | Tres decisiones, no dos |
-| RF-014 | Solo lo validado suma al avance | ⬜ | Regla central del sistema de puntos |
+| RF-008 | Ficha personal: funcionario, cargo, delegación, ítems, metas, avance, ponderado | 🟡 | Los datos ya se sirven (`GET /cumplimiento/:periodoId?funcionario=`); falta la **pantalla** |
+| RF-009 | Registrar actividades (fecha, actividad, acción, contacto, teléfono, ítem, ingreso a tubo) | ✅ | `POST /actividades` (`b1f3e75`); falta la pantalla |
+| RF-010 | Validar campos: obligatoriedad, formatos, coherencia | ✅ | Zod + RUT (`lib/rut.ts`), teléfono (`lib/telefono.ts`), fecha dentro del período, ítem del cargo |
+| RF-011 | Generar código de evidencia único e **inmutable** | ✅ | `services/codigos.ts` + trigger; verificado en `verificar:api` |
+| RF-012 | Asociar evidencia (foto) al código, con fecha y autor de carga | ✅ | `POST /actividades/:id/evidencias`; ruta derivada del código, nunca del nombre del cliente |
+| RF-013 | Validar evidencia: aprobar, rechazar o **solicitar corrección**, con observación | ✅ | `POST /evidencias/:id/validacion`; observación obligatoria si no se aprueba |
+| RF-014 | Solo lo validado suma al avance | ✅ | Verificado de punta a punta: el avance sube solo tras aprobar, y una sola vez |
 | RF-015 | Atención social con **hasta 3 gestiones** para el mismo usuario | ⬜ | Columnas en estructura-planilla-real §4 |
 
 ### 3.3 Agenda colectiva (nuestro "tubo")
@@ -77,7 +77,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-022 | Calcular avance con actividades **válidas** por ítem, funcionario, delegación y período | 🟡 | Hoy por unidad y categoría, sin nivel funcionario ni validación |
+| RF-022 | Calcular avance con actividades **válidas** por ítem, funcionario, delegación y período | ✅ | `GET /cumplimiento/:periodoId` expone el motor v2 por funcionario. El **dashboard** aún lee la vista v1 (Bloque C) |
 | RF-023 | % de cumplimiento = avance / meta | ✅ | |
 | RF-024 | Cumplimiento ponderado respetando el **máximo configurado** | 🟡 | Tope 150% está fijo en SQL → parametrizar ([ADR-007](decisiones-tecnicas.md)) |
 | RF-025 | Incentivos y penalizaciones parametrizables (felicitaciones, reclamos) | ⬜ | Con motivo, valor, responsable y efecto |
@@ -94,13 +94,13 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 |---|---|---|---|
 | RF-032 | Buscar y filtrar por delegación, área, funcionario, cargo, período, ítem, estado, fechas | 🟡 | Dashboard filtra por trimestre y delegación |
 | RF-033 | Generar y **exportar informes** conservando filtros y encabezados | ⬜ | |
-| RF-034 | Trabajo simultáneo sin sobrescritura | 🟡 | Socket.io sí; falta **bloqueo optimista** ([ADR-005](decisiones-tecnicas.md)) |
+| RF-034 | Trabajo simultáneo sin sobrescritura | 🟡 | Socket.io + **bloqueo optimista con 409** en todo el modelo v2 (`services/concurrencia.ts`); falta aplicarlo en las rutas v1 |
 | RF-035 | Comentarios/observaciones asociados a registros | ⬜ | Petición literal del cliente |
-| RF-036 | **Trazabilidad** de altas, modificaciones, validaciones y cambios de estado | ⬜ | Tabla `auditoria` ([ADR-006](decisiones-tecnicas.md)) |
-| RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | ⬜ | |
-| RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | ⬜ | |
+| RF-036 | **Trazabilidad** de altas, modificaciones, validaciones y cambios de estado | 🟡 | `auditarDesde()` en cada write crítico del modelo v2; faltan las rutas v1 y la pantalla de consulta |
+| RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
+| RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 5 ✅ · 13 🟡 · 20 ⬜**
+**Resumen: 38 RF → 13 ✅ · 16 🟡 · 9 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜)
 
 ---
 
@@ -115,16 +115,16 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RNF-005 | Autorización | Por rol, delegación, función y operación; mínimo privilegio y **segregación de funciones** | ✅ |
 | RNF-006 | Confidencialidad | Cifrado en tránsito y protección de evidencias | 🟡 HTTPS en Fase 5 |
 | RNF-007 | Integridad | Validar formatos, relaciones, duplicados y cambios concurrentes | 🟡 |
-| RNF-008 | **Auditoría** | Usuario, fecha, origen, acción, **valor anterior y nuevo**, protegido contra alteración | ⬜ |
+| RNF-008 | **Auditoría** | Usuario, fecha, origen, acción, **valor anterior y nuevo**, protegido contra alteración | 🟡 aplicada en el modelo v2 (con IP y ruta de origen); faltan las rutas v1 |
 | RNF-009 | Privacidad | Minimizar datos personales, restringir visualización, definir conservación y eliminación | ⬜ |
 | RNF-010 | Respaldo | RPO 24 h, RTO 4 h | ⬜ Fase 5 |
 | RNF-011 | Usabilidad | Etiquetas comprensibles, validación contextual, filtros consistentes | ✅ |
 | RNF-012 | **Accesibilidad** | Navegación por teclado, contraste suficiente, textos alternativos | 🟡 contraste validado; falta auditoría de teclado |
 | RNF-013 | Compatibilidad | Chrome y Edge, escritorio y móvil | 🟡 falta prueba explícita en Edge |
 | RNF-014 | Escalabilidad | Nuevas delegaciones, cargos, actividades, períodos y usuarios sin rediseñar | ✅ multi-tenant |
-| RNF-015 | Mantenibilidad | Metas, ponderadores, estados, catálogos y umbrales **sin cambios de código** | ⬜ ADR-007 |
+| RNF-015 | Mantenibilidad | Metas, ponderadores, estados, catálogos y umbrales **sin cambios de código** | 🟡 todo lo del modelo v2 sale de `parametro` y de catálogos; falta la pantalla de configuración |
 | RNF-016 | Interoperabilidad | Exportación estructurada e integración futura | ⬜ |
-| RNF-017 | Gestión de evidencias | Formatos, tamaño máximo, **antivirus**, metadatos, acceso, retención, eliminación segura | ⬜ |
+| RNF-017 | Gestión de evidencias | Formatos, tamaño máximo, **antivirus**, metadatos, acceso, retención, eliminación segura | 🟡 formatos (catálogo), tamaño (parámetro), metadatos y acceso controlado ✔ · **antivirus fuera de alcance por costo cero (declarado)**; retención sin definir |
 | RNF-018 | Monitoreo | Métricas y alertas sobre errores, integraciones, capacidad y tareas automáticas | ⬜ |
 
 ---
@@ -135,17 +135,17 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 |---|---|---|
 | RN-001 | Ponderadores de un cargo y período suman **100%** | 🟡 validado por unidad, falta por cargo |
 | RN-002 | Meta > 0; ítems porcentuales declaran su fórmula | ⬜ ver [ADR-009](decisiones-tecnicas.md) |
-| RN-003 | Avance = actividades **válidas** del ítem en el período | ⬜ |
+| RN-003 | Avance = actividades **válidas** del ítem en el período | ✅ verificado: lo anulado y lo no aprobado no suman |
 | RN-004 | % cumplimiento = avance / meta × 100 | ✅ |
 | RN-005 | Ponderado = ponderador × % cumplimiento; **máximo 150% por confirmar** | 🟡 parametrizar |
 | RN-006 | Umbral mínimo colectivo **80%**, configurable | 🟡 |
 | RN-007 | Meta esperada al día = días transcurridos computables / días totales computables × 100 | ✅ |
 | RN-008 | Semáforo: verde ≥ esperado; ámbar ≥ 60% del esperado y < esperado; rojo < 60% | ✅ **verificado con los datos reales de la planilla** |
-| RN-009 | Solo una validación **aprobada** otorga el punto | ⬜ |
-| RN-010 | Códigos de evidencia únicos e inmutables | ⬜ ADR-004 |
+| RN-009 | Solo una validación **aprobada** otorga el punto | ✅ verificado de punta a punta (avance 7 → 8 solo al aprobar) |
+| RN-010 | Códigos de evidencia únicos e inmutables | ✅ ADR-004, con trigger en base y correlativo bajo bloqueo |
 | RN-011 | Felicitaciones/reclamos **parametrizables** — el PDF menciona −20% y −30%, requiere definición oficial | ⬜ ⚠ la planilla muestra +10% (máx 3) y −20% |
 | RN-012 | Atención social: hasta 3 gestiones por persona, con fechas y resultados por etapa | ⬜ |
-| RN-013 | Períodos cerrados no se modifican salvo reapertura autorizada y auditada | ⬜ |
+| RN-013 | Períodos cerrados no se modifican salvo reapertura autorizada y auditada | ✅ cerrado → 422 en edición, alta de actividad y validación; reapertura solo de admin, con motivo en la bitácora |
 
 ---
 
@@ -153,16 +153,16 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Escenario | Estado |
 |---|---|---|
-| CA-01 | Registro validado suma **una vez** y actualiza tableros | ⬜ |
-| CA-02 | Evidencia rechazada conserva observación y no aporta puntaje | ⬜ |
+| CA-01 | Registro validado suma **una vez** y actualiza tableros | ✅ verificado; emite `cumplimiento:cambiado` al aprobar. La actualización **visual** del tablero llega con el Bloque C |
+| CA-02 | Evidencia rechazada conserva observación y no aporta puntaje | ✅ la observación es obligatoria al rechazar o pedir corrección |
 | CA-03 | Compromiso vencido se destaca, mantiene historial y genera alerta | 🟡 se destaca; faltan historial y alerta |
 | CA-04 | Caso social con 3 gestiones y secuencia consultable | ⬜ |
 | CA-05 | Al cambiar fecha o avance se recalculan meta acumulada y semáforo | ✅ |
 | CA-06 | Totales del tablero coinciden con el detalle filtrado | ✅ |
 | CA-07 | Un funcionario no modifica datos de otra delegación | ✅ verificado en smoke test |
-| CA-08 | Dos usuarios registran a la vez sin perder ni sobrescribir sin advertencia | 🟡 |
-| CA-09 | Cada modificación crítica rastreable a usuario, fecha, valor anterior y nuevo | ⬜ |
-| CA-10 | Período cerrado no alterable; reapertura autorizada y auditada | ⬜ |
+| CA-08 | Dos usuarios registran a la vez sin perder ni sobrescribir sin advertencia | 🟡 409 con la versión y el registro vigentes en todo el modelo v2; falta en las rutas v1 y el aviso en la UI |
+| CA-09 | Cada modificación crítica rastreable a usuario, fecha, valor anterior y nuevo | 🟡 verificado en el modelo v2; faltan las rutas v1 |
+| CA-10 | Período cerrado no alterable; reapertura autorizada y auditada | ✅ verificado (8 comprobaciones del ciclo del período) |
 
 ---
 
@@ -186,14 +186,14 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 ## 8. Alcance mínimo exigido (MVP, §13.2)
 
 - ✅ Autenticación y autorización por rol y delegación
-- 🟡 Administración básica de usuarios, cargos, catálogos, períodos, metas y ponderaciones
-- ⬜ Registro de actividades con identificador único, evidencia y flujo de validación
+- 🟡 Administración básica de usuarios, cargos, catálogos, períodos, metas y ponderaciones — cargos, ítems y períodos ✔ por API; faltan metas por funcionario y las pantallas
+- ✅ Registro de actividades con identificador único, evidencia y flujo de validación — **completo por API**, falta la pantalla
 - 🟡 Agenda colectiva con responsables, estados, plazos e **historial de cambios**
 - ✅ Cálculo de avance, cumplimiento ponderado, meta esperada al día y semáforo
-- 🟡 Panel **personal** y resumen de delegación con filtros y acceso al detalle
-- ⬜ Informe o exportación básica y **auditoría de operaciones críticas**
+- 🟡 Panel **personal** y resumen de delegación con filtros y acceso al detalle — los datos ya se sirven; falta la ficha
+- 🟡 Informe o exportación básica y **auditoría de operaciones críticas** — auditoría ✔ en el modelo v2; exportación ⬜
 
-**Brecha principal**: todo el eje **actividad → código → evidencia → validación → puntaje**, que es el corazón del sistema, y el **nivel funcionario**. Nuestro avance está en la agenda colectiva y el cálculo consolidado.
+**Brecha principal restante**: las **pantallas** del eje actividad → evidencia → validación (ficha personal, formulario, bandeja del verificador) y la migración del dashboard al cálculo por funcionario. La API de ese eje ya está construida y verificada (commit `b1f3e75`).
 
 ---
 
@@ -232,3 +232,4 @@ El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. Est
 5. **Roles Verificador y Usuario de consulta**: ¿son perfiles independientes o funciones del Coordinador?
 6. **Ítems de dirección inversa** ("Pendientes en tubo menor a 10%"): ¿la fórmula `meta/avance` es la correcta?
 7. **Multi-tenant**: nuestro sistema soporta varias organizaciones (el cliente pidió que fuera vendible a cualquier municipio o empresa). ¿Se evalúa como valor agregado o se prefiere una sola organización?
+8. **¿Una validación aprobada puede revertirse?** (surgida al implementar RF-013/RF-014). El PDF no lo dice. Nuestra decisión provisional: **no** — la aprobación es definitiva porque su punto ya está contabilizado (CA-01) y revertirla cambiaría en silencio un resultado ya publicado; para corregir se **anula la actividad con motivo** y se registra una nueva (ADR-006). Si el docente indica que el verificador puede rectificar, basta con permitir una validación posterior: el modelo ya guarda el historial completo de decisiones.

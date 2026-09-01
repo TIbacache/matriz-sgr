@@ -21,18 +21,19 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 ## Estado del código (1 de septiembre de 2026)
 
-**Construido y verificado** (38 comprobaciones en verde):
+**Construido y verificado** (95 comprobaciones en verde):
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.
 - **Modelo v2 completo**: 16 entidades de la especificación oficial, con triggers de inmutabilidad de auditoría y código, y CHECKs de RUT, fechas y metas.
-- Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`.
+- **API del modelo v2 (Bloque A)**: `/periodos` (con cierre y reapertura auditada), `/cargos`, `/items`, `/actividades` (código inmutable, anulación con motivo), evidencias, `/evidencias/:id/validacion` y `GET /cumplimiento/:periodoId`. Con `version` → 409 y auditoría en cada write. Contrato en [docs/estado-proyecto.md](docs/estado-proyecto.md).
+- Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
 - Seed 100% ficticio con 1.126 actividades validadas.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
-- Rutas API y pantallas del modelo v2 (actividades, evidencias, validación, períodos, cargos, ítems, ajustes).
-- La ficha personal (RF-008) y la bandeja del verificador.
-- Los controladores aún **no llaman** a `auditoria` ni aplican `version` (las tablas ya están listas).
+- **Pantallas del modelo v2**: la ficha personal (RF-008), el formulario de actividad con evidencia y la bandeja del verificador. El frontend aún no consume ningún endpoint v2.
+- API de `MetaItem` (metas por funcionario), `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
+- Las rutas **v1** (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar y sin `version`.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
 
@@ -48,6 +49,7 @@ npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 17 verificaciones de integración (server corriendo)
 npm run verificar:calculo     # 21 verificaciones del motor de cálculo
+npm run verificar:api         # 57 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo
@@ -71,7 +73,7 @@ Cuentas demo (todas `matriz123`): `admin@sgr.demo` · `coordinador@sgr.demo` · 
 1. **Auditar antes de implementar.** Leer el requisito en `requerimientos-oficiales.md`, revisar si el modelo ya lo cubre y comprobar el estado real del código antes de escribir. Varias entidades ya existen sin API: crear una tabla duplicada sería el error más caro.
 2. **Metodología**: trabajar por fases; al cerrar una, informe breve (qué se hizo / qué falta / decisiones / riesgos) y esperar aprobación. Commits en español, convencionales, **referenciando la HU y el RF** (ej. `feat(evidencias): HU-10 RF-011 código verificador inmutable`).
 3. **Nada de valores de negocio en el código.** Períodos, topes (150%), umbrales (80%, 60%) y ajustes van en la tabla `parametro` con vigencia, vía `services/parametros.ts` (RNF-015, RF-038, ADR-007). **Prohibido fijar 90/91 días.**
-4. **Solo lo validado suma.** Una actividad aporta al avance únicamente con validación aprobada (RN-009, RF-014). El código de evidencia es único e **inmutable** (RF-011, con trigger en la base).
+4. **Solo lo validado suma.** Una actividad aporta al avance únicamente con validación aprobada (RN-009, RF-014). El código de evidencia es único e **inmutable** (RF-011, con trigger en la base). Nadie valida lo propio (RNF-005) y una aprobación no se revierte: se anula la actividad con motivo (consulta abierta nº 8).
 5. **Todo write emite su evento** vía `emitEvent()` de `services/broadcast.ts` (rooms `unidad:<id>`, `org:<id>`). Endpoint mudo = bug.
 6. **Todo write crítico se audita** con `services/auditoria.ts`: usuario, fecha, acción, entidad, valor anterior y nuevo (RNF-008, ADR-006). Los períodos cerrados no se modifican.
 7. **Concurrencia**: bloqueo optimista con `version`; conflicto → **409**, nunca sobrescritura silenciosa (RF-034, CA-08, ADR-005).
@@ -83,5 +85,5 @@ Cuentas demo (todas `matriz123`): `admin@sgr.demo` · `coordinador@sgr.demo` · 
 13. **Costo cero**: sin dependencias ni servicios de pago. VPS solo al final si es imprescindible.
 14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado (RNF-012, DESIGN §8.1).
 15. **Una historia no está terminada sin prueba**: al implementarla se actualiza [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) con commit, caso de prueba y resultado.
-16. **Las ambigüedades se documentan, no se inventan**: hay 7 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí.
+16. **Las ambigüedades se documentan, no se inventan**: hay 8 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí.
 17. Puertos: API 4000, frontend 5173, Postgres 5432. Los puertos 3000/8000/27017 los ocupa otro proyecto Docker ("talia") — no tocarlos.
