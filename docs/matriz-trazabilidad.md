@@ -2,7 +2,7 @@
 
 **Exigida por el PDF (§15.1)**: *"Cada equipo deberá mantener una matriz con: HU, requisito relacionado, tarea o commit, caso de prueba, resultado, responsable y enlace a la evidencia. **Una historia no se considera terminada si no puede demostrarse su trazabilidad.**"*
 
-**Actualizada**: 1 de septiembre de 2026 (Bloque A — API del registro y la validación) · **Se actualiza en cada cierre de sprint.**
+**Actualizada**: 1 de septiembre de 2026 (Bloque A2 — API de metas por funcionario) · **Se actualiza en cada cierre de sprint.**
 
 Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada · ⬜ no iniciada
 
@@ -13,16 +13,18 @@ Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada
 | Épica | Historias | ✅ | 🟡 | ⬜ |
 |---|---|---|---|---|
 | EP-01 Registro y gestión de actividades | HU-01…04 | 2 | 1 | 1 |
-| EP-02 Medición y desempeño | HU-05…08 | 1 | 3 | 0 |
+| EP-02 Medición y desempeño | HU-05…08 | 2 | 2 | 0 |
 | EP-03 Evidencias y verificación | HU-09…11 | 3 | 0 | 0 |
 | EP-04 Agenda colectiva y compromisos | HU-12…15 | 1 | 3 | 0 |
 | EP-05 Monitoreo y control de gestión | HU-16…19 | 2 | 1 | 1 |
 | EP-06 Reportabilidad | HU-20…22 | 0 | 1 | 2 |
 | EP-07 Plataforma colaborativa | HU-23…25 | 1 | 1 | 1 |
 | EP-08 Administración, seguridad y trazabilidad | HU-26…31 | 3 | 2 | 1 |
-| **Total** | **31** | **13** | **12** | **6** |
+| **Total** | **31** | **14** | **11** | **6** |
 
 Salto del Bloque A (commit `b1f3e75`): **EP-03 queda completa** y EP-01 pasa de 0 a 2 historias demostrables. Lo que falta de EP-01 son pantallas y el registro de servicios (HU-03), no la API.
+
+Salto del Bloque A2 (commit `de68901`): **HU-05 queda demostrable** — las metas y ponderadores por funcionario ya se configuran por API, con RN-001 verificada en sus dos formas (no superar el 100% al cargar de a una; cuadrar exacto al cargar el conjunto). Lo que le falta a EP-02 son pantallas, no API.
 
 ---
 
@@ -35,8 +37,8 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-01 Registro de actividades | RF-009, RF-010, RF-014, RF-022 | — | `b1f3e75` `backend/src/routes/actividades.routes.ts` · **pantalla** `frontend/src/components/ficha/FilaNuevaActividad.tsx` | api:"RF-009 registrar actividad", "no se puede sumar a un ítem de otro cargo", "fecha fuera del período", "RUT inválido", "teléfono inválido" | PASS (5/5) | A | ✅ |
 | HU-02 Registro de compromisos ciudadanos | RF-016…021 | HU-3.2 | `91e8fcb` `b5e7eff` `backend/src/routes/tareas.routes.ts` · `frontend/src/components/NuevaTareaModal.tsx` | smoke-16, smoke-17 | PASS | A | 🟡 falta solicitante/territorio/INT-EXT |
 | HU-03 Registro de servicios entregados | RF-004, RF-015 | — | — | — | — | B | ⬜ |
-| HU-04 Administración de funciones por cargo | RF-003, RF-006, RF-007 | — | `b1f3e75` `backend/src/routes/cargos.routes.ts` (`/cargos` y `/items`) | api:"RF-003 GET /cargos con sus ítems", "crear cargo", "duplicado rechazado", "ADR-009 tipo y dirección", "se desactivan, no se borran" | PASS (5/5) | A | ✅ falta metas por funcionario (`MetaItem`) |
-| HU-05 Definición de metas | RF-005…007 | HU-4.1 | `91e8fcb` `metas.routes.ts` (v1, por unidad) + `b1f3e75` períodos | api:"RF-005 crear período calcula sus días" | PASS | A | 🟡 falta la API de `MetaItem` (meta y ponderador por funcionario) |
+| HU-04 Administración de funciones por cargo | RF-003, RF-006, RF-007 | — | `b1f3e75` `backend/src/routes/cargos.routes.ts` (`/cargos` y `/items`) · `de68901` `metas-item.routes.ts` | api:"RF-003 GET /cargos con sus ítems", "crear cargo", "duplicado rechazado", "ADR-009 tipo y dirección", "se desactivan, no se borran", "no se fija meta de un ítem que no es del cargo del funcionario" | PASS (6/6) | A | ✅ falta la pantalla de configuración |
+| HU-05 Definición de metas | RF-005…007, RN-001, RN-002 | HU-4.1 | `91e8fcb` `metas.routes.ts` (v1, por unidad) + `b1f3e75` períodos + **`de68901` `backend/src/routes/metas-item.routes.ts`** (meta y ponderador por funcionario) | api:"RF-007 se configura la meta y el ponderador de un funcionario por ítem y período", "RN-002 una meta de 0 se rechaza", "RN-001 los ponderadores no pueden superar el 100%", "RN-001 mientras no llegue al 100% la respuesta lo dice", "RN-001 la carga en lote exige el 100% exacto: 50% se rechaza", "RN-001 la carga en lote deja al funcionario cuadrado en 100%", "RF-007 no se duplica la meta de un mismo ítem, funcionario y período", "RF-007 una meta sin avance validado se puede quitar y la suma se recalcula", "RN-009/CA-01 no se borra la meta de un ítem que ya acumuló avance aprobado", "RN-013/RF-007 un período cerrado no admite cambios de metas", "RNF-005 un funcionario no configura sus propias metas", "Regla 9 las metas de otra delegación no se leen (404)", "RF-008 el funcionario sí ve lo que se le mide, con la suma y cuánto falta", "CA-08/ADR-005 editar una meta con versión vieja → 409", "Multi-tenant: período inexistente → 404" | PASS (15/15) | A | ✅ API completa; falta la pantalla de configuración |
 | HU-06 Seguimiento de avance | RF-008, RF-022, RF-023, RF-028 | HU-4.3 | `b1f3e75` `GET /cumplimiento/:periodoId?funcionario=` · **ficha personal** `frontend/src/pages/FichaPage.tsx` | api:"RF-022 el cálculo por funcionario se expone por API", "RF-008 la ficha de una persona trae sus ítems, metas y semáforo", "el registro personal se lee paginado", "las anuladas se ven solo si se piden" | PASS (4/4 sobre el contrato que consume) | A | 🟡 pantalla construida; falta prueba de componente (Bloque D) |
 | HU-07 Cálculo automático de cumplimiento | RF-023…026 | HU-4.2 | `8de89a5` migración `vista_cumplimiento_v2` | smoke-7 | PASS (`objetivo=62 relativo=161.4`) | A | ✅ |
 | HU-08 Desempeño organizacional | RF-029, RF-031 | HU-5.1, HU-5.3 | `b5e7eff` `frontend/src/pages/DashboardPage.tsx` | verificación visual | OK | A | 🟡 falta vista por cargos |
@@ -61,7 +63,7 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-27 Administración de catálogos | RF-004 | HU-2.2 | `categorias.routes.ts` · `GET /catalogos` (lectura, alimenta los formularios) | api:"RF-004 los formatos de evidencia salen del catálogo", "el catálogo coincide con lo que el servidor acepta" | PASS (2/2) | A | 🟡 solo lectura: falta el CRUD y la desactivación desde la UI |
 | HU-28 Administración de períodos | RF-005, RN-013 | — | `b1f3e75` `backend/src/routes/periodos.routes.ts` | api:"días calculados desde las fechas", "solapados rechazados", "cierre", "un período cerrado no se modifica", "la reapertura exige autorización y motivo", "el motivo queda en la bitácora" | PASS (8/8) | A | ✅ falta la pantalla |
 | HU-29 Búsqueda y filtros | RF-032 | HU-5.2 | Filtros del dashboard | visual | OK | B | 🟡 |
-| HU-30 Auditoría de cambios | RF-036, RNF-008 | — | `91f1917` tabla + triggers · `b1f3e75` `auditarDesde()` en cada write crítico del modelo v2 | api:"el ciclo del período queda auditado con valor anterior y nuevo", "la validación queda auditada con usuario" | PASS (crear → actualizar → cerrar_periodo → reabrir_periodo) | A | ✅ falta auditar las rutas v1 y la pantalla de consulta |
+| HU-30 Auditoría de cambios | RF-036, RNF-008 | — | `91f1917` tabla + triggers · `b1f3e75` `auditarDesde()` en cada write crítico del modelo v2 · `de68901` corrección de los valores `Decimal` que se perdían en silencio | api:"el ciclo del período queda auditado con valor anterior y nuevo", "la validación queda auditada con usuario", "configurar metas queda auditado (crear, actualizar y eliminar)", "los importes Decimal quedan legibles en la bitácora (regresión)" | PASS (4/4) | A | ✅ falta auditar las rutas v1 y la pantalla de consulta |
 | HU-31 Alertas operativas | RF-037 | — | — | — | — | B | ⬜ |
 
 ---

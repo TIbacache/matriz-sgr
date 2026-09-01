@@ -15,6 +15,7 @@ import { kpisRouter } from "./routes/kpis.routes.js";
 import { usuariosRouter } from "./routes/usuarios.routes.js";
 import { periodosRouter } from "./routes/periodos.routes.js";
 import { cargosRouter, itemsRouter } from "./routes/cargos.routes.js";
+import { metasItemRouter } from "./routes/metas-item.routes.js";
 import { actividadesRouter } from "./routes/actividades.routes.js";
 import { evidenciasRouter } from "./routes/evidencias.routes.js";
 import { cumplimientoRouter } from "./routes/cumplimiento.routes.js";
@@ -47,6 +48,7 @@ app.get("/", (_req, res) =>
         "GET|POST|PATCH /periodos · POST /periodos/:id/cierre · POST /periodos/:id/reapertura",
         "GET|POST|PATCH /cargos",
         "GET|POST|PATCH /items",
+        "GET|POST|PATCH|DELETE /metas-item · PUT /metas-item (conjunto de un funcionario)",
         "GET|POST|PATCH /actividades · POST /actividades/:id/anulacion",
         "POST /actividades/:id/evidencias (cuerpo = archivo crudo)",
         "GET /evidencias?estado=pendiente · GET /evidencias/:id/archivo",
@@ -70,6 +72,9 @@ app.use("/usuarios", usuariosRouter);
 app.use("/periodos", periodosRouter);
 app.use("/cargos", cargosRouter);
 app.use("/items", itemsRouter);
+// Ojo: `/metas` (arriba) es el modelo v1 por unidad × categoría; `/metas-item`
+// es el del modelo v2, por funcionario × ítem × período (RF-007).
+app.use("/metas-item", metasItemRouter);
 app.use("/actividades", actividadesRouter);
 app.use("/evidencias", evidenciasRouter);
 app.use("/cumplimiento", cumplimientoRouter);

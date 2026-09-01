@@ -22,12 +22,13 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 ## Estado del código (1 de septiembre de 2026)
 
-**Construido y verificado** (108 comprobaciones en verde):
+**Construido y verificado** (126 comprobaciones en verde):
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.
 - **Modelo v2 completo**: 16 entidades de la especificación oficial, con triggers de inmutabilidad de auditoría y código, y CHECKs de RUT, fechas y metas.
 - **API del modelo v2 (Bloque A)**: `/periodos` (con cierre y reapertura auditada), `/cargos`, `/items`, `/actividades` (código inmutable, anulación con motivo), evidencias, `/evidencias/:id/validacion` y `GET /cumplimiento/:periodoId`. Con `version` → 409 y auditoría en cada write. Contrato en [docs/estado-proyecto.md](docs/estado-proyecto.md).
+- **API de metas por funcionario (Bloque A2)**: `/metas-item` — meta y ponderador por funcionario, ítem y período (RF-006, RF-007). RN-001 exigida en sus dos formas: el alta unitaria rechaza superar el 100%, el `PUT` del conjunto exige el 100% exacto. **Ojo: `/metas` es el modelo v1 (unidad × categoría) y `/metas-item` el v2 (funcionario × ítem × período); no son lo mismo.**
 - **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
 - **Bandeja del verificador `/verificacion`** (RF-013, HU-11): cola, foto grande, tres decisiones con observación obligatoria y teclado `J`/`K`/`Enter`. Solo la ven verificador, supervisor y admin.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
@@ -35,7 +36,8 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
 - **Ficha del vecino** (ADR-008): necesita un endpoint de búsqueda de `PersonaUsuaria` que todavía no existe.
-- API de `MetaItem` (metas por funcionario), `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
+- **Pantalla de configuración de metas** (HU-05): la API ya está; falta la interfaz.
+- API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - Las rutas **v1** (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar y sin `version`.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
@@ -52,7 +54,7 @@ npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 17 verificaciones de integración (server corriendo)
 npm run verificar:calculo     # 21 verificaciones del motor de cálculo
-npm run verificar:api         # 70 verificaciones de la API v2 (server corriendo)
+npm run verificar:api         # 88 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo

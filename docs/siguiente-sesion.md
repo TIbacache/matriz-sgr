@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 1 de septiembre de 2026 (cierre del Bloque A) · Último commit de código: `b1f3e75` (rama `feat/bloque-a-api-registro-validacion`)
+**Actualizado**: 1 de septiembre de 2026 (cierre del Bloque A2) · Último commit de código: `de68901` (rama `feat/bloque-a2-api-metas-item`)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -13,13 +13,13 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 17/17 verificaciones |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** (Bloque A) | ✅ Períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento — 57/57 |
-| API pendiente del modelo v2 | ⬜ `MetaItem`, `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
-| Pantallas del modelo v2 | 🟡 Ficha personal y bandeja del verificador listas; falta la ficha del vecino ← **aquí se retoma** |
+| **API del modelo v2** (Bloques A y A2) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación y cumplimiento — 88/88 |
+| API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
+| Pantallas del modelo v2 | 🟡 Ficha personal y bandeja del verificador listas; faltan la ficha del vecino y la configuración de metas ← **aquí se retoma** |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **13 ✅ · 16 🟡 · 9 ⬜** (antes del Bloque A: 5 · 13 · 20). El eje **actividad → código → evidencia → validación → puntaje** ya funciona de extremo a extremo por API; lo que falta de él es la interfaz.
+Cumplimiento contra los 38 RF oficiales: **16 ✅ · 13 🟡 · 9 ⬜** (antes del Bloque A: 5 · 13 · 20). El eje **actividad → código → evidencia → validación → puntaje** ya funciona de extremo a extremo por API, y ahora también la configuración de **cargo → ítems → metas** que lo alimenta; lo que falta de ambos es la interfaz.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -45,7 +45,22 @@ Los siete puntos del plan quedaron construidos y verificados (`npm run verificar
 6. ✅ `GET /cumplimiento/:periodoId` expone el motor v2 con los parámetros usados y su marca `confirmado`.
 7. ✅ `version` → 409 y `auditoria` en todos los writes del modelo v2.
 
-**Lo que quedó fuera y hay que hacer**: la API de `MetaItem` (meta y ponderador por funcionario, RF-007), `Ajuste` (RF-025), `AtencionSocial` (RF-015), `Comentario` (RF-035), `Ausencia`, y el CRUD de catálogos y parámetros. Sin la de `MetaItem`, las metas solo se cargan por seed.
+**Lo que quedó fuera**: la API de `MetaItem` (hecha en el Bloque A2, abajo), `Ajuste` (RF-025), `AtencionSocial` (RF-015), `Comentario` (RF-035), `Ausencia`, y el CRUD de catálogos y parámetros.
+
+### ~~Bloque A2 — Metas por funcionario (RF-006, RF-007, RN-001)~~ ✅ TERMINADO (`de68901`)
+
+`/metas-item` abre la entidad `MetaItem`, que existía desde el modelo v2 pero solo se poblaba por seed. Contrato completo en [estado-proyecto.md §Metas por funcionario](estado-proyecto.md). Lo esencial:
+
+- `GET` con alcance por delegación y un `resumen` que trae `sumaPonderadores`, `cumpleRN001` y `faltante` — la pantalla debe poder decir "falta 15%" antes de guardar.
+- `POST` rechaza **superar** el 100%; `PUT` (conjunto completo de una persona) exige el **100% exacto**, en transacción. Son las dos caras de RN-001.
+- `DELETE` protegido: no se quita la meta de un ítem que ya acumuló avance aprobado (RN-009, CA-01).
+- `PATCH` con `version` → 409, auditoría en todo write y eventos `meta_item:*` + `cumplimiento:cambiado`.
+
+⚠ **`/metas` (v1, unidad × categoría) y `/metas-item` (v2, funcionario × ítem × período) son cosas distintas.** Convergen en el Bloque C.
+
+⚠ **Bug preexistente que destapó**: `services/auditoria.ts` perdía **en silencio** todo evento con un `Prisma.Decimal` (arrastraba su `constructor` al Json y Prisma rechazaba el insert; como la bitácora nunca lanza, no había aviso). Corregido, con verificación de regresión. La API de parámetros (RF-038, también `Decimal`) habría tropezado con lo mismo.
+
+**Lo que le falta a esto**: la **pantalla de configuración de metas** (HU-05). El contrato ya está listo para construirla: `GET /cargos` da los ítems del cargo y `PUT /metas-item` guarda el conjunto cuadrado de una sola vez.
 
 ### Bloque B — Pantallas (RF-008, HU-06, HU-11)
 
@@ -74,7 +89,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~`auditoria` sin llamadas~~ → resuelto en el modelo v2; **las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar** | rutas v1 | Media |
 | ~~`version` sin comparar~~ → resuelto en el modelo v2; **las rutas v1 siguen sin bloqueo optimista** | rutas v1 | Media |
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
-| Falta la API de `MetaItem`: sin ella las metas por funcionario solo se cargan por seed | backend | Alta |
+| ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2 (`de68901`); falta su **pantalla** (HU-05) | frontend | Media |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
@@ -104,7 +119,12 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **`prisma generate` falla si el servidor dev está corriendo** (bloquea el `.dll` del motor). Detenerlo antes.
 - **Here-strings de PowerShell con comillas dobles rompen `git commit -m`.** Usar `git commit -F archivo.txt`.
 - **`git merge -m` con here-string también falla** (a veces git recibe una palabra suelta del mensaje como si fuera una rama, y la etiqueta termina en el commit equivocado). Receta segura: `git merge --no-ff --no-commit <rama>` y después `git commit -F archivo.txt`. **Etiquetar solo después de comprobar con `git log --oneline -1` que el merge existe.**
-- El puerto 4000 puede quedar ocupado por un `tsx watch` huérfano de una sesión anterior: revisar con `Get-Process node`.
+- **El puerto 4000 puede quedar ocupado por un `tsx watch` huérfano de una sesión anterior**, y es peor de lo que parece: `npm run dev` muere con `EADDRINUSE` **en su log, no en pantalla**, el proceso viejo sigue respondiendo (recompila solo, así que hasta los endpoints nuevos funcionan) y uno depura sin ver ningún log. Pasó al construir el Bloque A2 y costó una vuelta entera. Receta:
+  ```powershell
+  Get-NetTCPConnection -LocalPort 4000 -State Listen | Select-Object OwningProcess
+  Stop-Process -Id <pid> -Force
+  ```
+  Si una verificación falla de forma inexplicable, **lo primero es confirmar de quién es el servidor que responde**.
 - **`npm run verificar:api` necesita el servidor corriendo** (como el smoke) y toca la base: crea un período, un cargo, ítems, actividades y una evidencia, y **los borra al terminar**. Si se interrumpe a la mitad, quedan datos de prueba: `npx prisma db seed` los limpia.
 - **Probar cada pantalla con los seis roles, no solo con el propio.** Dos errores reales aparecieron así: el tubo se quedaba cargando para siempre con el verificador (no tiene delegación) y la bandeja escondía lo recién subido. Ninguna prueba automatizada los habría visto: son de pantalla.
 - **El seed deja 88 evidencias pendientes**: cualquier cosa que se registre al probar cae al final de la cola de la bandeja. Para verla, usar el orden **"Recientes primero"**. Toda lista nueva que se construya debe decir "N de TOTAL" y paginar; una lista que oculta el resto en silencio hace creer que el sistema perdió el dato (pasó, y quedó cubierto con dos verificaciones).

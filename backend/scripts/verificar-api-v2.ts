@@ -655,8 +655,224 @@ check(
 );
 
 // ===========================================================================
+// 9. METAS POR FUNCIONARIO — RF-006 · RF-007 · RN-001 · RN-002 · HU-05
+//
+// Se trabaja sobre `periodoPrueba` (creado y reabierto en la sección 1), que
+// no tiene metas: así la suma de ponderadores parte de 0 y nada de lo que se
+// haga aquí toca los datos de demostración.
+// ===========================================================================
+
+const itemsTerritorial = cargoTerritorial.items;
+const itemA = itemsTerritorial[0]!;
+const itemB = itemsTerritorial[1] ?? itemsTerritorial[0]!;
+
+const metaSinPermiso = await G("POST", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  itemId: itemA.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 10,
+  ponderador: 0.5,
+});
+check("RNF-005 un funcionario no configura sus propias metas", metaSinPermiso.status === 403,
+  `status ${metaSinPermiso.status}`);
+
+const metaCero = await A("POST", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  itemId: itemA.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 0,
+  ponderador: 0.5,
+});
+check("RN-002 una meta de 0 se rechaza (un ítem con meta 0 nunca sería medible)",
+  metaCero.status === 400, `status ${metaCero.status}`);
+
+const metaItemAjeno = await A("POST", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  itemId: itemAjeno.id, // ítem del cargo "Gestor Social 1"
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 10,
+  ponderador: 0.5,
+});
+check("RF-003 no se fija meta de un ítem que no es del cargo del funcionario",
+  metaItemAjeno.status === 422, `status ${metaItemAjeno.status}`);
+
+const meta1 = await A("POST", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  itemId: itemA.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 40,
+  ponderador: 0.6,
+});
+const metaCreada = (meta1.datos as { meta: { id: string; version: number }; sumaPonderadores: number; cumpleRN001: boolean });
+check("RF-007 se configura la meta y el ponderador de un funcionario por ítem y período",
+  meta1.status === 201 && metaCreada.sumaPonderadores === 0.6,
+  `status ${meta1.status}, suma=${metaCreada?.sumaPonderadores}`);
+check("RN-001 mientras no llegue al 100% la respuesta lo dice (la UI debe advertirlo antes de guardar)",
+  metaCreada?.cumpleRN001 === false, `suma=${metaCreada?.sumaPonderadores} → cumpleRN001=${metaCreada?.cumpleRN001}`);
+
+const metaDuplicada = await A("POST", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  itemId: itemA.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 20,
+  ponderador: 0.1,
+});
+check("RF-007 no se duplica la meta de un mismo ítem, funcionario y período",
+  metaDuplicada.status === 422, `status ${metaDuplicada.status}`);
+
+const metaExcedida = await A("POST", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  itemId: itemB.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 15,
+  ponderador: 0.7, // 0,6 + 0,7 = 130%
+});
+check("RN-001 los ponderadores de un funcionario no pueden superar el 100%",
+  metaExcedida.status === 422 && (metaExcedida.datos as { disponible: number }).disponible === 0.4,
+  `status ${metaExcedida.status}, disponible=${(metaExcedida.datos as { disponible?: number }).disponible}`);
+
+const patchMetaVieja = await A("PATCH", `/metas-item/${metaCreada.meta.id}`, {
+  version: metaCreada.meta.version,
+  metaValor: 45,
+});
+const patchMetaConflicto = await A("PATCH", `/metas-item/${metaCreada.meta.id}`, {
+  version: metaCreada.meta.version, // versión ya consumida
+  metaValor: 99,
+});
+check("CA-08 / ADR-005 editar una meta con versión vieja → 409",
+  patchMetaVieja.status === 200 && patchMetaConflicto.status === 409,
+  `primera ${patchMetaVieja.status}, segunda ${patchMetaConflicto.status}`);
+
+const lecturaAjena = await I("GET", `/metas-item?periodo=${periodoPrueba.id}&funcionario=${gabriel.usuario.id}`);
+check("Regla 9 las metas de otra delegación no se leen (404, no 403)",
+  lecturaAjena.status === 404, `status ${lecturaAjena.status}`);
+
+const lecturaPropia = await G("GET", `/metas-item?periodo=${periodoPrueba.id}&funcionario=${gabriel.usuario.id}`);
+const resumenPropio = (lecturaPropia.datos as { resumen: { sumaPonderadores: number; faltante: number }[] }).resumen[0];
+check("RF-008 el funcionario sí ve lo que se le mide, con la suma y cuánto falta",
+  lecturaPropia.status === 200 && resumenPropio?.sumaPonderadores === 0.6 && resumenPropio?.faltante === 0.4,
+  `suma=${resumenPropio?.sumaPonderadores}, falta=${resumenPropio?.faltante}`);
+
+// Carga en lote: es la operación que deja a una persona configurada de una vez
+// y la única que puede GARANTIZAR RN-001, porque recibe el conjunto completo.
+const repartoIncompleto = await A("PUT", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  funcionarioId: gabriel.usuario.id,
+  metas: [{ itemId: itemA.id, metaValor: 40, ponderador: 0.5 }],
+});
+check("RN-001 la carga en lote exige el 100% exacto: 50% se rechaza",
+  repartoIncompleto.status === 422, `status ${repartoIncompleto.status}, ${(repartoIncompleto.datos as { sumaPonderadores?: number }).sumaPonderadores}`);
+
+const base = Math.floor(10_000 / itemsTerritorial.length) / 10_000;
+const reparto = itemsTerritorial.map((it, i) => ({
+  itemId: it.id,
+  metaValor: 20 + i,
+  ponderador:
+    i === itemsTerritorial.length - 1
+      ? Math.round((1 - base * (itemsTerritorial.length - 1)) * 10_000) / 10_000
+      : base,
+}));
+const repartoCompleto = await A("PUT", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  funcionarioId: gabriel.usuario.id,
+  metas: reparto,
+});
+const conjunto = repartoCompleto.datos as { metas: { id: string; itemId: string }[]; sumaPonderadores: number };
+check("RN-001 la carga en lote deja al funcionario cuadrado en 100%",
+  repartoCompleto.status === 200 && conjunto.sumaPonderadores === 1 &&
+    conjunto.metas.length === itemsTerritorial.length,
+  `${conjunto?.metas?.length} ítems, suma=${conjunto?.sumaPonderadores}`);
+
+// RN-009 / CA-01: lo ya validado no se puede hacer desaparecer quitando su meta.
+const actividadAprobada = await prisma.actividad.findFirst({
+  where: {
+    periodoId: periodoActivo.id,
+    funcionarioId: gabriel.usuario.id,
+    anulada: false,
+    itemId: { not: null },
+    evidencias: { some: { validaciones: { some: { decision: "aprobada" } } } },
+  },
+  select: { itemId: true },
+});
+const metaConAvance = await prisma.metaItem.findFirst({
+  where: {
+    periodoId: periodoActivo.id,
+    funcionarioId: gabriel.usuario.id,
+    itemId: actividadAprobada?.itemId ?? "",
+  },
+  select: { id: true },
+});
+const borrarConAvance = await A("DELETE", `/metas-item/${metaConAvance?.id ?? "sin-meta"}`);
+check("RN-009 / CA-01 no se borra la meta de un ítem que ya acumuló avance aprobado",
+  borrarConAvance.status === 422, `status ${borrarConAvance.status}`);
+
+const metaBorrable = conjunto.metas.find((m) => m.itemId === itemA.id)!;
+const borrada = await A("DELETE", `/metas-item/${metaBorrable.id}`);
+check("RF-007 una meta sin avance validado se puede quitar y la suma se recalcula",
+  borrada.status === 200 && (borrada.datos as { cumpleRN001: boolean }).cumpleRN001 === false,
+  `suma tras borrar=${(borrada.datos as { sumaPonderadores?: number }).sumaPonderadores}`);
+
+// RN-013: un período cerrado no admite reconfiguración de metas.
+const periodoCerrado = await A("POST", "/periodos", {
+  nombre: `Período cerrado ${sufijo}`,
+  fechaInicio: "2029-01-01",
+  fechaTermino: "2029-03-31",
+});
+if (periodoCerrado.status === 201) creado.periodos.push((periodoCerrado.datos as { id: string }).id);
+await A("POST", `/periodos/${(periodoCerrado.datos as { id: string }).id}/cierre`, {
+  version: (periodoCerrado.datos as { version: number }).version,
+});
+const metaEnCerrado = await A("POST", "/metas-item", {
+  periodoId: (periodoCerrado.datos as { id: string }).id,
+  itemId: itemA.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 10,
+  ponderador: 1,
+});
+check("RN-013 / RF-007 un período cerrado no admite cambios de metas (rigen desde su período)",
+  metaEnCerrado.status === 422, `status ${metaEnCerrado.status}`);
+
+// UUID bien formado pero inexistente: un identificador mal escrito es 400
+// (sintaxis), un recurso ajeno o inexistente es 404 (regla 8).
+const metaInexistente = await A("POST", "/metas-item", {
+  periodoId: "3f4a2c1e-8b7d-4f6a-9c2e-1d0b5a7e3c9f",
+  itemId: itemA.id,
+  funcionarioId: gabriel.usuario.id,
+  metaValor: 10,
+  ponderador: 1,
+});
+check("Multi-tenant: un período inexistente o ajeno responde 404",
+  metaInexistente.status === 404, `status ${metaInexistente.status}`);
+
+const auditoriaMetas = await prisma.auditoria.findMany({
+  where: { entidad: { in: ["meta_item", "meta_item_conjunto"] } },
+  orderBy: { createdAt: "desc" },
+  take: 20,
+});
+const accionesMetas = [...new Set(auditoriaMetas.map((a) => a.accion))];
+check(
+  "RNF-008 / CA-09 configurar metas queda auditado (crear, actualizar y eliminar)",
+  ["crear", "actualizar", "eliminar"].every((a) => accionesMetas.includes(a as never)) &&
+    auditoriaMetas.some((a) => a.accion === "actualizar" && a.valorAnterior !== null && a.valorNuevo !== null),
+  accionesMetas.join(", ")
+);
+
+// Regresión: la bitácora nunca lanza, así que un valor no serializable se
+// perdía SIN AVISO. Pasó con las columnas Decimal de MetaItem (meta y
+// ponderador), la primera entidad auditada que las tiene. La bitácora debe
+// guardar el número, no el objeto Decimal.
+const auditoriaCreacion = auditoriaMetas.find((a) => a.entidad === "meta_item" && a.accion === "crear");
+const valorAuditado = auditoriaCreacion?.valorNuevo as { metaValor?: unknown; ponderador?: unknown } | null;
+check(
+  "RNF-008 los importes Decimal quedan legibles en la bitácora (regresión: se perdían en silencio)",
+  typeof valorAuditado?.metaValor === "number" && typeof valorAuditado?.ponderador === "number",
+  `metaValor=${JSON.stringify(valorAuditado?.metaValor)}, ponderador=${JSON.stringify(valorAuditado?.ponderador)}`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
+await prisma.metaItem.deleteMany({ where: { periodoId: { in: creado.periodos } } });
 for (const e of creado.evidencias) await eliminarArchivo(e.ruta);
 await prisma.validacion.deleteMany({ where: { evidenciaId: { in: creado.evidencias.map((e) => e.id) } } });
 await prisma.evidencia.deleteMany({ where: { id: { in: creado.evidencias.map((e) => e.id) } } });

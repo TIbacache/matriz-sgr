@@ -1,6 +1,6 @@
 # Estado del proyecto — Matriz SGR
 
-**Actualizado**: 1 de septiembre de 2026 (Bloque A — API del registro y la validación)
+**Actualizado**: 1 de septiembre de 2026 (Bloque A2 — API de metas por funcionario)
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fase.
 
 ## Resumen por fases
@@ -199,7 +199,7 @@ Dos de esas comprobaciones detectaron errores reales durante el desarrollo (pond
 | ~~Falta tabla `auditoria`~~ → **resuelto en el Bloque A** para el modelo v2; las rutas v1 aún no auditan | RNF-008, RF-036 | Media |
 | ~~El seed usa nombres reales~~ → **resuelto**: seed 100% ficticio | §Condiciones del caso | ✅ |
 | ~~Faltan roles Verificador y Usuario de consulta~~ → **resuelto**: en el enum, en el seed y ahora **en las rutas** (`requireRol("verificador"…)` en validación) | §3 Actores | ✅ |
-| ~~Faltan las rutas API del modelo v2~~ → **resuelto en el Bloque A** para períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento. **Faltan** metas por funcionario (`MetaItem`), ajustes, atención social, comentarios y ausencias | EP-01, EP-03 | Alta |
+| ~~Faltan las rutas API del modelo v2~~ → **resuelto en el Bloque A** para períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento; **y en el A2** para las metas por funcionario (`de68901`). **Faltan** ajustes, atención social, comentarios, ausencias y el CRUD de catálogos y parámetros | EP-01, EP-03 | Alta |
 | **Faltan las pantallas del modelo v2** (ficha personal, formulario de actividad, bandeja del verificador) | RF-008, HU-06, HU-11 | Alta |
 | Sin pruebas unitarias (Jest) ni de componentes (RTL) | §14.3 | Alta |
 | Falta alternativa por teclado en el drag & drop | RNF-012, DESIGN §8.1 | Media |
@@ -228,6 +228,35 @@ El eje **actividad → código → evidencia → validación → puntaje** ya fu
 | `GET /evidencias/:id` · `GET /evidencias/:id/archivo` | ídem | El archivo no se sirve como estático: pasa por autorización |
 | `POST /evidencias/:id/validacion` | verificador, supervisor, admin | `{decision, observacion}`. Tres decisiones (RF-013); observación obligatoria si no se aprueba; **nadie valida lo propio** (RNF-005); una aprobación no se re-decide (CA-01) |
 | `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
+
+## Metas por funcionario — Bloque A2 (1 de septiembre de 2026, `de68901`)
+
+`MetaItem` existía en el modelo v2 pero solo se poblaba por seed: no había forma de configurar **cuánto se le mide a una persona y con qué peso**. `/metas-item` cierra RF-006 y RF-007, y hace verificable RN-001. Verificado con `npm run verificar:api` → **88/88** (18 comprobaciones nuevas).
+
+⚠ **`/metas` y `/metas-item` no son lo mismo**: `/metas` es el modelo v1 (unidad × categoría × trimestre) y `/metas-item` el v2 (funcionario × ítem × período). Mezclarlos dejaría dos verdades sobre la misma palabra; convergen cuando el Bloque C retire la vista v1.
+
+| Endpoint | Roles | Notas |
+|---|---|---|
+| `GET /metas-item?periodo=&funcionario=&item=` | todos, **acotado por delegación** | Devuelve `{total, metas, resumen}`. El `resumen` por (período, funcionario) trae `sumaPonderadores`, `cumpleRN001` y `faltante`: la pantalla debe poder decir "falta 15%" **antes** de guardar. Funcionario de delegación ajena → 404 |
+| `POST /metas-item` | admin, supervisor | Rechaza **superar** el 100% (422 con `disponible`); quedarse corto se informa, porque se cargan de a una (decisión 4 de Fase 2). Valida meta > 0 (RN-002), ítem del cargo del funcionario (RF-003), ítem activo, duplicado (422) y período abierto (RN-013) |
+| `PATCH /metas-item/:id` | admin, supervisor | Solo meta y ponderador: período, ítem y funcionario **identifican** la fila. Exige `version` → 409 |
+| `DELETE /metas-item/:id` | admin, supervisor | Una meta **sí se borra**: es configuración del período, no historia, y si no pudiera quitarse el ponderador quedaría ocupado y RN-001 sería inalcanzable. Protegido si el ítem ya acumuló avance aprobado → 422 (RN-009, CA-01) |
+| `PUT /metas-item` | admin, supervisor | `{periodoId, funcionarioId, metas[]}` — configuración **completa** de una persona, en transacción, **exigiendo el 100% exacto**. Es la única operación que puede garantizar RN-001, porque recibe el conjunto entero |
+
+Eventos nuevos: `meta_item:creada/actualizada/eliminada` en la room de la delegación del funcionario, y `cumplimiento:cambiado` en la de la organización — cambiar una meta mueve el puntaje, igual que aprobar una evidencia.
+
+### Decisiones del Bloque A2 (no re-discutir sin motivo)
+
+18. **Dos exigencias distintas para la misma regla**: el alta unitaria rechaza *superar* el 100% y el `PUT` en lote exige el 100% *exacto*. No es incoherencia: cargando de a una es imposible pasar por el 100% sin estar antes por debajo, mientras que un conjunto completo que no cuadra sí es un error. Ambas respuestas informan siempre la suma y lo que falta.
+19. **La tolerancia de RN-001 es `0.0001`**, el ULP de `ponderador Decimal(5,4)`. **No es un valor de negocio** (el 100% lo fija la regla, no el cliente, así que no va a `parametro`): existe para que un reparto entre tres ítems a 33,33% no quede bloqueado por el último dígito que la base puede representar.
+20. **Una meta con avance aprobado no se quita**, ni por `DELETE` ni dejándola fuera de un `PUT`: borraría puntaje ya validado sin dejar rastro visible (RN-009, CA-01). Para corregirla se ajusta su meta o su ponderador.
+21. **El versionado que pide RF-007 es el período**: la meta cuelga de `periodoId`, así que reconfigurar el trimestre siguiente nunca toca el cerrado. No hace falta una tabla de versiones de meta.
+
+### Bug encontrado por esta prueba (preexistente)
+
+`services/auditoria.ts` perdía **en silencio** todo evento cuyo valor incluyera un `Prisma.Decimal`: `limpiar()` lo recorría como objeto plano, arrastraba su `constructor` al Json y Prisma rechazaba el insert — y como la bitácora nunca lanza (para no tumbar la operación de negocio), el evento desaparecía sin aviso. `MetaItem` es la primera entidad auditada con columnas `Decimal`, por eso nadie lo había visto; con la API de parámetros (RF-038, también `Decimal`) habría vuelto a pasar. Ahora `Decimal`, `Date`, `bigint` y `Buffer` se convierten **antes** de recorrerlos, y hay una comprobación de regresión que exige ver el número en la bitácora.
+
+**Lección**: un servicio que traga sus errores necesita una prueba que mire el resultado, no la ausencia de excepción.
 
 ### Eventos Socket.io nuevos
 
