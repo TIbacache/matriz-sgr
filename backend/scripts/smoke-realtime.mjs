@@ -29,25 +29,25 @@ await new Promise((resolve) => {
   s.on("connect_error", (e) => { check("handshake sin token rechazado", true, e.message); resolve(); });
 });
 
-const admin = await login("javier.godoy@demo.cl");
-const funcionaria = await login("territorial1.centro@demo.cl"); // Gloria, delegación Centro
+const admin = await login("admin@sgr.demo");
+const funcionaria = await login("territorial.centro@sgr.demo"); // Gabriel, delegación Centro
 
 // 2. Datos base: delegaciones Centro y Avenida del Mar; tareas del Centro
 const unidadesAdmin = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
 const centro = unidadesAdmin.find((u) => u.nombre === "Centro");
-const avmar = unidadesAdmin.find((u) => u.nombre === "Avenida del Mar");
+const otraUnidad = unidadesAdmin.find((u) => u.nombre === "Rural");
 const tareas = await (await fetch(`${API}/tareas?unidad=${centro.id}`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
-const tareaAjena = tareas.find((t) => t.responsable?.nombre.includes("Génesis"));
-const tareaPropia = tareas.find((t) => t.responsable?.nombre.includes("Gloria"));
+const tareaAjena = tareas.find((t) => t.responsable?.nombre.includes("Javiera"));
+const tareaPropia = tareas.find((t) => t.responsable?.nombre.includes("Gabriel"));
 
 // 3. VISIBILIDAD (libro privado por delegación, reunión 00:37:11):
 // la funcionaria del Centro ve su libro pero NO el de Avenida del Mar.
 const unidadesFunc = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${funcionaria.token}` } })).json();
-const avmarFunc = unidadesFunc.find((u) => u.nombre === "Avenida del Mar");
+const otraUnidadFunc = unidadesFunc.find((u) => u.nombre === "Rural");
 const centroFunc = unidadesFunc.find((u) => u.nombre === "Centro");
 check("funcionaria: Centro con libro visible", centroFunc?.puedeVerLibro === true);
-check("funcionaria: Avenida del Mar sin libro", avmarFunc?.puedeVerLibro === false);
-const rLibroAjeno = await fetch(`${API}/tareas?unidad=${avmar.id}`, {
+check("funcionaria: Rural sin libro", otraUnidadFunc?.puedeVerLibro === false);
+const rLibroAjeno = await fetch(`${API}/tareas?unidad=${otraUnidad.id}`, {
   headers: { Authorization: `Bearer ${funcionaria.token}` },
 });
 check("GET tareas de otra delegación → 404", rLibroAjeno.status === 404, `status ${rLibroAjeno.status}`);
@@ -61,7 +61,7 @@ check("funcionaria ve semáforo consolidado", rKpis.status === 200 && kpis.lengt
 const colores = new Set(kpis.map((f) => f.semaforo_color));
 check("semáforo con verde/naranjo/rojo", ["verde", "naranjo", "rojo"].every((c) => colores.has(c)),
   [...colores].join(","));
-const fila = kpis.find((f) => f.unidad_nombre === "Avenida del Mar");
+const fila = kpis.find((f) => f.unidad_nombre === "Rural");
 check("vista expone objetivo_al_dia y avance_relativo",
   typeof fila?.objetivo_al_dia === "number" && typeof fila?.avance_relativo === "number",
   `objetivo=${fila?.objetivo_al_dia} relativo=${fila?.avance_relativo}`);
@@ -86,9 +86,9 @@ const presenciaPromise = new Promise((res) => socket.once("presencia:actualizada
 const joinOk = await new Promise((res) => socket.emit("unidad:join", centro.id, res));
 check("join al room de su delegación", joinOk === true);
 const presencia = await presenciaPromise;
-check("presencia en vivo", presencia.conectados.some((c) => c.nombre.includes("Gloria")),
+check("presencia en vivo", presencia.conectados.some((c) => c.nombre.includes("Gabriel")),
   `${presencia.conectados.length} conectados`);
-const joinAjeno = await new Promise((res) => socket.emit("unidad:join", avmar.id, res));
+const joinAjeno = await new Promise((res) => socket.emit("unidad:join", otraUnidad.id, res));
 check("join al room de otra delegación rechazado", joinAjeno === false);
 
 // 7. Mueve SU tarea → 200 y el room recibe tarea:actualizada
@@ -106,7 +106,7 @@ const evento = await Promise.race([
 check("evento tarea:actualizada llega al room", evento?.id === tareaPropia.id && evento?.estado === "en_proceso");
 
 // 8. Endpoints de Fase 4: directorio de usuarios y estadísticas del tubo
-const delegada = await login("delegado.centro@demo.cl");
+const delegada = await login("delegado.centro@sgr.demo");
 const equipo = await (await fetch(`${API}/usuarios?unidad=${centro.id}`, {
   headers: { Authorization: `Bearer ${delegada.token}` },
 })).json();

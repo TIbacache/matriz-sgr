@@ -149,16 +149,57 @@ Los profesores entregaron la **especificación formal** (`Guia_Proyecto_Software
 - **[docs/decisiones-tecnicas.md](decisiones-tecnicas.md)**: 9 ADR nuevos (RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad de personas, tipo/dirección de ítems).
 - **[docs/matriz-trazabilidad.md](matriz-trazabilidad.md)**: exigida por el PDF. *"Una historia no se considera terminada si no puede demostrarse su trazabilidad."*
 
+## Modelo de datos v2 — implementado (1 de septiembre de 2026)
+
+Migración `20260901120000_modelo_v2_especificacion_oficial`: **16 entidades nuevas** que cubren la brecha estructural de la especificación oficial.
+
+| Entidad | Cubre |
+|---|---|
+| `Periodo` | RF-005 · fechas configurables, días calculados, cierre auditado |
+| `Parametro` | RF-038 · RNF-015 · ADR-007 · valores de negocio fuera del código, con vigencia por período |
+| `Cargo` + `ItemMedicion` | RF-003 · la abstracción cargo → ítems → metas, con `tipo` y `direccion` (ADR-009) |
+| `MetaItem` | RF-007 · meta y ponderador por **funcionario**, ítem y período |
+| `Actividad` | RF-009 · RF-011 · el registro diario, con código único e inmutable |
+| `Evidencia` + `Validacion` | RF-012 · RF-013 · RF-014 · RN-009 · solo lo aprobado suma |
+| `PersonaUsuaria` | ADR-008 · RUT único por organización → trazabilidad entre delegaciones |
+| `AtencionSocial` | RF-015 · RN-012 · las tres gestiones del área social |
+| `Ausencia` | días descontados del objetivo al día, por persona |
+| `Ajuste` | RF-025 · felicitaciones y reclamos, con valores parametrizados |
+| `CatalogoItem` | RF-004 · catálogos que se desactivan sin borrar historia |
+| `TareaHistorial` | RF-018 · historial de transiciones con autor y observación |
+| `Comentario` | RF-035 · observaciones contextuales |
+| `Auditoria` | RNF-008 · RF-036 · **solo-inserción, garantizado por triggers** |
+
+Además: `version` para bloqueo optimista (ADR-005) en toda tabla editable, roles `verificador` y `consulta` (PDF §3), y campos v2 en `Tarea` (INT/EXT, solicitante, territorio, área de apoyo, fuera de plazo).
+
+**Garantías en la base, no solo en el código** (lo que Prisma no expresa, agregado por SQL en la migración):
+- Triggers que rechazan `UPDATE` y `DELETE` sobre `auditoria` — verificado: la operación falla con el mensaje de RNF-008.
+- Trigger que impide cambiar `actividades.codigo` (RF-011).
+- `CHECK` de formato canónico de RUT en `users` y `personas_usuarias` — verificado: rechaza `17.721.947-9` con puntos.
+- `CHECK` de fechas coherentes en `periodos` y de meta > 0 y ponderador en rango (RN-002).
+
+**Utilidades nuevas**: `lib/rut.ts` (normalizar, validar módulo 11, formatear), `lib/fechas.ts` ("hoy" en zona de Chile, días del período), `lib/persona.ts` (ADR-003), `services/parametros.ts`, `services/auditoria.ts`, `services/codigos.ts`, `services/cumplimiento.ts` (motor de cálculo **por funcionario**).
+
+**Seed reescrito con datos 100% ficticios** (cumple la prohibición del PDF): 6 delegaciones, 5 cargos con sus ítems reales y ponderadores que suman 100%, 8 catálogos, 13 personas, 3 vecinos, 16 tareas con historial y **1.126 actividades con evidencia y validación**. Se regenera lo transaccional en cada corrida; los datos maestros van con upsert.
+
+**Verificación: 38 comprobaciones automatizadas, todas en verde.**
+- `npm run smoke` → 17/17 (tiempo real, permisos, visibilidad)
+- `npm run verificar:calculo` → 21/21 (fórmulas RN-004/005/008, ítem inverso, tope, parámetros, RN-001, RN-009, códigos únicos, trazabilidad del vecino)
+- `npm run verificar:rut` → 16 RUT ficticios válidos + casos de normalización
+
+Dos de esas comprobaciones detectaron errores reales durante el desarrollo (ponderadores que sumaban 0,95 y un vecino sin trazabilidad por datos obsoletos), que quedaron corregidos.
+
 ### Deuda técnica que abre este cambio
 
 | Deuda | Origen | Prioridad |
 |---|---|---|
-| Umbrales, tope 150% y período están **fijos en el SQL** de `vista_cumplimiento_v2`; deben leerse de tabla `parametro` | RNF-015, RF-038, ADR-007 | Alta |
-| El período se deriva del string `2026-Q3`; debe ser tabla con fecha inicio/término y días computables | RF-005, §13.1 | Alta |
-| Falta bloqueo optimista (`version`) en tablas editables | RF-034, CA-08, ADR-005 | Alta |
-| Falta tabla `auditoria` solo-inserción | RNF-008, RF-036 | Alta |
-| **El seed usa nombres reales** (Javier Godoy, Juan Francisco Labra) → prohibido por el PDF, cambiar por ficticios | §Condiciones del caso | Alta |
-| Faltan roles **Verificador** y **Usuario de consulta** | §3 Actores | Media |
+| ~~Umbrales y tope fijos en SQL~~ → el **motor nuevo** (`services/cumplimiento.ts`) los lee de `parametro`. Falta migrar la vista materializada v1, que aún los tiene fijos y sigue alimentando el dashboard actual | RNF-015, RF-038 | Alta |
+| ~~El período se deriva del string `2026-Q3`~~ → existe la tabla `Periodo`; falta que la **vista materializada y el dashboard** la usen en vez del string | RF-005, §13.1 | Alta |
+| ~~Falta bloqueo optimista~~ → columna `version` creada; falta **aplicarla en los endpoints** (comparar y devolver 409) | RF-034, CA-08 | Alta |
+| ~~Falta tabla `auditoria`~~ → creada y protegida por triggers; falta **llamarla desde los controladores** | RNF-008, RF-036 | Alta |
+| ~~El seed usa nombres reales~~ → **resuelto**: seed 100% ficticio | §Condiciones del caso | ✅ |
+| ~~Faltan roles Verificador y Usuario de consulta~~ → **resuelto**: en el enum y en el seed. Falta aplicarlos en `requireRol` | §3 Actores | Media |
+| **Faltan las rutas API del modelo v2** (actividades, evidencias, validación, períodos, cargos, ítems, ajustes) y sus pantallas | EP-01, EP-03 | Alta |
 | Sin pruebas unitarias (Jest) ni de componentes (RTL) | §14.3 | Alta |
 | Falta alternativa por teclado en el drag & drop | RNF-012, DESIGN §8.1 | Media |
 

@@ -13,16 +13,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Los 6 actores del PDF §3. `verificador` y `consulta` se agregaron al
+// incorporar la especificación oficial (segregación de funciones, RNF-005).
 enum Rol {
-  admin
-  supervisor
-  gerente
-  usuario
+  admin // Administrador: configura todo
+  supervisor // Coordinador del sistema: supervisa la operación transversal
+  gerente // Delegado o jefatura: su delegación
+  usuario // Funcionario: registra su trabajo
+  verificador // Revisa evidencias, valida o rechaza
+  consulta // Solo lectura de tableros e informes
 }
 
 enum TipoOrganizacion {
   municipio
   empresa
+}
+
+enum EstadoPeriodo {
+  abierto
+  cerrado
+}
+
+// Un ítem puede medirse por cantidad (240 atenciones) o por porcentaje
+// (soluciones al ingreso al tubo: meta 80%). Ver ADR-009.
+enum TipoItem {
+  cantidad
+  porcentaje
+}
+
+// "Pendientes en tubo MENOR a 10%" es un ítem inverso: superar la meta es
+// malo. Sin esto el sistema premiaría tener más pendientes. Ver ADR-009.
+enum DireccionItem {
+  mayor_mejor
+  menor_mejor
+}
+
+// RF-013: el verificador aprueba, rechaza o solicita corrección (tres
+// decisiones, no dos). Solo `aprobada` otorga el punto (RN-009).
+enum DecisionValidacion {
+  pendiente
+  aprobada
+  rechazada
+  correccion_solicitada
+}
+
+// Días que se descuentan del objetivo al día de cada funcionario.
+enum TipoAusencia {
+  licencia
+  vacaciones
+  compensatorio
+  emergencia
+}
+
+enum AccionAuditoria {
+  crear
+  actualizar
+  eliminar
+  validar
+  cambiar_estado
+  cerrar_periodo
+  reabrir_periodo
 }
 
 model Organization {
@@ -39,6 +89,24 @@ model Organization {
   tareas     Tarea[]
   metas      Meta[]
 
+  // Modelo v2
+  periodos           Periodo[]
+  parametros         Parametro[]
+  cargos             Cargo[]
+  items              ItemMedicion[]
+  metasItem          MetaItem[]
+  personasUsuarias   PersonaUsuaria[]
+  actividades        Actividad[]
+  evidencias         Evidencia[]
+  validaciones       Validacion[]
+  atencionesSociales AtencionSocial[]
+  ausencias          Ausencia[]
+  ajustes            Ajuste[]
+  catalogoItems      CatalogoItem[]
+  tareaHistorial     TareaHistorial[]
+  comentarios        Comentario[]
+  auditoria          Auditoria[]
+
   @@map("organizations")
 }
 
@@ -48,12 +116,34 @@ model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String   @map("password_hash")
+  /// Nombre completo heredado del modelo v1. Se conserva para no romper el
+  /// código existente; los campos separados de abajo son la fuente correcta
+  /// (ADR-003) y `nombre` se deriva de ellos con lib/persona.ts.
   nombre       String
+  /// ADR-003: separados porque separarlos después es inviable.
+  nombres         String? @map("nombres")
+  apellidoPaterno String? @map("apellido_paterno")
+  apellidoMaterno String? @map("apellido_materno")
+  /// ADR-001: canónico "17721947-9", validado con módulo 11. Único global.
+  rut          String?  @unique
+  activo       Boolean  @default(true)
+  version      Int      @default(1)
   createdAt    DateTime @default(now()) @map("created_at")
 
   memberships        OrganizationMember[]
   unidadesACargo     UnidadTerritorial[]  @relation("responsable_unidad")
   tareasResponsable  Tarea[]              @relation("responsable_tarea")
+
+  // Modelo v2
+  metasItem          MetaItem[]       @relation("metas_funcionario")
+  actividades        Actividad[]      @relation("actividades_funcionario")
+  evidenciasSubidas  Evidencia[]      @relation("evidencias_subidas")
+  validaciones       Validacion[]     @relation("validaciones")
+  ausencias          Ausencia[]       @relation("ausencias")
+  ajustesRecibidos   Ajuste[]         @relation("ajustes_funcionario")
+  ajustesRegistrados Ajuste[]         @relation("ajustes_registrados")
+  historialTareas    TareaHistorial[] @relation("historial_tareas")
+  comentarios        Comentario[]     @relation("comentarios")
 
   @@map("users")
 }
@@ -72,9 +162,14 @@ model OrganizationMember {
   // El cliente modela cargo → funciones → metas (reunión 00:59:16).
   cargo          String?
 
+  /// RF-003: vínculo al cargo que define qué ítems se le miden.
+  /// `cargo` (texto) se conserva del modelo v1 como respaldo legible.
+  cargoId String? @map("cargo_id")
+
   organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   unidad       UnidadTerritorial? @relation(fields: [unidadTerritorialId], references: [id], onDelete: SetNull)
+  cargoRef     Cargo?             @relation(fields: [cargoId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, userId])
   @@index([organizationId, unidadTerritorialId])
@@ -87,11 +182,16 @@ model UnidadTerritorial {
   nombre         String
   responsableId  String? @map("responsable_id")
 
+  /// RF-001: se desactiva en vez de eliminarse, para no perder la historia.
+  activo  Boolean @default(true)
+  version Int     @default(1)
+
   organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   responsable  User?                @relation("responsable_unidad", fields: [responsableId], references: [id], onDelete: SetNull)
   tareas       Tarea[]
   metas        Meta[]
   integrantes  OrganizationMember[]
+  actividades  Actividad[]
 
   @@index([organizationId])
   @@map("unidades_territoriales")
@@ -120,18 +220,40 @@ model Tarea {
   categoriaId          String    @map("categoria_id")
   titulo               String
   descripcion          String?
-  estado               String    @default("pendiente")
+  // RF-018: ingresado → pendiente → en_proceso → realizado
+  estado               String    @default("ingresado")
   fechaCompromiso      DateTime? @map("fecha_compromiso") @db.Date
   responsableId        String?   @map("responsable_id")
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
-  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  unidad       UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
-  categoria    CategoriaGestion  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
-  responsable  User?             @relation("responsable_tarea", fields: [responsableId], references: [id], onDelete: SetNull)
+  // --- Campos v2 exigidos por RF-016 y RF-017 (columnas reales del tubo,
+  // ver docs/estructura-planilla-real.md §6) ---
+  /// Origen de la solicitud: externa (vecino) o interna (trabajo propio)
+  interesExterno   Boolean  @default(true) @map("interes_externo")
+  fechaSolicitud   DateTime? @map("fecha_solicitud") @db.Date
+  solicitante      String?
+  personaUsuariaId String?  @map("persona_usuaria_id")
+  territorio       String?
+  areaApoyo        String?  @map("area_apoyo")
+  observaciones    String?
+  /// RF-019: se marca al cerrar fuera de la fecha comprometida
+  cerradaFueraPlazo Boolean @default(false) @map("cerrada_fuera_plazo")
+  fechaCierre      DateTime? @map("fecha_cierre") @db.Date
+  /// RF-020: el cierre alimenta el indicador UNA sola vez
+  computadaEnMeta  Boolean  @default(false) @map("computada_en_meta")
+  version          Int      @default(1)
+
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unidad         UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
+  categoria      CategoriaGestion  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  responsable    User?             @relation("responsable_tarea", fields: [responsableId], references: [id], onDelete: SetNull)
+  personaUsuaria PersonaUsuaria?   @relation(fields: [personaUsuariaId], references: [id], onDelete: SetNull)
+  historial      TareaHistorial[]
+  actividades    Actividad[]
 
   @@index([organizationId, unidadTerritorialId, estado])
+  @@index([organizationId, fechaCompromiso])
   @@map("tareas")
 }
 
@@ -157,3 +279,409 @@ model Meta {
 // NOTA: cumplimiento_ponderado_vista es una VISTA MATERIALIZADA creada por SQL
 // en la migración 'vista_cumplimiento' (Prisma no modela matviews). Se refresca
 // vía cron (src/jobs/cumplimiento.ts) y se consulta con $queryRaw.
+
+// ============================================================================
+// MODELO v2 — entidades exigidas por la especificación oficial (PDF INACAP).
+// Referencias: RF-00x = requerimiento funcional, RN-00x = regla de negocio,
+// ADR-00x = decisión en docs/decisiones-tecnicas.md
+// ============================================================================
+
+/// RF-005 · §13.1: el período se CONFIGURA con fechas y el sistema calcula sus
+/// días. Está prohibido fijar 90/91 días en el código.
+model Periodo {
+  id             String        @id @default(uuid())
+  organizationId String        @map("organization_id")
+  nombre         String // "3er trimestre 2026"
+  fechaInicio    DateTime      @map("fecha_inicio") @db.Date
+  fechaTermino   DateTime      @map("fecha_termino") @db.Date
+  estado         EstadoPeriodo @default(abierto)
+  // RN-013: un período cerrado no se modifica salvo reapertura auditada
+  cerradoEn      DateTime?     @map("cerrado_en")
+  cerradoPorId   String?       @map("cerrado_por_id")
+  version        Int           @default(1) // ADR-005: bloqueo optimista
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  metas        MetaItem[]
+  actividades  Actividad[]
+  ausencias    Ausencia[]
+  parametros   Parametro[]
+  ajustes      Ajuste[]
+
+  @@unique([organizationId, nombre])
+  @@index([organizationId, estado])
+  @@map("periodos")
+}
+
+/// RF-038 · RNF-015 · ADR-007: TODO valor de negocio configurable vive aquí,
+/// con vigencia por período. Cambiarlo no altera períodos cerrados.
+/// Claves: tope_cumplimiento_item, umbral_minimo_colectivo, semaforo_verde,
+/// semaforo_naranjo, ajuste_felicitacion, ajuste_reclamo, tope_felicitaciones.
+model Parametro {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  // null = valor por defecto de la organización; con período = específico
+  periodoId      String?  @map("periodo_id")
+  clave          String
+  valor          Decimal  @db.Decimal(12, 4)
+  descripcion    String?
+  // Marca los valores que aún esperan confirmación oficial del docente
+  confirmado     Boolean  @default(false)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  periodo      Periodo?     @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, periodoId, clave])
+  @@index([organizationId, clave])
+  @@map("parametros")
+}
+
+/// RF-003: cada cargo tiene sus ítems medibles. Es la abstracción central que
+/// hace al sistema vendible a cualquier organización (reunión 00:59:16).
+model Cargo {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  nombre         String // "Territorial OO.CC. 1", "Gestor Social 2"
+  area           String? // "T OO CC", "SOCIAL", "APOY ADM"
+  activo         Boolean  @default(true)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items        ItemMedicion[]
+  miembros     OrganizationMember[]
+
+  @@unique([organizationId, nombre])
+  @@index([organizationId, activo])
+  @@map("cargos")
+}
+
+/// RF-003 · RN-002 · ADR-009: lo que efectivamente se mide.
+model ItemMedicion {
+  id             String        @id @default(uuid())
+  organizationId String        @map("organization_id")
+  cargoId        String        @map("cargo_id")
+  nombre         String // "Atención de usuario teléfono y presencial"
+  tipo           TipoItem      @default(cantidad)
+  direccion      DireccionItem @default(mayor_mejor)
+  // Los compromisos cerrados del tubo alimentan este ítem (RF-020)
+  alimentadoPorTubo Boolean    @default(false) @map("alimentado_por_tubo")
+  orden          Int           @default(0)
+  activo         Boolean       @default(true)
+  version        Int           @default(1)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cargo        Cargo        @relation(fields: [cargoId], references: [id], onDelete: Cascade)
+  metas        MetaItem[]
+  actividades  Actividad[]
+
+  @@index([organizationId, cargoId, activo])
+  @@map("items_medicion")
+}
+
+/// RF-007 · RN-001: meta y ponderador por funcionario, ítem y período.
+/// Los ponderadores de un funcionario en un período deben sumar 100%.
+model MetaItem {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  periodoId      String   @map("periodo_id")
+  itemId         String   @map("item_id")
+  funcionarioId  String   @map("funcionario_id")
+  metaValor      Decimal  @map("meta_valor") @db.Decimal(12, 2)
+  ponderador     Decimal  @db.Decimal(5, 4) // 0..1
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  periodo      Periodo      @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  item         ItemMedicion @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  funcionario  User         @relation("metas_funcionario", fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@unique([periodoId, itemId, funcionarioId])
+  @@index([organizationId, periodoId, funcionarioId])
+  @@map("metas_item")
+}
+
+/// ADR-001 · ADR-008: el vecino atendido. RUT único POR ORGANIZACIÓN, no por
+/// delegación — es lo que permite detectar que la misma persona pidió lo mismo
+/// en varias delegaciones (caso del regalo de Navidad).
+model PersonaUsuaria {
+  id               String   @id @default(uuid())
+  organizationId   String   @map("organization_id")
+  rut              String? // canónico "17721947-9"; nulo si aún no se conoce
+  nombres          String
+  apellidoPaterno  String   @map("apellido_paterno")
+  apellidoMaterno  String?  @map("apellido_materno")
+  telefono         String?
+  direccion        String?
+  sector           String?
+  version          Int      @default(1)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actividades  Actividad[]
+  tareas       Tarea[]
+
+  @@unique([organizationId, rut])
+  @@index([organizationId, apellidoPaterno])
+  @@map("personas_usuarias")
+}
+
+/// RF-009: el registro diario del funcionario (la "pestaña personal").
+/// RF-011: `codigo` es único e INMUTABLE — nunca se actualiza.
+model Actividad {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  periodoId      String   @map("periodo_id")
+  unidadTerritorialId String @map("unidad_territorial_id")
+  funcionarioId  String   @map("funcionario_id")
+  itemId         String?  @map("item_id") // a qué ítem suma
+  /// RF-011 · ADR-004: "SOC-20260713-0010". Único e inmutable.
+  codigo         String
+  fecha          DateTime @db.Date
+  descripcion    String // actividad / solicitud / problema
+  accion         String? // acción ejecutada
+  personaUsuariaId String? @map("persona_usuaria_id")
+  contactoNombre String?  @map("contacto_nombre")
+  contactoFono   String?  @map("contacto_fono")
+  ingresoATubo   Boolean  @default(false) @map("ingreso_a_tubo")
+  tareaId        String?  @map("tarea_id") // enlace con la agenda colectiva
+  /// Anulación: en vez de editar/borrar se anula con motivo (ADR-006)
+  anulada        Boolean  @default(false)
+  motivoAnulacion String? @map("motivo_anulacion")
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  periodo        Periodo           @relation(fields: [periodoId], references: [id], onDelete: Restrict)
+  unidad         UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
+  funcionario    User              @relation("actividades_funcionario", fields: [funcionarioId], references: [id], onDelete: Cascade)
+  item           ItemMedicion?     @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  personaUsuaria PersonaUsuaria?   @relation(fields: [personaUsuariaId], references: [id], onDelete: SetNull)
+  tarea          Tarea?            @relation(fields: [tareaId], references: [id], onDelete: SetNull)
+  evidencias     Evidencia[]
+  atencionSocial AtencionSocial?
+
+  @@unique([organizationId, codigo])
+  @@index([organizationId, periodoId, funcionarioId])
+  @@index([organizationId, itemId])
+  @@index([organizationId, fecha])
+  @@map("actividades")
+}
+
+/// RF-012 · RNF-017: la foto que respalda la actividad.
+model Evidencia {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  actividadId    String   @map("actividad_id")
+  archivoNombre  String   @map("archivo_nombre")
+  archivoRuta    String   @map("archivo_ruta")
+  mimeType       String   @map("mime_type")
+  tamanoBytes    Int      @map("tamano_bytes")
+  subidaPorId    String   @map("subida_por_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actividad    Actividad    @relation(fields: [actividadId], references: [id], onDelete: Cascade)
+  subidaPor    User         @relation("evidencias_subidas", fields: [subidaPorId], references: [id], onDelete: Restrict)
+  validaciones Validacion[]
+
+  @@index([organizationId, actividadId])
+  @@map("evidencias")
+}
+
+/// RF-013 · RF-014 · RN-009: la decisión del verificador. SOLO `aprobada`
+/// otorga el punto que suma al avance. Es el "1" que pone el supervisor.
+model Validacion {
+  id             String             @id @default(uuid())
+  organizationId String             @map("organization_id")
+  evidenciaId    String             @map("evidencia_id")
+  verificadorId  String             @map("verificador_id")
+  decision       DecisionValidacion @default(pendiente)
+  observacion    String?
+  decididaEn     DateTime?          @map("decidida_en")
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  evidencia    Evidencia    @relation(fields: [evidenciaId], references: [id], onDelete: Cascade)
+  verificador  User         @relation("validaciones", fields: [verificadorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, evidenciaId])
+  @@index([organizationId, decision])
+  @@map("validaciones")
+}
+
+/// RF-015 · RN-012 · CA-04: el área social registra hasta TRES gestiones para
+/// la misma persona, con fechas diferenciadas por etapa.
+model AtencionSocial {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  actividadId    String    @unique @map("actividad_id")
+  tipoAtencion   String    @map("tipo_atencion")
+  subAtencion    String?   @map("sub_atencion")
+  requiereVisita Boolean   @default(false) @map("requiere_visita")
+  primeraGestion String?   @map("primera_gestion")
+  fechaProgramadaVisita DateTime? @map("fecha_programada_visita") @db.Date
+  observacion    String?
+  segundaGestion String?   @map("segunda_gestion")
+  fechaVisita    DateTime? @map("fecha_visita") @db.Date
+  fechaEntregaInforme DateTime? @map("fecha_entrega_informe") @db.Date
+  terceraGestion String?   @map("tercera_gestion")
+  fechaEntregaBeneficio DateTime? @map("fecha_entrega_beneficio") @db.Date
+  version        Int       @default(1)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actividad    Actividad    @relation(fields: [actividadId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("atenciones_sociales")
+}
+
+/// Días no trabajados que se descuentan del objetivo al día del funcionario.
+/// Confirmado con datos reales: en la planilla una funcionaria tiene 39,56%
+/// de objetivo mientras el resto tiene 50,55% (estructura-planilla-real §7).
+model Ausencia {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  periodoId      String       @map("periodo_id")
+  funcionarioId  String       @map("funcionario_id")
+  tipo           TipoAusencia
+  fechaDesde     DateTime     @map("fecha_desde") @db.Date
+  fechaHasta     DateTime     @map("fecha_hasta") @db.Date
+  dias           Int
+  observacion    String?
+  version        Int          @default(1)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  periodo      Periodo      @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  funcionario  User         @relation("ausencias", fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, periodoId, funcionarioId])
+  @@map("ausencias")
+}
+
+/// RF-025 · RN-011: felicitaciones y reclamos. Los VALORES salen de
+/// `parametros`, nunca del código — el PDF menciona −20%/−30%, la planilla
+/// +10% (máx 3)/−20%. Pendiente de definición oficial.
+model Ajuste {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  periodoId      String   @map("periodo_id")
+  funcionarioId  String   @map("funcionario_id")
+  tipo           String // "felicitacion" | "reclamo"
+  motivo         String
+  canal          String? // whatsapp, correo, libro de reclamos
+  personaNombre  String?  @map("persona_nombre")
+  personaContacto String? @map("persona_contacto")
+  sector         String?
+  fecha          DateTime @db.Date
+  registradoPorId String  @map("registrado_por_id")
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  periodo       Periodo      @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  funcionario   User         @relation("ajustes_funcionario", fields: [funcionarioId], references: [id], onDelete: Cascade)
+  registradoPor User         @relation("ajustes_registrados", fields: [registradoPorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, periodoId, funcionarioId])
+  @@map("ajustes")
+}
+
+/// RF-004 · HU-27: catálogos configurables (tipos de atención, subatenciones,
+/// gestiones, territorios). Se desactivan sin borrar historia.
+model CatalogoItem {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  catalogo       String // "tipo_atencion", "sub_atencion", "gestion_1", "territorio"
+  valor          String
+  area           String? // acota el catálogo a un área
+  orden          Int      @default(0)
+  vigente        Boolean  @default(true)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, catalogo, valor])
+  @@index([organizationId, catalogo, vigente])
+  @@map("catalogo_items")
+}
+
+/// RF-018: historial de transiciones de la agenda colectiva. Cada cambio
+/// conserva estado anterior, nuevo, autor, fecha y observación.
+model TareaHistorial {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  tareaId        String   @map("tarea_id")
+  estadoAnterior String?  @map("estado_anterior")
+  estadoNuevo    String   @map("estado_nuevo")
+  autorId        String   @map("autor_id")
+  observacion    String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tarea        Tarea        @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  autor        User         @relation("historial_tareas", fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, tareaId])
+  @@map("tarea_historial")
+}
+
+/// RF-035 · HU-24: observaciones y consultas asociadas a un registro, para
+/// resolver dudas con contexto. Petición literal del cliente: "no me manden
+/// WhatsApp, colóquenme un comentario en la celda".
+model Comentario {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  entidad        String // "tarea" | "actividad" | "meta"
+  entidadId      String   @map("entidad_id")
+  autorId        String   @map("autor_id")
+  texto          String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  autor        User         @relation("comentarios", fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, entidad, entidadId])
+  @@map("comentarios")
+}
+
+/// RNF-008 · RF-036 · ADR-006: bitácora SOLO-INSERCIÓN. La migración revoca
+/// UPDATE y DELETE sobre esta tabla: una auditoría que la propia aplicación
+/// puede modificar no es auditoría.
+model Auditoria {
+  id             String          @id @default(uuid())
+  organizationId String          @map("organization_id")
+  usuarioId      String?         @map("usuario_id")
+  accion         AccionAuditoria
+  entidad        String
+  entidadId      String          @map("entidad_id")
+  valorAnterior  Json?           @map("valor_anterior")
+  valorNuevo     Json?           @map("valor_nuevo")
+  ip             String?
+  origen         String? // ruta o proceso que originó el cambio
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, entidad, entidadId])
+  @@index([organizationId, createdAt])
+  @@map("auditoria")
+}

@@ -11,6 +11,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
     "smoke": "node scripts/smoke-realtime.mjs",
+    "verificar:calculo": "tsx scripts/verificar-cumplimiento.ts",
+    "verificar:rut": "tsx scripts/verificar-ruts.ts",
     "test": "echo \"tests en Fase 4\" && exit 0"
   },
   "prisma": {
