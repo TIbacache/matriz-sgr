@@ -123,3 +123,4 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.3.0-bloque-a` | API del registro y la validación (EP-01 + EP-03), 95 comprobaciones en verde |
 | `v0.4.0-ficha-personal` | Ficha personal (RF-008): la pestaña personal con registro, evidencia y anulación |
 | `v0.5.0-bandeja-verificador` | Bandeja del verificador (RF-013, HU-11): el ciclo evidencia → validación → puntaje, completo en pantalla |
+| `v0.5.1-bandeja-orden` | Corrección: la cola muestra lo recién subido (orden configurable y paginación explícita) |
