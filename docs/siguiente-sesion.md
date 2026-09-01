@@ -15,7 +15,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
 | **API del modelo v2** (Bloque A) | ✅ Períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento — 57/57 |
 | API pendiente del modelo v2 | ⬜ `MetaItem`, `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
-| Pantallas del modelo v2 | 🟡 Ficha personal lista; faltan bandeja del verificador y ficha del vecino ← **aquí se retoma** |
+| Pantallas del modelo v2 | 🟡 Ficha personal y bandeja del verificador listas; falta la ficha del vecino ← **aquí se retoma** |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
@@ -50,8 +50,8 @@ Los siete puntos del plan quedaron construidos y verificados (`npm run verificar
 ### Bloque B — Pantallas (RF-008, HU-06, HU-11)
 
 - ✅ **Ficha personal** (`/ficha`): cabecera con semáforo, tabla de ítems y registro diario con subida de evidencia, vista de la foto y anulación con motivo. Detalle en [estado-proyecto.md §Ficha personal](estado-proyecto.md).
-- ⬜ **Bandeja del verificador** ← **empezar aquí**. La API está lista (`GET /evidencias?estado=pendiente`, `POST /evidencias/:id/validacion`). DESIGN §8.2 ya fija sus criterios: lista de trabajo (no tablero), **foto grande** porque la decisión se toma mirándola, tres acciones equidistantes (Aprobar · Solicitar corrección · Rechazar) y **navegación por teclado con `J`/`K` y `Enter`, con las teclas visibles**.
-- ⬜ **Ficha del vecino** (ADR-008, CA-04): buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe**.
+- ✅ **Bandeja del verificador** (`/verificacion`): cola, foto grande, tres decisiones, teclado `J`/`K`/`Enter` y aviso de trabajo nuevo en vivo. Detalle en [estado-proyecto.md §Bandeja del verificador](estado-proyecto.md).
+- ⬜ **Ficha del vecino** (ADR-008, CA-04) ← **empezar aquí en el Bloque B**: buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe** (es lo primero a construir).
 
 **Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: se **anula con motivo**. Reutilizar `ChipSemaforo`, `.tabla-sgr` y `useUnidadSocket` en vez de escribir otros.
 

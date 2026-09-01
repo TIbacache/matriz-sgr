@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { obtenerBlob } from "../../lib/api";
+import { useEffect } from "react";
 import type { Actividad, Evidencia } from "../../lib/types";
 import { fechaCl, mb } from "../../lib/ficha";
+import { useArchivoEvidencia } from "../../lib/useArchivoEvidencia";
 import "../modal.css";
 
 interface Props {
@@ -17,24 +17,7 @@ interface Props {
 // El `alt` describe código + actividad, como exige DESIGN §8.2 / RNF-012: una
 // foto sin texto alternativo deja fuera a quien usa lector de pantalla.
 export function VistaEvidencia({ actividad, evidencia, onCerrar }: Props) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let objectUrl: string | null = null;
-    let vigente = true;
-    obtenerBlob(`/evidencias/${evidencia.id}/archivo`)
-      .then((blob) => {
-        if (!vigente) return;
-        objectUrl = URL.createObjectURL(blob);
-        setUrl(objectUrl);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : "No se pudo abrir la evidencia"));
-    return () => {
-      vigente = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [evidencia.id]);
+  const { url, error } = useArchivoEvidencia(evidencia.id);
 
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => {

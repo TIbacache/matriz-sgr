@@ -104,7 +104,10 @@ evidenciasRouter.get("/", async (req, res) => {
     prisma.evidencia.findMany({
       where,
       include: incluirEvidencia,
-      orderBy: { createdAt: "asc" }, // la más antigua primero: es una bandeja
+      // Lo PENDIENTE es una cola: primero lo que lleva más tiempo esperando.
+      // Lo ya decidido es un historial: primero lo más reciente, que es lo que
+      // alguien busca cuando revisa qué se resolvió.
+      orderBy: { createdAt: estado === "pendiente" ? "asc" : "desc" },
       take: limite,
       skip: desplazamiento,
     }),

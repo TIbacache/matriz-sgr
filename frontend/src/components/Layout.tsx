@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
+  BadgeCheck,
   ClipboardList,
   LayoutDashboard,
   LogOut,
@@ -23,6 +24,9 @@ const ROL_LABEL: Record<string, string> = {
 };
 
 const SIDEBAR_KEY = "matriz.sidebar";
+
+/** Espejo de requireRol("verificador", "supervisor", "admin") del backend. */
+const PUEDEN_VALIDAR = ["verificador", "supervisor", "admin"];
 
 export function Layout() {
   const { usuario, organizacionNombre, logout } = useAuth();
@@ -65,6 +69,14 @@ export function Layout() {
             <ClipboardList size={18} strokeWidth={1.5} />
             <span className="layout-nav-texto">Ficha personal</span>
           </NavLink>
+          {/* La bandeja solo aparece para quien puede validar (RNF-005): un
+              menú que ofrece lo que el rol no puede hacer confunde. */}
+          {PUEDEN_VALIDAR.includes(usuario?.rol ?? "") && (
+            <NavLink to="/verificacion" className="layout-nav-item" title="Bandeja de verificación">
+              <BadgeCheck size={18} strokeWidth={1.5} />
+              <span className="layout-nav-texto">Verificación</span>
+            </NavLink>
+          )}
           <NavLink to="/dashboard" className="layout-nav-item" title="Dashboard">
             <LayoutDashboard size={18} strokeWidth={1.5} />
             <span className="layout-nav-texto">Dashboard</span>

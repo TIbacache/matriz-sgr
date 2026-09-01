@@ -5,6 +5,7 @@ import { Layout } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
 import { TuboPage } from "./pages/TuboPage";
 import { FichaPage } from "./pages/FichaPage";
+import { BandejaPage } from "./pages/BandejaPage";
 
 // Carga perezosa: ECharts pesa; solo se descarga al entrar al dashboard,
 // y el tubo (la pantalla de todos los días) queda liviano.
@@ -27,6 +28,7 @@ export function App() {
           <Route element={<RutasProtegidas />}>
             <Route path="/" element={<TuboPage />} />
             <Route path="/ficha" element={<FichaPage />} />
+            <Route path="/verificacion" element={<BandejaPage />} />
             <Route
               path="/dashboard"
               element={

@@ -215,7 +215,7 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
 
-**Estado**: ✅ ficha personal (construida el 01-09-2026, `frontend/src/pages/FichaPage.tsx`) · ⬜ bandeja del verificador · ⬜ ficha del vecino · ⬜ configuración de parámetros.
+**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`), ambas del 01-09-2026 · ⬜ ficha del vecino · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
@@ -244,7 +244,7 @@ Es la "pestaña personal" de la planilla: donde cada funcionario ve su medición
 - Estado de validación con el par color+símbolo de siempre: aprobada ●, pendiente ▲, rechazada ■. **Nunca solo color.**
 - Peso y formato permitidos se declaran **antes** de elegir archivo, no en el error (RNF-017).
 
-### Bandeja del verificador (RF-013, HU-11)
+### Bandeja del verificador (RF-013, HU-11) ✅ construida
 
 - Lista de trabajo, no tablero: prioriza lo pendiente y **muestra la foto grande** — la decisión se toma mirando la imagen.
 - Tres acciones explícitas y equidistantes: **Aprobar · Solicitar corrección · Rechazar**. Rechazar usa `--estado-rojo`; las tres exigen observación cuando no son aprobación.
