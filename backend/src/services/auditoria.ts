@@ -1,4 +1,4 @@
-import type { AccionAuditoria } from "@prisma/client";
+import { Prisma, type AccionAuditoria } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import type { AuthPayload } from "../middleware/auth.js";
 
@@ -16,12 +16,21 @@ const CAMPOS_SENSIBLES = new Set(["passwordHash", "password_hash", "password", "
 
 function limpiar(valor: unknown): unknown {
   if (valor === null || valor === undefined) return null;
+  // Antes del corte por "no es objeto": JSON no sabe serializar bigint y lanza.
+  if (typeof valor === "bigint") return String(valor);
   if (typeof valor !== "object") return valor;
+  // Los tipos "objeto pero escalar" se convierten ANTES de recorrer sus campos.
+  // Recorrerlos arrastra su `constructor` al Json y Prisma rechaza el insert:
+  // como esta función nunca lanza, el evento se perdía en silencio. Le pasó a
+  // MetaItem, la primera entidad auditada con columnas Decimal.
+  if (valor instanceof Date) return valor.toISOString();
+  if (Prisma.Decimal.isDecimal(valor)) return (valor as Prisma.Decimal).toNumber();
+  if (Buffer.isBuffer(valor)) return `<${valor.byteLength} bytes>`;
   if (Array.isArray(valor)) return valor.map(limpiar);
   const salida: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(valor as Record<string, unknown>)) {
     if (CAMPOS_SENSIBLES.has(k)) continue;
-    salida[k] = v instanceof Date ? v.toISOString() : limpiar(v);
+    salida[k] = limpiar(v);
   }
   return salida;
 }
