@@ -18,6 +18,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **[docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md)** — HU ↔ requisito ↔ commit ↔ prueba. **Exigida por los profesores.**
 - **[DESIGN.md](DESIGN.md)** — normativo para todo el frontend. Un PR que viole su §8 se rechaza.
 - **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** — qué sigue, con su orden y sus trampas.
+- [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) — prompt listo para abrir una sesión nueva. **Se actualiza al cerrar cada bloque.**
 
 ## Estado del código (1 de septiembre de 2026)
 
