@@ -34,3 +34,13 @@ export async function puedeVerUnidad(auth: AuthPayload, unidadId: string): Promi
   const visibles = await unidadesVisibles(auth);
   return visibles === null || visibles.includes(unidadId);
 }
+
+// Alcance para VERIFICAR evidencias — RF-013 · RNF-005 (segregación de
+// funciones). El verificador es un actor transversal del PDF §3: revisa
+// evidencias de todas las delegaciones y por eso ve la bandeja completa.
+// Es una función distinta de "ver el libro": esta NO amplía el acceso al tubo
+// ni al registro diario, solo a las evidencias que debe validar.
+export async function unidadesParaVerificacion(auth: AuthPayload): Promise<string[] | null> {
+  if (auth.rol === "verificador") return null;
+  return unidadesVisibles(auth);
+}

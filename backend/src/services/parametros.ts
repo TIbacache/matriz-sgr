@@ -21,6 +21,7 @@ export const CLAVES = {
   topeFelicitaciones: "tope_felicitaciones",
   ajusteReclamo: "ajuste_reclamo",
   diasSinIngresoAlerta: "dias_sin_ingreso_alerta",
+  evidenciaTamanoMaxMb: "evidencia_tamano_max_mb",
 } as const;
 
 export type ClaveParametro = (typeof CLAVES)[keyof typeof CLAVES];
@@ -85,6 +86,15 @@ export const VALORES_INICIALES: {
     valor: 7,
     descripcion: "Días sin registrar actividad que gatillan alerta. RF-030, RF-037.",
     confirmado: false,
+  },
+  {
+    clave: CLAVES.evidenciaTamanoMaxMb,
+    valor: 10,
+    descripcion:
+      "Tamaño máximo de una evidencia, en MB. RNF-017 exige definirlo y deja el valor a " +
+      "criterio del equipo: es configuración operativa del administrador, no una regla " +
+      "pendiente del docente. Los formatos aceptados viven en el catálogo formato_evidencia.",
+    confirmado: true,
   },
 ];
 

@@ -13,6 +13,11 @@ import { tareasRouter } from "./routes/tareas.routes.js";
 import { metasRouter } from "./routes/metas.routes.js";
 import { kpisRouter } from "./routes/kpis.routes.js";
 import { usuariosRouter } from "./routes/usuarios.routes.js";
+import { periodosRouter } from "./routes/periodos.routes.js";
+import { cargosRouter, itemsRouter } from "./routes/cargos.routes.js";
+import { actividadesRouter } from "./routes/actividades.routes.js";
+import { evidenciasRouter } from "./routes/evidencias.routes.js";
+import { cumplimientoRouter } from "./routes/cumplimiento.routes.js";
 
 const app = express();
 app.use(cors({ origin: env.corsOrigin }));
@@ -37,6 +42,16 @@ app.get("/", (_req, res) =>
         "POST /kpis/recalcular",
         "GET /usuarios",
       ],
+      modeloV2: [
+        "GET|POST|PATCH /periodos · POST /periodos/:id/cierre · POST /periodos/:id/reapertura",
+        "GET|POST|PATCH /cargos",
+        "GET|POST|PATCH /items",
+        "GET|POST|PATCH /actividades · POST /actividades/:id/anulacion",
+        "POST /actividades/:id/evidencias (cuerpo = archivo crudo)",
+        "GET /evidencias?estado=pendiente · GET /evidencias/:id/archivo",
+        "POST /evidencias/:id/validacion",
+        "GET /cumplimiento/:periodoId",
+      ],
     },
   })
 );
@@ -49,6 +64,13 @@ app.use("/tareas", tareasRouter);
 app.use("/metas", metasRouter);
 app.use("/kpis", kpisRouter);
 app.use("/usuarios", usuariosRouter);
+// Modelo v2 — el eje actividad → código → evidencia → validación → puntaje.
+app.use("/periodos", periodosRouter);
+app.use("/cargos", cargosRouter);
+app.use("/items", itemsRouter);
+app.use("/actividades", actividadesRouter);
+app.use("/evidencias", evidenciasRouter);
+app.use("/cumplimiento", cumplimientoRouter);
 
 // Manejador de errores al final: Express 5 captura rechazos async solo.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

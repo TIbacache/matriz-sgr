@@ -14,6 +14,9 @@ build/
 # Prisma
 backend/prisma/*.db
 
+# Evidencias subidas (RNF-017): archivos de usuarios, jamás al repositorio
+backend/almacenamiento/
+
 # Logs y temporales
 *.log
 npm-debug.log*
