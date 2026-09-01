@@ -78,7 +78,7 @@ npm run dev
 
 ## Verificación
 
-Cuatro suites automatizadas, **107 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cuatro suites automatizadas, **108 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
@@ -87,7 +87,7 @@ npm run verificar:calculo  # 21 · fórmulas del cálculo, semáforo, parámetro
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 17 · tiempo real, permisos y visibilidad por delegación
-npm run verificar:api      # 69 · registro, evidencia, validación, concurrencia y auditoría
+npm run verificar:api      # 70 · registro, evidencia, validación, concurrencia y auditoría
 ```
 
 ## Estrategia de ramas y versiones

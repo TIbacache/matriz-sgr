@@ -30,6 +30,25 @@
 }
 
 /* Skeleton con la geometría real (DESIGN §7): tres columnas con brillo */
+/* Estado vacío para roles sin libro (DESIGN §7: texto + acción, sin dibujos) */
+.tubo-vacio {
+  padding: var(--esp-6) var(--esp-5);
+  text-align: center;
+}
+
+.tubo-vacio-acciones {
+  display: flex;
+  justify-content: center;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+}
+
+.tubo-vacio-acciones a {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 .tubo-skeleton {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

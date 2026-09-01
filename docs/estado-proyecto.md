@@ -285,6 +285,17 @@ Piezas reutilizables que salieron de aquí: `ChipSemaforo` (obliga a poner símb
 
 Piezas reutilizables nuevas: `useArchivoEvidencia` (descarga con JWT y revoca el object URL; lo usan la bandeja y la ficha) y `useOrgSocket`.
 
+### Correcciones encontradas probando el flujo real (no las vio ninguna prueba)
+
+Las dos aparecieron recorriendo el ciclo completo con cuentas distintas, y las dos eran de pantalla, no de datos. Quedan aquí porque el patrón se repite:
+
+| Error | Qué se veía | Causa | Corrección |
+|---|---|---|---|
+| Lo recién subido no aparecía en la bandeja | Se subía evidencia y la cola no la mostraba: parecía que el registro se había perdido | La cola cargaba 50 ordenadas por antigüedad y **no decía cuántas quedaban fuera**; con 88 pendientes del seed, lo nuevo caía en la posición 87 | `?orden=antiguas\|recientes`, contador "N de TOTAL", botón "Cargar más" y el aviso en vivo lleva a "Ver las más recientes". Dos verificaciones de regresión |
+| El tubo no cargaba nunca para el verificador | Esqueleto de carga infinito y un selector de delegación vacío | `cargarTareas` salía antes de apagar el indicador cuando **no había delegación visible**, y el rol verificador no tiene libro (regla 9) | Se resuelve el estado de carga siempre, se ocultan los controles sin sentido y aparece un vacío que **explica el porqué** y enlaza a la bandeja. Verificación: "el verificador no tiene libro pero sí ve la bandeja" |
+
+**Lección incorporada a DESIGN §7**: ningún esqueleto perpetuo, y todo vacío explica su causa y ofrece la acción que sí corresponde a ese rol. **Y a `siguiente-sesion.md`**: probar cada pantalla con los seis roles, no solo con el propio.
+
 ## Requerimientos reales de la reunión con el cliente
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:
