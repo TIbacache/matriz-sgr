@@ -2,7 +2,18 @@
 
 **Versi贸n**: 1.0  
 **Fecha**: 25 de agosto de 2026  
-**Estado**: Documento de referencia para inicio de desarrollo con Claude Code
+**Estado**: ⚠ **DOCUMENTO HISTÓRICO — SUPERADO EN PARTE**
+
+> **Nota de vigencia (31-08-2026)**: este documento se redactó *antes* de que los profesores entregaran la especificación formal. Sigue siendo válido como visión, arquitectura y stack, pero **donde contradiga al PDF oficial, manda el PDF**.
+>
+> **La especificación vigente es [docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** (38 RF, 18 RNF, 13 reglas de negocio, 10 criterios de aceptación y 31 historias), complementada por [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md).
+>
+> Puntos de este documento **corregidos** por la especificación oficial:
+> - **Semáforo**: aquí se propuso verde ≥80% / amarillo 50-79% / rojo <50%. Lo correcto es **verde ≥ objetivo al día · ámbar ≥ 60% del objetivo y < objetivo · rojo < 60% del objetivo** (RN-008, verificado con los datos reales de la planilla).
+> - **Unidad de medición**: aquí era la delegación. En realidad es **el funcionario** (cargo → ítems → metas); la delegación es la consolidación.
+> - **Período**: aquí se asumía "trimestre" fijo. Debe ser **configurable con fecha de inicio y término**, y está prohibido fijar 90/91 días en el código.
+> - **Faltaban por completo**: el eje actividad → código → evidencia → validación → puntaje, la auditoría con valor anterior/nuevo, el versionado de parámetros y los roles **Verificador** y **Usuario de consulta**.
+> - **Los 4 pilares** no son la estructura de medición: son áreas. Lo que se mide son los **ítems por cargo** (ver estructura-planilla-real §9).
 
 ---
 

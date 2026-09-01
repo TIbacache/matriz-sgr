@@ -137,6 +137,31 @@ Tokens nuevos en `tokens.css`: `--estado-*-texto` (contraste 4.5:1 para texto pe
 - Seed: los 3 totales de cumplimiento dan 73% (amarillo) porque rota los mismos avances; los colores por categoría sí varían. Si se quiere demo más vistosa, variar avances en `prisma/seed.ts`.
 - El servidor dev suele quedar corriendo en background de la sesión de Claude (`tsx watch`); si el puerto 4000 está ocupado al levantar, ya hay una instancia viva.
 
+## ⚠ CAMBIO DE LÍNEA BASE — 31 de agosto de 2026
+
+Los profesores entregaron la **especificación formal** (`Guia_Proyecto_Software_SGR_Alumnos.pdf`, 30 páginas) y la **presentación del cliente** (20 diapositivas con capturas de la planilla real). Esto **redefine el alcance**:
+
+- **[docs/requerimientos-oficiales.md](requerimientos-oficiales.md) pasa a ser LA especificación**: 38 RF, 18 RNF, 13 reglas de negocio, 10 criterios de aceptación y **31 historias oficiales** (nuestras 20 quedan subordinadas). Cumplimiento actual: **5 ✅ · 13 🟡 · 20 ⬜** de los RF.
+- **[docs/estructura-planilla-real.md](estructura-planilla-real.md)**: las capturas del PPT contenían la **parametrización de columnas** que llevábamos semanas esperando. Ya no hay que pedírsela al cliente.
+- **La unidad de medición es el FUNCIONARIO**, no la delegación: cargo → ítems → metas por persona. Nuestro modelo mide por unidad × categoría → **falta todo el nivel funcionario**.
+- **RN-008 confirmado con datos reales**: verde ≥ objetivo al día · ámbar ≥ 60% del objetivo · rojo < 60%. Nuestra implementación es correcta ✔
+- **Brecha mayor**: el eje **actividad → código → evidencia → validación → puntaje** (EP-01 y EP-03 completas) no existe todavía, y es el corazón del sistema.
+- **[docs/decisiones-tecnicas.md](decisiones-tecnicas.md)**: 9 ADR nuevos (RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad de personas, tipo/dirección de ítems).
+- **[docs/matriz-trazabilidad.md](matriz-trazabilidad.md)**: exigida por el PDF. *"Una historia no se considera terminada si no puede demostrarse su trazabilidad."*
+
+### Deuda técnica que abre este cambio
+
+| Deuda | Origen | Prioridad |
+|---|---|---|
+| Umbrales, tope 150% y período están **fijos en el SQL** de `vista_cumplimiento_v2`; deben leerse de tabla `parametro` | RNF-015, RF-038, ADR-007 | Alta |
+| El período se deriva del string `2026-Q3`; debe ser tabla con fecha inicio/término y días computables | RF-005, §13.1 | Alta |
+| Falta bloqueo optimista (`version`) en tablas editables | RF-034, CA-08, ADR-005 | Alta |
+| Falta tabla `auditoria` solo-inserción | RNF-008, RF-036 | Alta |
+| **El seed usa nombres reales** (Javier Godoy, Juan Francisco Labra) → prohibido por el PDF, cambiar por ficticios | §Condiciones del caso | Alta |
+| Faltan roles **Verificador** y **Usuario de consulta** | §3 Actores | Media |
+| Sin pruebas unitarias (Jest) ni de componentes (RTL) | §14.3 | Alta |
+| Falta alternativa por teclado en el drag & drop | RNF-012, DESIGN §8.1 | Media |
+
 ## Requerimientos reales de la reunión con el cliente
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:

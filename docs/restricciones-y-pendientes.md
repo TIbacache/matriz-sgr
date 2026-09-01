@@ -1,6 +1,6 @@
 # Restricciones y pendientes — Matriz SGR
 
-**Actualizado**: 25 de agosto de 2026
+**Actualizado**: 31 de agosto de 2026
 
 ## Restricciones del equipo (Origami SpA)
 
@@ -17,8 +17,14 @@
 | Pendiente | Bloqueado por | Acción cuando se destrabe |
 |---|---|---|
 | ~~Cargar backlog en Planner~~ **DESBLOQUEADO 26-08-2026** | — | Ya hay acceso al plan `DesarrolloSW-MuniLS-OrigamiSpA` con la plantilla del profesor (buckets: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación). Plan completo en [plan-desarrollo.md](plan-desarrollo.md); cargar con `scripts/cargar-plan-planner.ps1` (usar `-SoloSimular` primero). |
-| ~~Fórmula de "Objetivo al día"~~ **DESBLOQUEADO 25-08-2026** | — | El cliente la explicó en la reunión (01:05:31 y 00:35:17). Fórmula en [anotaciones-clase.md §1](anotaciones-clase.md). Falta solo el **nombre exacto de las columnas** de la planilla, que el cliente se comprometió a enviar por los profesores. |
-| Matriz de roles definitiva | Definición del profesor | Ajustar middleware de autorización (los roles están centralizados en un solo módulo para que el cambio sea barato). |
+| ~~Fórmula de "Objetivo al día"~~ **DESBLOQUEADO 25-08-2026** | — | El cliente la explicó en la reunión (01:05:31 y 00:35:17); confirmada por RN-007 del PDF y **verificada con los datos reales** de la planilla. |
+| ~~Nombres exactos de las columnas~~ **DESBLOQUEADO 31-08-2026** | — | Estaban en las capturas del PPT que enviaron los profesores. Extraídas y documentadas en [estructura-planilla-real.md](estructura-planilla-real.md): columnas de pestaña personal, área social, tubo, semáforo y resumen, más los catálogos completos de tipo/subatención y gestiones. |
+| ~~Matriz de roles definitiva~~ **DESBLOQUEADO 31-08-2026** | — | El PDF §3 define 6 actores: Administrador, Coordinador del sistema, Delegado/jefatura, Funcionario, **Verificador** y **Usuario de consulta**. Faltan los dos últimos en nuestro enum `Rol`. |
+| **7 consultas abiertas al docente** | Definición del docente (PO) | Listadas en [requerimientos-oficiales.md §10](requerimientos-oficiales.md). Las principales: valor oficial de los ajustes por felicitación/reclamo (el PDF dice −20%/−30%, la planilla +10%/−20%), si el tope de 150% se aplica o solo se informa, y si "Ingresado" es un estado real. El PDF exige documentarlas, no resolverlas en silencio. |
+
+## Restricción nueva del PDF (§Condiciones del caso)
+
+3. **Prohibido usar datos reales.** *"Solo se utilizarán datos ficticios o anonimizados. Está prohibido cargar información real de ciudadanos o funcionarios."* ⚠ Nuestro seed actual usa nombres tomados de las capturas (Javier Godoy, Juan Francisco Labra, etc.) → **debe reemplazarse por datos ficticios antes de la entrega**. Aplica también a capturas de pantalla en informes.
 
 ## Riesgos aceptados y su tratamiento
 

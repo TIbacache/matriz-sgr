@@ -1,22 +1,40 @@
-# Matriz SGR
+# SGR — Sistema de Gestión de Resultados
 
-Sistema multi-tenant de gestión territorial para municipalidades y empresas: tubo de trabajo kanban en tiempo real, metas trimestrales con cumplimiento ponderado, semáforos y dashboards BI.
+Aplicación web multi-tenant para la gestión de resultados de delegaciones municipales: registro de actividades con evidencia validada, agenda colectiva (tubo de trabajo) en tiempo real, metas con cumplimiento ponderado, semáforo diario y tableros BI.
 
-**Equipo**: Origami SpA · **Stack**: React + TypeScript · Node.js + Express + Socket.io · PostgreSQL + Prisma · Docker
+Proyecto integrador INACAP · **Equipo**: Origami SpA
+**Stack**: React + TypeScript · Node.js + Express + Socket.io · PostgreSQL + Prisma · Docker
 
 ## Documentación
 
+### Especificación (lo que se evalúa)
+
 | Documento | Contenido |
 |---|---|
-| [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Especificación completa del proyecto |
-| [DESIGN.md](DESIGN.md) | Guía visual normativa (tipografías, paleta, componentes, lista negra) |
+| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno** |
+| [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md) | Columnas, catálogos, códigos y fórmulas extraídos de la planilla en producción |
+| [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) | HU ↔ requisito ↔ commit ↔ prueba (exigida por los profesores) |
+| [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros |
+
+### Diseño y desarrollo
+
+| Documento | Contenido |
+|---|---|
+| [DESIGN.md](DESIGN.md) | Guía visual normativa (tipografías, paleta, accesibilidad, lista negra) |
+| [docs/estado-proyecto.md](docs/estado-proyecto.md) | Estado por fase, contrato de API y Socket.io, deuda técnica |
 | [docs/diagramas.md](docs/diagramas.md) | Contexto, casos de uso, ERD y secuencia de tiempo real |
-| [docs/historias-usuario.md](docs/historias-usuario.md) | 8 épicas, 20 historias con criterios de aceptación |
-| [docs/restricciones-y-pendientes.md](docs/restricciones-y-pendientes.md) | Restricciones del equipo, bloqueos y riesgos |
-| [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente clasificados (con citas de la reunión) |
-| [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, con calendario y ruta crítica |
+| [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente con citas de la reunión |
+| [docs/historias-usuario.md](docs/historias-usuario.md) | Historias propias del equipo (subordinadas a las 31 oficiales) |
+| [docs/restricciones-y-pendientes.md](docs/restricciones-y-pendientes.md) | Restricciones, bloqueos y riesgos |
+
+### Gestión
+
+| Documento | Contenido |
+|---|---|
+| [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
 | [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
+| [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Visión inicial del equipo (histórico, superado en parte) |
 
 ## Estructura
 

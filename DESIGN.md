@@ -1,7 +1,8 @@
 # DESIGN.md — Especificación visual Matriz SGR
 
-**Versión**: 1.1 · **Fecha**: 25 de agosto de 2026
+**Versión**: 1.2 · **Fecha**: 31 de agosto de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.2**: se agrega §8.1 Accesibilidad como norma obligatoria (RNF-012 y RNF-013 del PDF de los profesores).
 **v1.1**: cuerpo pasa a General Sans; se agregan tema oscuro, sistema de movimiento y marca ●▲■ (receta portada de la app de referencia ebus-test, adaptada a CSS3 puro). La implementación viva de los tokens es `frontend/src/styles/tokens.css`.
 
 ---
@@ -195,6 +196,19 @@ Un PR **se rechaza** si aparece cualquiera de estos:
 8. Valores de espaciado/radio fuera de las escalas definidas aquí.
 9. Animación decorativa sin significado de estado (pulsos en cosas no críticas, parallax, entrada aparatosa de páginas), o cualquier animación sin su apagado en `prefers-reduced-motion`.
 10. Colores fuera de tokens (hex sueltos en componentes) o una regla de tema oscuro escrita a mano en un componente.
+
+## 8.1 Accesibilidad — normativo (RNF-012)
+
+El PDF de los profesores la exige: *"navegación por teclado, contraste suficiente, textos alternativos y criterios de accesibilidad institucional vigentes"*. No es opcional ni "fase 2".
+
+1. **Teclado**: toda acción alcanzable con `Tab`/`Shift+Tab` en orden lógico y ejecutable con `Enter`/`Espacio`. El foco **siempre visible** (`:focus-visible` con anillo del acento, ya en `base.css`). Ningún `outline: none` sin reemplazo.
+2. **El drag & drop necesita alternativa por teclado**: dnd-kit trae `KeyboardSensor`; hay que activarlo y anunciar los movimientos. Un tablero que solo funciona con mouse incumple el requisito.
+3. **Contraste**: texto normal ≥ 4.5:1, texto grande y marcas gráficas ≥ 3:1, verificado con script (no a ojo). Los tokens `--estado-*-texto` existen exactamente para esto: **las marcas usan `--estado-*`, el texto usa `--estado-*-texto`**.
+4. **Nunca solo color**: todo estado lleva símbolo (●▲■) o texto además del color. Aplica a semáforos, chips, celdas del heatmap y filas de tabla.
+5. **Textos alternativos**: `alt` descriptivo en toda imagen con contenido (evidencias fotográficas incluidas); `aria-label` en botones de solo icono; los gráficos ECharts van acompañados de su **tabla equivalente**.
+6. **Formularios**: `<label>` asociado a cada campo, campos obligatorios marcados en el texto (no solo con color), errores anunciados con `role="alert"` y descritos junto al campo que los origina.
+7. **Movimiento**: respetar `prefers-reduced-motion` (ya implementado). Ninguna información depende de una animación.
+8. **Compatibilidad (RNF-013)**: probar en **Chrome y Edge**, escritorio y móvil, antes de cada entrega.
 
 ## 9. Referencias de estilo (dirección, no copia)
 
