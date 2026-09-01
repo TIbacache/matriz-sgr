@@ -1,0 +1,300 @@
+/* Configuración de metas (RF-006, RF-007, HU-05) — DESIGN §8.2.
+   Ni un color ni una medida fuera de los tokens. */
+
+.metas {
+  padding: var(--esp-5);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.metas-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--esp-5);
+}
+
+.metas-header-sub {
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  margin-top: var(--esp-1);
+  max-width: 66ch;
+}
+
+.metas-filtros {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+}
+
+.metas-filtro .campo {
+  width: auto;
+  min-width: 200px;
+}
+
+.metas-skeleton {
+  height: 320px;
+}
+
+/* ---- Avisos: siempre dicen la causa y ofrecen la salida (DESIGN §7) ---- */
+
+.metas-aviso {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.metas-aviso--vivo {
+  background: var(--acento-suave);
+  border-left-color: var(--acento);
+  color: var(--tinta);
+}
+
+.metas-aviso--conflicto {
+  background: var(--estado-amarillo-bg);
+  border-left-color: var(--estado-amarillo);
+  color: var(--estado-amarillo-texto);
+}
+
+/* ---- Contexto + totalizador ---- */
+
+.metas-contexto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-5);
+  flex-wrap: wrap;
+  padding: var(--esp-5);
+  margin-bottom: var(--esp-4);
+}
+
+.metas-nombre {
+  font-size: 1.25rem;
+}
+
+.metas-meta {
+  font-size: 0.875rem;
+  color: var(--tinta-2);
+  margin-top: var(--esp-1);
+}
+
+/* El protagonista: la suma se ve mientras se edita, no al guardar. */
+.metas-total {
+  min-width: 280px;
+  flex: 0 1 340px;
+}
+
+.metas-total-cifras {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.metas-total-etiqueta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+
+.metas-total-valor {
+  font-family: var(--font-titulo);
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.metas-total-barra {
+  height: 6px;
+  margin-top: var(--esp-2);
+  border-radius: 3px;
+  background: var(--fondo-2);
+  overflow: hidden;
+}
+
+.metas-total-relleno {
+  height: 100%;
+  background: var(--borde-fuerte);
+  transition: width var(--dur-2) var(--ease-expo);
+}
+
+.metas-total-mensaje {
+  margin-top: var(--esp-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.metas-total-regla {
+  font-weight: 400;
+  color: var(--tinta-2);
+}
+
+/* El estado se dice con texto; el color solo lo refuerza (DESIGN §8.1.4). */
+.metas-total--cuadrado .metas-total-valor,
+.metas-total--cuadrado .metas-total-mensaje {
+  color: var(--estado-verde-texto);
+}
+.metas-total--cuadrado .metas-total-relleno {
+  background: var(--estado-verde);
+}
+
+.metas-total--falta .metas-total-mensaje {
+  color: var(--estado-amarillo-texto);
+}
+.metas-total--falta .metas-total-relleno {
+  background: var(--estado-amarillo);
+}
+
+.metas-total--excede .metas-total-valor,
+.metas-total--excede .metas-total-mensaje {
+  color: var(--estado-rojo-texto);
+}
+.metas-total--excede .metas-total-relleno {
+  background: var(--estado-rojo);
+}
+
+.metas-total--vacio .metas-total-mensaje {
+  color: var(--tinta-2);
+}
+
+/* ---- Bloque de la tabla ---- */
+
+.metas-bloque {
+  padding: var(--esp-5);
+  margin-bottom: var(--esp-4);
+}
+
+.metas-bloque-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--esp-4);
+}
+
+.metas-bloque-titulo {
+  font-size: 1rem;
+}
+
+.metas-bloque-sub {
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  margin-top: var(--esp-1);
+  max-width: 70ch;
+}
+
+.metas-tabla td {
+  vertical-align: middle;
+}
+
+.metas-col-check {
+  width: 56px;
+  text-align: center;
+}
+
+.metas-col-num {
+  width: 160px;
+}
+
+.metas-input {
+  width: 110px;
+  margin-left: auto;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.metas-input:disabled {
+  background: var(--fondo-2);
+  color: var(--tinta-3);
+}
+
+.metas-item-nombre {
+  font-weight: 500;
+}
+
+/* Marca TEXTUAL del ítem inverso (ADR-009): nunca solo por comportamiento. */
+.metas-marca-inverso {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+}
+
+.metas-fila--fuera .metas-item-nombre {
+  color: var(--tinta-3);
+  font-weight: 400;
+}
+
+.metas-sin-medir {
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+}
+
+.metas-avance-pct {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+}
+
+.metas-nota-bloqueo,
+.metas-error {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: var(--esp-1);
+  max-width: 60ch;
+}
+
+.metas-nota-bloqueo {
+  color: var(--tinta-2);
+}
+
+.metas-error {
+  color: var(--estado-rojo-texto);
+  font-weight: 600;
+}
+
+/* ---- Acciones ---- */
+
+.metas-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  margin-top: var(--esp-4);
+  padding-top: var(--esp-4);
+  border-top: 1px solid var(--borde);
+}
+
+.metas-acciones-estado {
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.metas-acciones-botones {
+  display: flex;
+  gap: var(--esp-2);
+}
+
+@media (max-width: 720px) {
+  .metas-contexto,
+  .metas-acciones {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .metas-total {
+    flex: 1 1 auto;
+  }
+}

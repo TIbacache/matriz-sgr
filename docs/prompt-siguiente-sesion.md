@@ -2,7 +2,7 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 1 de septiembre de 2026 · `main` en la etiqueta `v0.6.0-metas-funcionario`
+**Última actualización**: 1 de septiembre de 2026 · `main` en la etiqueta `v0.7.0-pantalla-metas`
 
 ---
 
@@ -31,16 +31,16 @@ Verifica el estado real ejecutando, con Docker arriba (docker compose up -d):
       npm run dev   (en otra terminal)
       npm run smoke && npm run verificar:api
       cd frontend && npm run build
-Deben dar 126 comprobaciones en verde (17 + 21 + 88). Si algo falla,
+Deben dar 133 comprobaciones en verde (17 + 21 + 95). Si algo falla,
 repórtalo antes de avanzar. Si `npm run dev` no arranca, revisa si el puerto
 4000 lo tiene un tsx watch huérfano: el proceso viejo responde igual y te deja
 depurando sin ver logs (receta en docs/siguiente-sesion.md §6).
 
 TAREA: [elegir una del bloque de pendientes de docs/siguiente-sesion.md §3.
  Orden recomendado hoy:
-   1. Pantalla de configuración de metas (HU-05): la API `/metas-item` ya
-      existe y `PUT` guarda el conjunto cuadrado al 100% de una sola vez.
-      Falta la interfaz que use `GET /cargos` para ofrecer los ítems.
+   1. Probar /metas con las seis cuentas en el navegador: está verificado su
+      contrato con los seis roles, pero NO la vista. Los dos errores reales
+      del proyecto solo se vieron mirando la pantalla.
    2. Ficha del vecino (ADR-008, CA-04): primero el endpoint de búsqueda de
       PersonaUsuaria por RUT, que no existe; después la pantalla con el
       historial cruzando delegaciones.

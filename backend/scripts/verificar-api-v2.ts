@@ -901,6 +901,141 @@ check(
 );
 
 // ===========================================================================
+// 10. LO QUE CONSUME LA PANTALLA DE METAS — RF-006 · RF-007 · HU-05
+//
+// No prueban la interfaz (eso es del Bloque D), sino el CONTRATO del que
+// depende: si uno de estos endpoints falla o devuelve vacío para un rol, la
+// pantalla se rompe en silencio. Es la forma automatizable de la regla "probar
+// con los seis roles", que ya destapó dos errores reales de pantalla.
+// ===========================================================================
+
+const delegado = await login("delegado.centro@sgr.demo"); // gerente, Centro
+const D = api(delegado.token);
+
+// La pantalla necesita saber QUÉ ÍTEMS ofrecer, y eso lo dice el cargo del
+// funcionario. Sin `cargoId` habría que emparejar cargos por nombre.
+const directorio = (await A("GET", "/usuarios")).datos as {
+  userId: string;
+  nombre: string;
+  cargo: string | null;
+  cargoId: string | null;
+}[];
+const conCargo = directorio.filter((m) => m.cargoId);
+const gabrielDir = directorio.find((m) => m.userId === gabriel.usuario.id);
+check(
+  "RF-003 el directorio expone el cargoId, que es lo que dice qué ítems se le miden",
+  gabrielDir?.cargoId === cargoTerritorial.id && conCargo.length >= 7,
+  `${conCargo.length} personas con cargo; Gabriel → ${gabrielDir?.cargo}`
+);
+
+// Los seis roles del PDF §3 cargan la pantalla: períodos, directorio, cargos y
+// metas. Ninguno debe recibir un error que la deje en blanco o cargando.
+const porRol: { nombre: string; cli: ReturnType<typeof api> }[] = [
+  { nombre: "admin", cli: A },
+  { nombre: "supervisor", cli: S },
+  { nombre: "gerente", cli: D },
+  { nombre: "usuario", cli: G },
+  { nombre: "verificador", cli: V },
+  { nombre: "consulta", cli: C },
+];
+const fallosDeCarga: string[] = [];
+for (const { nombre, cli } of porRol) {
+  const respuestas = await Promise.all([
+    cli("GET", "/periodos"),
+    cli("GET", "/usuarios"),
+    cli("GET", "/cargos"),
+    cli("GET", `/metas-item?periodo=${periodoActivo.id}`),
+  ]);
+  const malas = respuestas.filter((r) => r.status !== 200);
+  if (malas.length > 0) fallosDeCarga.push(`${nombre}: ${malas.map((m) => m.status).join(",")}`);
+}
+check(
+  "HU-05 los seis roles cargan la pantalla de metas sin error (ninguno queda en blanco)",
+  fallosDeCarga.length === 0,
+  fallosDeCarga.length === 0 ? "admin, supervisor, gerente, usuario, verificador, consulta" : fallosDeCarga.join(" · ")
+);
+
+// Regla 9 + DESIGN §7: el selector de la pantalla solo puede ofrecer a quien
+// este rol puede consultar. Si ofreciera a alguien de otra delegación, cargar
+// esa persona daría 404 y la pantalla mostraría un error que nadie provocó —
+// el mismo fallo que dejó el tubo cargando para siempre para el verificador.
+const alcancePorRol: string[] = [];
+for (const { nombre, cli } of porRol) {
+  const unidadesDelRol = (await cli("GET", "/unidades")).datos as { id: string; puedeVerLibro: boolean }[];
+  const visibles = new Set(unidadesDelRol.filter((u) => u.puedeVerLibro).map((u) => u.id));
+  const central = nombre === "admin" || nombre === "supervisor";
+  const ofrecidos = directorio.filter(
+    (m) => m.cargoId && (central || visibles.has((m as { unidad?: { id: string } }).unidad?.id ?? ""))
+  );
+  // Cada persona que el selector ofrecería debe poder consultarse sin 404.
+  const consultas = await Promise.all(
+    ofrecidos.slice(0, 8).map((m) => cli("GET", `/metas-item?periodo=${periodoActivo.id}&funcionario=${m.userId}`))
+  );
+  const rechazadas = consultas.filter((r) => r.status !== 200).length;
+  alcancePorRol.push(`${nombre}=${ofrecidos.length}${rechazadas > 0 ? ` (${rechazadas} rechazadas)` : ""}`);
+}
+check(
+  "Regla 9 lo que el selector ofrece a cada rol es exactamente lo que ese rol puede consultar",
+  !alcancePorRol.some((a) => a.includes("rechazadas")),
+  alcancePorRol.join(", ")
+);
+
+// Cargar no es configurar: solo admin y supervisor guardan (RNF-005). Los otros
+// cuatro ven la pantalla en lectura, y el servidor lo hace cumplir igual.
+const cuerpoGuardado = {
+  periodoId: periodoPrueba.id,
+  funcionarioId: gabriel.usuario.id,
+  metas: [{ itemId: itemA.id, metaValor: 30, ponderador: 1 }],
+};
+const guardadosProhibidos = await Promise.all(
+  [
+    { nombre: "gerente", cli: D },
+    { nombre: "usuario", cli: G },
+    { nombre: "verificador", cli: V },
+    { nombre: "consulta", cli: C },
+  ].map(async (r) => ({ ...r, status: (await r.cli("PUT", "/metas-item", cuerpoGuardado)).status }))
+);
+check(
+  "RNF-005 configurar metas es solo de administración: los otros cuatro roles reciben 403",
+  guardadosProhibidos.every((r) => r.status === 403),
+  guardadosProhibidos.map((r) => `${r.nombre}=${r.status}`).join(", ")
+);
+
+// El cierre del ciclo: lo que la pantalla guarda es lo que el cálculo mide.
+const antesDeConfigurar = (await A("GET", `/cumplimiento/${periodoPrueba.id}?funcionario=${gabriel.usuario.id}`))
+  .datos as { funcionarios: { items: { itemId: string }[] }[] };
+const itemsAntes = antesDeConfigurar.funcionarios[0]?.items.length ?? 0;
+
+const vigentesFinal = (await A("GET", `/metas-item?periodo=${periodoPrueba.id}&funcionario=${gabriel.usuario.id}`))
+  .datos as { metas: { itemId: string; version: number }[] };
+const versionFinal = new Map(vigentesFinal.metas.map((m) => [m.itemId, m.version]));
+const guardadoDesdePantalla = await A("PUT", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  funcionarioId: gabriel.usuario.id,
+  // Reparto completo de los ítems del cargo, como lo arma "Repartir en partes
+  // iguales": el redondeo se acumula en el último para cuadrar exacto en 100%.
+  metas: itemsTerritorial.map((it, i) => ({
+    itemId: it.id,
+    metaValor: 25 + i,
+    ponderador:
+      i === itemsTerritorial.length - 1
+        ? Math.round((1 - base * (itemsTerritorial.length - 1)) * 10_000) / 10_000
+        : base,
+    ...(versionFinal.has(it.id) ? { version: versionFinal.get(it.id) } : {}),
+  })),
+});
+const despuesDeConfigurar = (await A("GET", `/cumplimiento/${periodoPrueba.id}?funcionario=${gabriel.usuario.id}`))
+  .datos as { funcionarios: { items: { itemId: string; meta: number }[] }[] };
+const itemsDespues = despuesDeConfigurar.funcionarios[0]?.items ?? [];
+check(
+  "HU-05 lo que se configura en la pantalla es exactamente lo que el motor mide",
+  guardadoDesdePantalla.status === 200 &&
+    itemsDespues.length === itemsTerritorial.length &&
+    itemsDespues.every((i) => i.meta > 0),
+  `${itemsAntes} ítems medidos antes → ${itemsDespues.length} después, todos con meta > 0`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
 await prisma.metaItem.deleteMany({ where: { periodoId: { in: creado.periodos } } });

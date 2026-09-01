@@ -267,7 +267,8 @@ El eje **actividad → código → evidencia → validación → puntaje** ya fu
 | `POST /metas-item` | admin, supervisor | Rechaza **superar** el 100% (422 con `disponible`); quedarse corto se informa, porque se cargan de a una (decisión 4 de Fase 2). Valida meta > 0 (RN-002), ítem del cargo del funcionario (RF-003), ítem activo, duplicado (422) y período abierto (RN-013) |
 | `PATCH /metas-item/:id` | admin, supervisor | Solo meta y ponderador: período, ítem y funcionario **identifican** la fila. Exige `version` → 409 |
 | `DELETE /metas-item/:id` | admin, supervisor | Una meta **sí se borra**: es configuración del período, no historia, y si no pudiera quitarse el ponderador quedaría ocupado y RN-001 sería inalcanzable. Protegido si el ítem ya acumuló avance aprobado → 422 (RN-009, CA-01) |
-| `PUT /metas-item` | admin, supervisor | `{periodoId, funcionarioId, metas[]}` — configuración **completa** de una persona, en transacción, **exigiendo el 100% exacto**. Es la única operación que puede garantizar RN-001, porque recibe el conjunto entero |
+| `PUT /metas-item` | admin, supervisor | `{periodoId, funcionarioId, metas[]}` — configuración **completa** de una persona, en transacción, **exigiendo el 100% exacto**. Es la única operación que puede garantizar RN-001, porque recibe el conjunto entero. Cada meta que **ya existe** debe traer su `version`: si falta o no coincide → 409 con el conjunto vigente (CA-08) |
+| `GET /usuarios` | todos | Ahora expone `cargoId`, el vínculo real al cargo del modelo v2 — es lo que dice **qué ítems se le miden** a cada persona (RF-003). Sin él la pantalla de metas tendría que emparejar cargos por nombre |
 
 Eventos nuevos: `meta_item:creada/actualizada/eliminada` en la room de la delegación del funcionario, y `cumplimiento:cambiado` en la de la organización — cambiar una meta mueve el puntaje, igual que aprobar una evidencia.
 
@@ -277,6 +278,8 @@ Eventos nuevos: `meta_item:creada/actualizada/eliminada` en la room de la delega
 19. **La tolerancia de RN-001 es `0.0001`**, el ULP de `ponderador Decimal(5,4)`. **No es un valor de negocio** (el 100% lo fija la regla, no el cliente, así que no va a `parametro`): existe para que un reparto entre tres ítems a 33,33% no quede bloqueado por el último dígito que la base puede representar.
 20. **Una meta con avance aprobado no se quita**, ni por `DELETE` ni dejándola fuera de un `PUT`: borraría puntaje ya validado sin dejar rastro visible (RN-009, CA-01). Para corregirla se ajusta su meta o su ponderador.
 21. **El versionado que pide RF-007 es el período**: la meta cuelga de `periodoId`, así que reconfigurar el trimestre siguiente nunca toca el cerrado. No hace falta una tabla de versiones de meta.
+22. **Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` en la raíz.** Es lo único que el oyente necesita para saber si le toca releer; tenerlo en unas sí y en otras no obligaría a inspeccionar el tipo de evento antes de poder leerlo.
+23. **Un selector no ofrece lo que el servidor va a rechazar.** Vale para toda lista de elección, no solo para esta pantalla: se filtra por el mismo alcance que aplica el backend, y si queda vacía se explica por qué.
 
 ### Bug encontrado por esta prueba (preexistente)
 
@@ -350,6 +353,30 @@ Las dos aparecieron recorriendo el ciclo completo con cuentas distintas, y las d
 | El tubo no cargaba nunca para el verificador | Esqueleto de carga infinito y un selector de delegación vacío | `cargarTareas` salía antes de apagar el indicador cuando **no había delegación visible**, y el rol verificador no tiene libro (regla 9) | Se resuelve el estado de carga siempre, se ocultan los controles sin sentido y aparece un vacío que **explica el porqué** y enlaza a la bandeja. Verificación: "el verificador no tiene libro pero sí ve la bandeja" |
 
 **Lección incorporada a DESIGN §7**: ningún esqueleto perpetuo, y todo vacío explica su causa y ofrece la acción que sí corresponde a ese rol. **Y a `siguiente-sesion.md`**: probar cada pantalla con los seis roles, no solo con el propio.
+
+## Configuración de metas — Bloque B2, tercera pantalla (1 de septiembre de 2026)
+
+`/metas` (`frontend/src/pages/MetasPage.tsx`) es donde se decide **qué se le mide a una persona y con qué peso** (RF-006, RF-007, HU-05). Todo lo que se calcula después cuelga de aquí, así que la pantalla está construida alrededor de una idea: que sea imposible guardar un reparto que no cuadre.
+
+- **La suma es el protagonista, no un mensaje de error**: un totalizador con cifra, barra y texto acompaña la edición y dice en todo momento `cuadrado en 100%` · `falta 15%` · `se pasa por 8%`. Descubrir el desajuste al guardar es el fallo de la planilla que venimos a reemplazar.
+- **Todos los ítems del cargo se muestran**, tengan meta o no: uno oculto es uno que nadie recuerda repartir. Los que no se miden van desmarcados y se ven en gris.
+- **Se guarda el conjunto con un `PUT`**, no fila por fila: es lo único que puede garantizar RN-001 y evita dejar estados intermedios inválidos en la base.
+- **Repartir 100% en partes iguales** a un clic, con el redondeo acumulado en el último ítem para que dé exactamente 100 y no 99,99.
+- **Lo que ya sumó puntaje no se puede quitar** (RN-009): la casilla se desactiva con su razón escrita al lado. Un botón que siempre falla es peor que un botón ausente. El dato sale de `GET /cumplimiento`, que ya cuenta solo lo aprobado — no hizo falta endpoint nuevo.
+- **Período cerrado y rol sin permiso** ven la pantalla completa en lectura, con el motivo y el camino que sí corresponde (RN-013, RNF-005).
+- **Conflicto en vivo**: `meta_item:*` en el room de la delegación muestra "otra persona cambió esto" con botón para releer. **No recarga sola**: mover los campos bajo el cursor de quien escribe provoca errores.
+- La conversión porcentaje ↔ fracción vive **solo** en `lib/metas.ts`; repartirla por los componentes es la forma segura de que un día 25 se guarde como 25 en vez de 0,25.
+
+### Dos huecos que aparecieron construyéndola
+
+| Hueco | Por qué importaba | Corrección |
+|---|---|---|
+| **`PUT /metas-item` no comparaba `version`**: reemplazaba el conjunto entero a ciegas | Dos personas configurando al mismo funcionario se pisaban en silencio, contra CA-08 | Cada meta existente debe llegar con su `version`; si falta o no coincide, 409 con lo vigente. La comparación va **dentro** de la transacción, no solo en la validación previa |
+| **El selector ofrecía a todo el directorio** | El libro es privado por delegación: elegir a alguien de otra delegación daba 404 y un error que la persona no provocó. Es el mismo fallo que dejó el tubo cargando para el verificador | El selector ofrece solo lo que ese rol puede consultar; cuando eso es nada (verificador, consulta), la pantalla lo explica y enlaza a lo suyo |
+
+El segundo lo encontró **la verificación por roles**, no la vista: `verificador=0, consulta=0` personas configurables. Es la primera vez que la regla de los seis roles se ejecuta automatizada en vez de a mano.
+
+⚠ **Pendiente honesto**: la comprobación *visual* con las seis cuentas (que es lo que detectó los dos errores anteriores) **no se ha hecho** en esta pantalla. Lo verificado es el contrato que consume, con los seis roles.
 
 ## Requerimientos reales de la reunión con el cliente
 

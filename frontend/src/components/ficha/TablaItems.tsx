@@ -19,8 +19,9 @@ export function TablaItems({ ficha }: Props) {
       <section className="card ficha-bloque" aria-label="Ítems medidos">
         <h3 className="ficha-bloque-titulo">Ítems medidos</h3>
         <p className="vacio">
-          Esta persona no tiene metas asignadas en el período. Las metas y ponderadores por
-          funcionario se cargan desde administración (RF-007); esa pantalla todavía no existe.
+          Esta persona no tiene metas asignadas en el período, así que todavía no hay nada que
+          medirle. Las metas y ponderadores se cargan en <strong>Configuración de metas</strong>,
+          que es tarea de administración y coordinación (RF-007).
         </p>
       </section>
     );

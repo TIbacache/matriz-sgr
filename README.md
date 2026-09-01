@@ -94,7 +94,7 @@ La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-
 
 ## Verificación
 
-Cuatro suites automatizadas, **126 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cuatro suites automatizadas, **133 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
@@ -103,7 +103,7 @@ npm run verificar:calculo  # 21 · fórmulas del cálculo, semáforo, parámetro
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 17 · tiempo real, permisos y visibilidad por delegación
-npm run verificar:api      # 88 · registro, evidencia, validación, metas, concurrencia y auditoría
+npm run verificar:api      # 95 · registro, evidencia, validación, metas, concurrencia y auditoría
 ```
 
 ## Estrategia de ramas y versiones
@@ -142,3 +142,4 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.5.1-bandeja-orden` | Corrección: la cola muestra lo recién subido (orden configurable y paginación explícita) |
 | `v0.5.2-tubo-vacio-explicado` | Corrección: el tubo resuelve su carga y explica el vacío a los roles sin delegación |
 | `v0.6.0-metas-funcionario` | API de metas por funcionario (RF-006, RF-007, RN-001), 126 comprobaciones en verde |
+| `v0.7.0-pantalla-metas` | Pantalla de configuración de metas (HU-05), bloqueo optimista en el guardado del conjunto y alcance del selector por rol |

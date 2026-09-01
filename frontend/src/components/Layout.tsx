@@ -8,6 +8,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   SquareKanban,
+  Target,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
@@ -27,6 +28,8 @@ const SIDEBAR_KEY = "matriz.sidebar";
 
 /** Espejo de requireRol("verificador", "supervisor", "admin") del backend. */
 const PUEDEN_VALIDAR = ["verificador", "supervisor", "admin"];
+/** Espejo de requireRol("admin", "supervisor") en /metas-item (RF-007). */
+const PUEDEN_CONFIGURAR = ["admin", "supervisor"];
 
 export function Layout() {
   const { usuario, organizacionNombre, logout } = useAuth();
@@ -75,6 +78,14 @@ export function Layout() {
             <NavLink to="/verificacion" className="layout-nav-item" title="Bandeja de verificación">
               <BadgeCheck size={18} strokeWidth={1.5} />
               <span className="layout-nav-texto">Verificación</span>
+            </NavLink>
+          )}
+          {/* Configurar metas es tarea de administración: el menú no ofrece lo
+              que este rol no puede hacer (mismo criterio que la bandeja). */}
+          {PUEDEN_CONFIGURAR.includes(usuario?.rol ?? "") && (
+            <NavLink to="/metas" className="layout-nav-item" title="Configuración de metas">
+              <Target size={18} strokeWidth={1.5} />
+              <span className="layout-nav-texto">Metas</span>
             </NavLink>
           )}
           <NavLink to="/dashboard" className="layout-nav-item" title="Dashboard">

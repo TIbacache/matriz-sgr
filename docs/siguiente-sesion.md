@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 1 de septiembre de 2026 (cierre del Bloque A2) · Último commit de código: `de68901` (rama `feat/bloque-a2-api-metas-item`)
+**Actualizado**: 1 de septiembre de 2026 (cierre del Bloque B2 — pantalla de configuración de metas)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -13,9 +13,9 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 17/17 verificaciones |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** (Bloques A y A2) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación y cumplimiento — 88/88 |
+| **API del modelo v2** (Bloques A y A2) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación y cumplimiento — 95/95 |
 | API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
-| Pantallas del modelo v2 | 🟡 Ficha personal y bandeja del verificador listas; faltan la ficha del vecino y la configuración de metas ← **aquí se retoma** |
+| Pantallas del modelo v2 | 🟡 Ficha personal, bandeja del verificador y **configuración de metas** listas; falta la ficha del vecino ← **aquí se retoma** |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
@@ -60,7 +60,13 @@ Los siete puntos del plan quedaron construidos y verificados (`npm run verificar
 
 ⚠ **Bug preexistente que destapó**: `services/auditoria.ts` perdía **en silencio** todo evento con un `Prisma.Decimal` (arrastraba su `constructor` al Json y Prisma rechazaba el insert; como la bitácora nunca lanza, no había aviso). Corregido, con verificación de regresión. La API de parámetros (RF-038, también `Decimal`) habría tropezado con lo mismo.
 
-**Lo que le falta a esto**: la **pantalla de configuración de metas** (HU-05). El contrato ya está listo para construirla: `GET /cargos` da los ítems del cargo y `PUT /metas-item` guarda el conjunto cuadrado de una sola vez.
+### ~~Bloque B2 — Pantalla de configuración de metas (HU-05)~~ ✅ TERMINADO
+
+`/metas` (`frontend/src/pages/MetasPage.tsx`). Detalle en [estado-proyecto.md §Configuración de metas](estado-proyecto.md) y criterios en [DESIGN §8.2](../DESIGN.md). Lo esencial: totalizador siempre visible, todos los ítems del cargo a la vista, guardado del conjunto con `PUT`, reparto en partes iguales a un clic, y lo que ya sumó puntaje no se puede quitar.
+
+Cerró de paso dos huecos: el `PUT` no comparaba `version` (CA-08) y el selector ofrecía personas que el servidor rechaza (regla 9). El segundo lo encontró una verificación nueva que prueba **los seis roles**, no un solo camino feliz — vale la pena repetir ese patrón en cada pantalla.
+
+⚠ **Lo que le falta**: la prueba **visual** con las seis cuentas. Está verificado el contrato que consume, no la vista.
 
 ### Bloque B — Pantallas (RF-008, HU-06, HU-11)
 
@@ -89,8 +95,9 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~`auditoria` sin llamadas~~ → resuelto en el modelo v2; **las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar** | rutas v1 | Media |
 | ~~`version` sin comparar~~ → resuelto en el modelo v2; **las rutas v1 siguen sin bloqueo optimista** | rutas v1 | Media |
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
-| ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2 (`de68901`); falta su **pantalla** (HU-05) ← **en construcción (Bloque B2)** | frontend | Alta |
-| **`PUT /metas-item` no aplica bloqueo optimista**: reemplaza el conjunto sin comparar `version`, así que dos personas configurando al mismo funcionario a la vez se pisan en silencio (contra CA-08). Detectado al diseñar la pantalla, se cierra en el Bloque B2 | backend | Alta |
+| ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2; ~~falta su pantalla~~ → **resuelta** en el Bloque B2 (`/metas`) | — | ✅ |
+| ~~`PUT /metas-item` no aplica bloqueo optimista~~ → **resuelto** en el Bloque B2: cada meta existente debe traer su `version` | — | ✅ |
+| **Falta la prueba visual de `/metas` con las seis cuentas**: lo verificado es el contrato, no la vista. Las dos correcciones anteriores del proyecto solo se vieron mirando la pantalla | frontend | Alta |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
@@ -117,6 +124,7 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 
 - **`prisma migrate dev` es interactivo y falla aquí.** Usar `migrate diff` + `migrate deploy` (receta en CLAUDE.md).
 - **PowerShell agrega BOM** con `Out-File -Encoding utf8`; Postgres rechaza el archivo. Escribir con `UTF8Encoding($false)`.
+- **`Get-Content` + `Set-Content` sobre un archivo con acentos lo corrompe.** PowerShell 5.1 lo lee como ANSI y lo reescribe mal: `código` queda `cÃ³digo`. Pasó al actualizar los conteos de CLAUDE.md y README.md, y se arregló con `git checkout -- <archivo>`. **Para editar documentación usar las herramientas de edición, no reemplazos por consola.**
 - **`prisma generate` falla si el servidor dev está corriendo** (bloquea el `.dll` del motor). Detenerlo antes.
 - **Here-strings de PowerShell con comillas dobles rompen `git commit -m`.** Usar `git commit -F archivo.txt`.
 - **`git merge -m` con here-string también falla** (a veces git recibe una palabra suelta del mensaje como si fuera una rama, y la etiqueta termina en el commit equivocado). Receta segura: `git merge --no-ff --no-commit <rama>` y después `git commit -F archivo.txt`. **Etiquetar solo después de comprobar con `git log --oneline -1` que el merge existe.**

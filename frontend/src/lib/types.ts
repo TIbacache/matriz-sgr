@@ -212,6 +212,73 @@ export interface ListaEvidencias {
   evidencias: EvidenciaEnBandeja[];
 }
 
+// --- Cargos, ítems y metas por funcionario (RF-003, RF-006, RF-007) ---------
+
+export interface ItemMedicion {
+  id: string;
+  cargoId: string;
+  nombre: string;
+  tipo: "cantidad" | "porcentaje";
+  direccion: "mayor_mejor" | "menor_mejor";
+  alimentadoPorTubo: boolean;
+  orden: number;
+  activo: boolean;
+  version: number;
+}
+
+export interface Cargo {
+  id: string;
+  nombre: string;
+  area: string | null;
+  activo: boolean;
+  version: number;
+  items: ItemMedicion[];
+}
+
+/** Una persona del directorio (`GET /usuarios`). */
+export interface MiembroDirectorio {
+  userId: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  cargo: string | null;
+  /** Vínculo real al cargo del modelo v2: dice qué ítems se le miden. */
+  cargoId: string | null;
+  unidad: { id: string; nombre: string } | null;
+}
+
+/** Meta y ponderador de un funcionario en un ítem y período (`/metas-item`). */
+export interface MetaItem {
+  id: string;
+  periodoId: string;
+  itemId: string;
+  funcionarioId: string;
+  /** El ponderador viaja como fracción 0..1; la pantalla muestra porcentaje. */
+  metaValor: string | number;
+  ponderador: string | number;
+  version: number;
+  item: Pick<ItemMedicion, "id" | "nombre" | "tipo" | "direccion" | "activo" | "cargoId">;
+  funcionario: { id: string; nombre: string };
+  periodo: { id: string; nombre: string; estado: "abierto" | "cerrado" };
+}
+
+export interface ResumenMetas {
+  periodoId: string;
+  funcionarioId: string;
+  nombre: string;
+  suma: number;
+  sumaPonderadores: number;
+  /** RN-001: los ponderadores de un funcionario suman 100% */
+  cumpleRN001: boolean;
+  faltante: number;
+}
+
+export interface ListaMetas {
+  total: number;
+  metas: MetaItem[];
+  resumen: ResumenMetas[];
+}
+
 export interface CatalogoItem {
   id: string;
   catalogo: string;

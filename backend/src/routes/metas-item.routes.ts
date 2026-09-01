@@ -354,7 +354,17 @@ metasItemRouter.post("/", requireRol("admin", "supervisor"), async (req, res) =>
   });
 
   await auditarDesde(auth, req)({ accion: "crear", entidad: "meta_item", entidadId: meta.id, valorNuevo: meta });
-  const carga = { meta, sumaPonderadores: suma, cumpleRN001: Math.abs(suma - 1) <= TOLERANCIA_PONDERADOR };
+  // `periodoId` y `funcionarioId` van en la raíz de TODAS las cargas de
+  // `meta_item:*`: es lo único que el oyente necesita para saber si le toca
+  // releer, y tenerlo en unas sí y en otras no obligaría a inspeccionar el tipo
+  // de evento antes de leerlo.
+  const carga = {
+    periodoId,
+    funcionarioId,
+    meta,
+    sumaPonderadores: suma,
+    cumpleRN001: Math.abs(suma - 1) <= TOLERANCIA_PONDERADOR,
+  };
   if (ctx.unidadTerritorialId) emitEvent(roomUnidad(ctx.unidadTerritorialId), "meta_item:creada", carga);
   // Cambiar una meta mueve el puntaje de esa persona: el tablero debe releer.
   emitEvent(roomOrganizacion(auth.organizationId), "cumplimiento:cambiado", { periodoId, funcionarioId });
@@ -414,7 +424,13 @@ metasItemRouter.patch("/:id", requireRol("admin", "supervisor"), async (req, res
     valorAnterior: anterior,
     valorNuevo: meta,
   });
-  const carga = { meta, sumaPonderadores: suma, cumpleRN001: Math.abs(suma - 1) <= TOLERANCIA_PONDERADOR };
+  const carga = {
+    periodoId: anterior.periodoId,
+    funcionarioId: anterior.funcionarioId,
+    meta,
+    sumaPonderadores: suma,
+    cumpleRN001: Math.abs(suma - 1) <= TOLERANCIA_PONDERADOR,
+  };
   if (ctx.unidadTerritorialId) emitEvent(roomUnidad(ctx.unidadTerritorialId), "meta_item:actualizada", carga);
   emitEvent(roomOrganizacion(auth.organizationId), "cumplimiento:cambiado", {
     periodoId: anterior.periodoId,

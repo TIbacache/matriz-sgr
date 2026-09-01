@@ -217,7 +217,7 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
 
-**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`), ambas del 01-09-2026 · 🟡 configuración de metas (criterios fijados abajo, API lista) · ⬜ ficha del vecino · ⬜ configuración de parámetros.
+**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ⬜ ficha del vecino · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
@@ -252,7 +252,7 @@ Es la "pestaña personal" de la planilla: donde cada funcionario ve su medición
 - Tres acciones explícitas y equidistantes: **Aprobar · Solicitar corrección · Rechazar**. Rechazar usa `--estado-rojo`; las tres exigen observación cuando no son aprobación.
 - Debe funcionar **con teclado**: `J`/`K` para navegar y `Enter` para aprobar, con las teclas visibles en pantalla.
 
-### Configuración de metas por funcionario (RF-006, RF-007, HU-05)
+### Configuración de metas por funcionario (RF-006, RF-007, HU-05) ✅ construida
 
 Es la pantalla donde alguien decide **qué se le mide a una persona y con qué peso**. Todo lo que se calcula después —el semáforo, la ficha, el dashboard— cuelga de lo que se escriba aquí, así que un error mudo en esta pantalla contamina el sistema entero. API: `/metas-item` (contrato en [docs/estado-proyecto.md](docs/estado-proyecto.md)).
 
@@ -266,6 +266,10 @@ Es la pantalla donde alguien decide **qué se le mide a una persona y con qué p
 8. **Rol**: editan los roles `admin` y `supervisor` (el que el municipio llama "coordinador"). Quien llegue por URL sin permiso ve la pantalla **en lectura con el aviso de por qué** (mismo patrón que la bandeja) — nunca una página en blanco ni un 403 crudo. Probar con los seis roles antes de darla por buena; la tabla de cuentas está en [docs/estado-proyecto.md](docs/estado-proyecto.md).
 9. **Conflicto (CA-08)**: si otra persona reconfiguró a ese funcionario mientras tanto, aviso explícito con lo vigente y la opción de recargar. Nunca sobrescritura silenciosa.
 10. **Accesibilidad (§8.1)**: cada campo numérico con su `<label>` (el nombre del ítem), `inputMode="decimal"`, cifras con `tabular-nums`, el estado de la suma anunciado con `role="status"` —no `alert`, que interrumpiría en cada tecla— y el error de guardado con `role="alert"` junto al botón.
+
+**Lo que cambió al construirla** (el criterio 8 no bastaba): el selector de funcionario no puede ofrecer a **todo** el directorio. El libro es privado por delegación, así que ofrecer a alguien de otra delegación termina en un 404 al cargar y en un error que la persona no provocó — el mismo fallo que dejó el tubo cargando para siempre para el verificador. **El selector ofrece solo lo que ese rol puede consultar**, y cuando eso es nada (verificador, usuario de consulta) la pantalla lo dice y enlaza a lo que sí les toca. Queda cubierto por la verificación *"lo que el selector ofrece a cada rol es exactamente lo que ese rol puede consultar"*.
+
+**Regla que se generaliza**: *un selector que ofrece opciones que el servidor va a rechazar es un error de diseño, no de permisos.* Antes de poblar cualquier lista de elección, filtrarla por el mismo alcance que aplica el backend.
 
 ### Ficha del vecino y trazabilidad (ADR-008, CA-04)
 
