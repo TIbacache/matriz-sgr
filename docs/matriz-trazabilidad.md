@@ -85,7 +85,7 @@ El modelo de datos de las historias pendientes ya existe y está verificado; fal
 
 ## 3. Verificaciones automatizadas vigentes
 
-**107 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 69 de la API v2, que incluyen las del contrato de la ficha personal y de la bandeja del verificador).
+**108 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 70 de la API v2, que incluyen las del contrato de la ficha personal y de la bandeja del verificador).
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -132,7 +132,7 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 16-17 | Crear tarea y su evento | RF-016, HU-02 |
 
-### `npm run verificar:api` — 69/69 (Bloques A y B)
+### `npm run verificar:api` — 70/70 (Bloques A y B)
 
 Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
 
@@ -149,7 +149,7 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 
 Las dos comprobaciones en negrita son **regresiones**: nacieron de un error real encontrado probando el ciclo completo (una evidencia recién subida caía en la posición 87 de la cola y no se veía en pantalla).
 
-⚠ **Brecha de pruebas que queda**: las 107 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
+⚠ **Brecha de pruebas que queda**: las 108 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
 
 ---
 

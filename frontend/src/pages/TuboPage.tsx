@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import type { CategoriaGestion, Conectado, Tarea, UnidadTerritorial } from "../lib/types";
 import { colorCategoria, puedeMoverTarea } from "../lib/kanban";
@@ -10,6 +11,9 @@ import { NuevaTareaModal } from "../components/NuevaTareaModal";
 import { useToast } from "../components/Toast";
 import "./tubo.css";
 
+/** Espejo de requireRol("verificador", "supervisor", "admin") del backend. */
+const PUEDEN_VALIDAR = ["verificador", "supervisor", "admin"];
+
 export function TuboPage() {
   const { usuario, token, terminologia } = useAuth();
   const { toast, mostrarError } = useToast();
@@ -20,6 +24,7 @@ export function TuboPage() {
   const [tareas, setTareas] = useState<Tarea[]>([]);
   const [conectados, setConectados] = useState<Conectado[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [cargandoUnidades, setCargandoUnidades] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
 
   const terminoUnidad = terminologia.unidad ?? "unidad";
@@ -40,11 +45,19 @@ export function TuboPage() {
         const propia = visibles.find((u) => u.responsableId === usuario.id);
         setUnidadId((actual) => actual ?? propia?.id ?? visibles[0]?.id ?? null);
       })
-      .catch((e) => mostrarError(e instanceof Error ? e.message : "Error al cargar datos"));
+      .catch((e) => mostrarError(e instanceof Error ? e.message : "Error al cargar datos"))
+      .finally(() => setCargandoUnidades(false));
   }, [usuario, mostrarError]);
 
   const cargarTareas = useCallback(() => {
-    if (!unidadId) return;
+    // Sin delegación visible no hay tubo que cargar. Salir SIN apagar el
+    // indicador de carga dejaba el esqueleto girando para siempre a quien no
+    // tiene libro asignado (verificador, consulta): parecía una pantalla rota.
+    if (!unidadId) {
+      setTareas([]);
+      setCargando(false);
+      return;
+    }
     setCargando(true);
     api
       .get<Tarea[]>(`/tareas?unidad=${unidadId}`)
@@ -124,33 +137,58 @@ export function TuboPage() {
         <div>
           <h2>Tubo de trabajo</h2>
         </div>
-        <div className="tubo-header-derecha">
-          <PresenceBar conectados={conectados} />
-          {puedeCrear && unidadActual && (
-            <button className="btn-primario" onClick={() => setModalAbierto(true)}>
-              Nueva tarea
-            </button>
-          )}
-          <select
-            className="campo tubo-selector"
-            value={unidadId ?? ""}
-            onChange={(e) => setUnidadId(e.target.value)}
-            aria-label={`Seleccionar ${terminoUnidad}`}
-          >
-            {unidades.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Sin libro visible no hay nada que elegir ni con quién compartir
+            presencia: se ocultan en vez de mostrar controles vacíos. */}
+        {unidades.length > 0 && (
+          <div className="tubo-header-derecha">
+            <PresenceBar conectados={conectados} />
+            {puedeCrear && unidadActual && (
+              <button className="btn-primario" onClick={() => setModalAbierto(true)}>
+                Nueva tarea
+              </button>
+            )}
+            <select
+              className="campo tubo-selector"
+              value={unidadId ?? ""}
+              onChange={(e) => setUnidadId(e.target.value)}
+              aria-label={`Seleccionar ${terminoUnidad}`}
+            >
+              {unidades.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </header>
 
-      {cargando ? (
+      {cargandoUnidades || cargando ? (
         <div className="tubo-skeleton" aria-hidden="true">
           <div className="skeleton" />
           <div className="skeleton" />
           <div className="skeleton" />
+        </div>
+      ) : unidades.length === 0 ? (
+        // El libro es privado por delegación (regla del cliente, reunión
+        // 00:37:11) y los roles transversales —verificador y consulta— no
+        // tienen delegación asignada. No es un error: se explica y se ofrece
+        // la pantalla que sí les corresponde (DESIGN §7).
+        <div className="card tubo-vacio">
+          <p className="vacio">
+            No tienes ninguna {terminoUnidad} asignada, así que no hay tubo que mostrar. El libro
+            de cada {terminoUnidad} es privado de su equipo; tu rol trabaja a nivel central.
+          </p>
+          <div className="tubo-vacio-acciones">
+            {PUEDEN_VALIDAR.includes(usuario.rol) && (
+              <Link className="btn-primario" to="/verificacion">
+                Ir a la bandeja de verificación
+              </Link>
+            )}
+            <Link className="btn-secundario" to="/dashboard">
+              Ver el tablero consolidado
+            </Link>
+          </div>
         </div>
       ) : (
         <KanbanBoard

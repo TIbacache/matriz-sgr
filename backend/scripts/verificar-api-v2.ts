@@ -627,6 +627,19 @@ check(
   `${(trasAnularBandeja.datos as { total: number }).total} aprobadas vigentes`
 );
 
+// Regla 9 (libro privado por delegación): el verificador es transversal y NO
+// tiene libro. Es la razón de que el tubo le muestre un estado vacío explicado
+// en vez de un tablero — antes se quedaba cargando para siempre.
+const unidadesDelVerificador = await V("GET", "/unidades");
+const librosVisibles = (unidadesDelVerificador.datos as { puedeVerLibro: boolean }[]).filter(
+  (u) => u.puedeVerLibro
+);
+check(
+  "Regla 9 el verificador no tiene libro de delegación, pero sí ve la bandeja",
+  unidadesDelVerificador.status === 200 && librosVisibles.length === 0 && pendientes.length > 0,
+  `${librosVisibles.length} libros visibles, ${pendientes.length} evidencias por revisar`
+);
+
 const centro = unidades.find((u) => u.nombre === "Centro")!;
 const bandejaCentro = await V(
   "GET",

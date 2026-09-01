@@ -178,6 +178,8 @@ De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C03
 ## 7. Estados vacíos, carga y error
 
 - Vacío: texto en `--tinta-2` + acción primaria. Sin ilustraciones decorativas.
+- **El vacío explica POR QUÉ está vacío y ofrece lo que sí corresponde a ese rol.** Ejemplo real: el verificador no tiene delegación asignada, así que el tubo le muestra "el libro de cada delegación es privado, tu rol trabaja a nivel central" y un enlace a su bandeja — no un tablero en blanco.
+- **Ningún esqueleto perpetuo**: toda pantalla debe resolver su estado de carga aunque la respuesta venga vacía o el rol no tenga datos. Un skeleton que nunca termina se lee como una aplicación rota, y así se vio el tubo para el verificador hasta que se corrigió.
 - Carga: skeletons grises (`#ECECEA`) con la geometría real del contenido. Sin spinners de página completa.
 - Error de sincronización (revert de actualización optimista): toast superior con fondo `--estado-rojo-bg`, texto `--estado-rojo`, 5s.
 
