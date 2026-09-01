@@ -22,6 +22,7 @@ usuariosRouter.get("/", async (req, res) => {
     include: {
       user: { select: { id: true, nombre: true, email: true } },
       unidad: { select: { id: true, nombre: true } },
+      cargoRef: { select: { id: true, nombre: true } },
     },
     orderBy: [{ rol: "asc" }, { cargo: "asc" }],
   });
@@ -31,7 +32,11 @@ usuariosRouter.get("/", async (req, res) => {
       nombre: m.user.nombre,
       email: m.user.email,
       rol: m.rol,
-      cargo: m.cargo,
+      // `cargo` es el texto heredado del modelo v1; `cargoId` es el vínculo real
+      // al cargo del modelo v2, y es lo que dice QUÉ ÍTEMS se le miden (RF-003).
+      // Sin él, la pantalla de metas tendría que emparejar cargos por nombre.
+      cargo: m.cargoRef?.nombre ?? m.cargo,
+      cargoId: m.cargoId,
       unidad: m.unidad,
     }))
   );

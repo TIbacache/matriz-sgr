@@ -69,6 +69,21 @@ npm install
 npm run dev
 ```
 
+## Cuentas de demostración
+
+Todas con contraseña `matriz123`, una por cada rol del PDF §3. Los datos son **100% ficticios** y deben seguir siéndolo.
+
+| Correo | Rol | Se le dice | Qué se prueba con esta cuenta |
+|---|---|---|---|
+| `admin@sgr.demo` | `admin` | Administrador | Configuración completa, reapertura de períodos |
+| `coordinador@sgr.demo` | `supervisor` | Coordinador | Metas, validación y nivel central |
+| `verificador@sgr.demo` | `verificador` | Verificador | Bandeja de verificación (transversal, **sin libro**) |
+| `consulta@sgr.demo` | `consulta` | Usuario de consulta | Solo lectura del consolidado |
+| `delegado.centro@sgr.demo` | `gerente` | Delegado | Libro y tubo de su delegación |
+| `territorial.centro@sgr.demo` | `usuario` | Funcionario | Ficha personal y registro diario |
+
+La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-proyecto.md §Cuentas de demostración y roles](docs/estado-proyecto.md), que es la **fuente única**. Las cuentas `@demo.cl` de las Fases 2 y 3 ya no existen.
+
 ## Puertos
 
 | Servicio | Puerto |
@@ -79,7 +94,7 @@ npm run dev
 
 ## Verificación
 
-Cuatro suites automatizadas, **126 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cuatro suites automatizadas, **133 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
@@ -88,7 +103,7 @@ npm run verificar:calculo  # 21 · fórmulas del cálculo, semáforo, parámetro
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 17 · tiempo real, permisos y visibilidad por delegación
-npm run verificar:api      # 88 · registro, evidencia, validación, metas, concurrencia y auditoría
+npm run verificar:api      # 95 · registro, evidencia, validación, metas, concurrencia y auditoría
 ```
 
 ## Estrategia de ramas y versiones
@@ -127,3 +142,4 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.5.1-bandeja-orden` | Corrección: la cola muestra lo recién subido (orden configurable y paginación explícita) |
 | `v0.5.2-tubo-vacio-explicado` | Corrección: el tubo resuelve su carga y explica el vacío a los roles sin delegación |
 | `v0.6.0-metas-funcionario` | API de metas por funcionario (RF-006, RF-007, RN-001), 126 comprobaciones en verde |
+| `v0.7.0-pantalla-metas` | Pantalla de configuración de metas (HU-05), bloqueo optimista en el guardado del conjunto y alcance del selector por rol |

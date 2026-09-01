@@ -217,7 +217,7 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
 
-**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`), ambas del 01-09-2026 · ⬜ ficha del vecino · ⬜ configuración de parámetros.
+**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ⬜ ficha del vecino · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
@@ -251,6 +251,25 @@ Es la "pestaña personal" de la planilla: donde cada funcionario ve su medición
 - Lista de trabajo, no tablero: prioriza lo pendiente y **muestra la foto grande** — la decisión se toma mirando la imagen.
 - Tres acciones explícitas y equidistantes: **Aprobar · Solicitar corrección · Rechazar**. Rechazar usa `--estado-rojo`; las tres exigen observación cuando no son aprobación.
 - Debe funcionar **con teclado**: `J`/`K` para navegar y `Enter` para aprobar, con las teclas visibles en pantalla.
+
+### Configuración de metas por funcionario (RF-006, RF-007, HU-05) ✅ construida
+
+Es la pantalla donde alguien decide **qué se le mide a una persona y con qué peso**. Todo lo que se calcula después —el semáforo, la ficha, el dashboard— cuelga de lo que se escriba aquí, así que un error mudo en esta pantalla contamina el sistema entero. API: `/metas-item` (contrato en [docs/estado-proyecto.md](docs/estado-proyecto.md)).
+
+1. **La suma es el protagonista, no un mensaje de error.** RN-001 exige 100%. Un totalizador **siempre visible** (cifra + barra) acompaña la edición y dice en todo momento en qué estado está: `100% ✓ cuadrado` · `falta 15%` · `se pasa por 8%`. Descubrir el desajuste recién al guardar es exactamente el fallo de la planilla que venimos a reemplazar.
+2. **Los ítems los propone el cargo; no se escriben ni se buscan.** Al elegir funcionario se cargan **todos los ítems activos de su cargo** (`GET /cargos`), cada uno como una fila lista para recibir meta y peso. Un ítem sin meta se muestra igual, marcado como "sin configurar", porque **un ítem invisible es un ítem que nadie recuerda repartir**.
+3. **Se guarda el conjunto, no fila por fila.** Configurar es una sesión: se ajusta todo y se guarda cuadrado con un `PUT`. Guardar de a una dejaría estados intermedios inválidos en la base y obligaría a la persona a pelear con la regla en cada tecla.
+4. **Reparto en partes iguales a un clic.** Es la acción más frecuente y la más odiada a mano. Deja el redondeo cuadrado en el último ítem — nunca 99,99%.
+5. **La persona piensa en porcentajes; la API recibe fracciones.** La UI muestra y pide `25`, la API recibe `0.25`. La conversión vive en un solo lugar, nunca repartida por los componentes.
+6. **Lo que ya sumó puntaje no se puede quitar** (RN-009, CA-01): esos ítems se marcan con su razón visible y su acción de quitar **desactivada con explicación**, no habilitada para que el servidor la rechace después. Un botón que siempre falla es peor que un botón ausente.
+7. **Período cerrado = solo lectura**, con el motivo escrito (RN-013) y el camino que sí corresponde: configurar el período siguiente.
+8. **Rol**: editan los roles `admin` y `supervisor` (el que el municipio llama "coordinador"). Quien llegue por URL sin permiso ve la pantalla **en lectura con el aviso de por qué** (mismo patrón que la bandeja) — nunca una página en blanco ni un 403 crudo. Probar con los seis roles antes de darla por buena; la tabla de cuentas está en [docs/estado-proyecto.md](docs/estado-proyecto.md).
+9. **Conflicto (CA-08)**: si otra persona reconfiguró a ese funcionario mientras tanto, aviso explícito con lo vigente y la opción de recargar. Nunca sobrescritura silenciosa.
+10. **Accesibilidad (§8.1)**: cada campo numérico con su `<label>` (el nombre del ítem), `inputMode="decimal"`, cifras con `tabular-nums`, el estado de la suma anunciado con `role="status"` —no `alert`, que interrumpiría en cada tecla— y el error de guardado con `role="alert"` junto al botón.
+
+**Lo que cambió al construirla** (el criterio 8 no bastaba): el selector de funcionario no puede ofrecer a **todo** el directorio. El libro es privado por delegación, así que ofrecer a alguien de otra delegación termina en un 404 al cargar y en un error que la persona no provocó — el mismo fallo que dejó el tubo cargando para siempre para el verificador. **El selector ofrece solo lo que ese rol puede consultar**, y cuando eso es nada (verificador, usuario de consulta) la pantalla lo dice y enlaza a lo que sí les toca. Queda cubierto por la verificación *"lo que el selector ofrece a cada rol es exactamente lo que ese rol puede consultar"*.
+
+**Regla que se generaliza**: *un selector que ofrece opciones que el servidor va a rechazar es un error de diseño, no de permisos.* Antes de poblar cualquier lista de elección, filtrarla por el mismo alcance que aplica el backend.
 
 ### Ficha del vecino y trazabilidad (ADR-008, CA-04)
 

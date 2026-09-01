@@ -22,7 +22,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 ## Estado del código (1 de septiembre de 2026)
 
-**Construido y verificado** (126 comprobaciones en verde):
+**Construido y verificado** (133 comprobaciones en verde):
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.
@@ -31,12 +31,12 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **API de metas por funcionario (Bloque A2)**: `/metas-item` — meta y ponderador por funcionario, ítem y período (RF-006, RF-007). RN-001 exigida en sus dos formas: el alta unitaria rechaza superar el 100%, el `PUT` del conjunto exige el 100% exacto. **Ojo: `/metas` es el modelo v1 (unidad × categoría) y `/metas-item` el v2 (funcionario × ítem × período); no son lo mismo.**
 - **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
 - **Bandeja del verificador `/verificacion`** (RF-013, HU-11): cola, foto grande, tres decisiones con observación obligatoria y teclado `J`/`K`/`Enter`. Solo la ven verificador, supervisor y admin.
+- **Configuración de metas `/metas`** (RF-006, RF-007, HU-05): totalizador de RN-001 siempre visible, todos los ítems del cargo, guardado del conjunto con `PUT`, reparto en partes iguales y protección de lo que ya sumó puntaje. Solo la editan admin y supervisor.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
 - Seed 100% ficticio con 1.126 actividades validadas.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
 - **Ficha del vecino** (ADR-008): necesita un endpoint de búsqueda de `PersonaUsuaria` que todavía no existe.
-- **Pantalla de configuración de metas** (HU-05): la API ya está; falta la interfaz.
 - API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - Las rutas **v1** (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar y sin `version`.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
@@ -54,7 +54,7 @@ npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 17 verificaciones de integración (server corriendo)
 npm run verificar:calculo     # 21 verificaciones del motor de cálculo
-npm run verificar:api         # 88 verificaciones de la API v2 (server corriendo)
+npm run verificar:api         # 95 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo
@@ -71,7 +71,9 @@ npx prisma migrate diff --from-schema-datasource prisma\schema.prisma --to-schem
 npx prisma migrate deploy
 ```
 
-Cuentas demo (todas `matriz123`): `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+
+⚠ **Solo existen las `@sgr.demo`.** Las `@demo.cl` de las Fases 2 y 3 se borraron al reescribir el seed; si algo las menciona, está desactualizado. Las 13 cuentas con su rol, cargo y delegación están en [docs/estado-proyecto.md §Cuentas de demostración y roles](docs/estado-proyecto.md) — **esa tabla es la fuente única**. Ahí también está la equivalencia entre el rol técnico y el nombre municipal: `supervisor` = "coordinador", `gerente` = "delegado".
 
 ## Reglas del proyecto
 

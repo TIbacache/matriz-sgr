@@ -3,6 +3,32 @@
 **Actualizado**: 1 de septiembre de 2026 (Bloque A2 — API de metas por funcionario)
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fase.
 
+## Cuentas de demostración y roles — FUENTE ÚNICA
+
+⚠ **Las únicas cuentas válidas son las `@sgr.demo` del seed v2.** Las `@demo.cl` que aparecen más abajo en la historia de las Fases 2 y 3 **ya no existen**: se borraron al reescribir el seed con datos 100% ficticios. Si un documento, un script o una captura las menciona, está desactualizado. Contraseña de todas: `matriz123`.
+
+**Roles**: el enum de la base tiene seis (`admin`, `supervisor`, `gerente`, `usuario`, `verificador`, `consulta`), que son los seis actores del PDF §3. El nombre del rol técnico **no siempre coincide con el nombre del cargo municipal**: lo que el cliente llama "coordinador" es el rol `supervisor`, y lo que llama "delegado" es `gerente`. Al escribir código se usa el nombre del enum; al escribir texto de pantalla, el del municipio.
+
+| Correo (`@sgr.demo`) | Nombre ficticio | Rol (enum) | Se le dice | Cargo | Delegación |
+|---|---|---|---|---|---|
+| `admin` | Ana Contreras Bravo | `admin` | Administrador | — | nivel central |
+| `coordinador` | Carlos Miranda Soto | `supervisor` | Coordinador | — | nivel central |
+| `verificador` | Valeria Ortega Lillo | `verificador` | Verificador | — | transversal (sin libro) |
+| `consulta` | Camila Fuentes Rivas | `consulta` | Usuario de consulta | — | sin libro |
+| `delegado.centro` | Diego Salinas Peña | `gerente` | Delegado | — | Centro |
+| `delegado.rural` | Daniela Aguirre Mella | `gerente` | Delegado | — | Rural |
+| `apoyo.centro` | Paula Herrera Vidal | `usuario` | Funcionario | Apoyo Administrativo | Centro |
+| `territorial.centro` | Gabriel Muñoz Reyes | `usuario` | Funcionario | Territorial OO.CC. 1 | Centro |
+| `social.centro` | Javiera Cáceres Núñez | `usuario` | Funcionario | Gestor Social 1 | Centro |
+| `diserco.centro` | Rodrigo Valenzuela Pino | `usuario` | Funcionario | Coordinador DISERCO | Centro |
+| `planificacion.centro` | Elena Tapia Godoy | `usuario` | Funcionario | Planificación y Control | Centro |
+| `territorial.rural` | Ignacio Bustos Farías | `usuario` | Funcionario | Territorial OO.CC. 1 | Rural |
+| `social.rural` | Marcela Rojas Leiva | `usuario` | Funcionario | Gestor Social 1 | Rural |
+
+Las **siete personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición. Los nombres son ficticios y deben seguir siéndolo (§Condiciones del caso del PDF).
+
+**Para probar con los seis roles** (regla que ya detectó dos errores reales): `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+
 ## Resumen por fases
 
 | Fase | Estado | Contenido |
@@ -18,7 +44,7 @@ Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fa
 - **Repo privado**: https://github.com/TIbacache/matriz-sgr (rama `main`).
 - **Postgres 16** en Docker (`docker compose up -d` en la raíz, contenedor `matriz-sgr-db`, puerto 5432, volumen persistente `matriz_sgr_pgdata`).
 - **2 migraciones Prisma** aplicadas: `init` (tablas) y `vista_cumplimiento` (vista materializada con índice único para `REFRESH ... CONCURRENTLY`).
-- **Seed demo** (`npx prisma db seed`): Municipalidad Demo, 3 delegaciones, 4 pilares, 18 tareas, metas 2026-Q3 con ponderadores 0.25. Password de todos: `matriz123`. Usuarios: `admin@demo.cl`, `supervisora@demo.cl`, `delegado.norte@demo.cl` (gerente de Norte), `delegada.centro@demo.cl` (gerente de Centro), `funcionario1@demo.cl`, `funcionaria2@demo.cl`.
+- **Seed demo de esta fase** (histórico): Municipalidad Demo, 3 delegaciones, 4 pilares, 18 tareas, metas 2026-Q3 con ponderadores 0.25. ⚠ **Sus usuarios `@demo.cl` ya no existen**: el seed se reescribió con datos 100% ficticios y las cuentas vigentes son las de [§Cuentas de demostración y roles](#cuentas-de-demostración-y-roles--fuente-única).
 - **Smoke test de integración**: `npm run smoke` en `/backend` (servidor corriendo) → 7/7 PASS. Cubre: rechazo de handshake sin token, 403 tarea ajena, join a room, presencia, rechazo unidad ajena, PATCH propio, evento en room.
 - **Build limpio**: `npm run build` (tsc estricto) sin errores.
 
@@ -241,7 +267,8 @@ El eje **actividad → código → evidencia → validación → puntaje** ya fu
 | `POST /metas-item` | admin, supervisor | Rechaza **superar** el 100% (422 con `disponible`); quedarse corto se informa, porque se cargan de a una (decisión 4 de Fase 2). Valida meta > 0 (RN-002), ítem del cargo del funcionario (RF-003), ítem activo, duplicado (422) y período abierto (RN-013) |
 | `PATCH /metas-item/:id` | admin, supervisor | Solo meta y ponderador: período, ítem y funcionario **identifican** la fila. Exige `version` → 409 |
 | `DELETE /metas-item/:id` | admin, supervisor | Una meta **sí se borra**: es configuración del período, no historia, y si no pudiera quitarse el ponderador quedaría ocupado y RN-001 sería inalcanzable. Protegido si el ítem ya acumuló avance aprobado → 422 (RN-009, CA-01) |
-| `PUT /metas-item` | admin, supervisor | `{periodoId, funcionarioId, metas[]}` — configuración **completa** de una persona, en transacción, **exigiendo el 100% exacto**. Es la única operación que puede garantizar RN-001, porque recibe el conjunto entero |
+| `PUT /metas-item` | admin, supervisor | `{periodoId, funcionarioId, metas[]}` — configuración **completa** de una persona, en transacción, **exigiendo el 100% exacto**. Es la única operación que puede garantizar RN-001, porque recibe el conjunto entero. Cada meta que **ya existe** debe traer su `version`: si falta o no coincide → 409 con el conjunto vigente (CA-08) |
+| `GET /usuarios` | todos | Ahora expone `cargoId`, el vínculo real al cargo del modelo v2 — es lo que dice **qué ítems se le miden** a cada persona (RF-003). Sin él la pantalla de metas tendría que emparejar cargos por nombre |
 
 Eventos nuevos: `meta_item:creada/actualizada/eliminada` en la room de la delegación del funcionario, y `cumplimiento:cambiado` en la de la organización — cambiar una meta mueve el puntaje, igual que aprobar una evidencia.
 
@@ -251,6 +278,8 @@ Eventos nuevos: `meta_item:creada/actualizada/eliminada` en la room de la delega
 19. **La tolerancia de RN-001 es `0.0001`**, el ULP de `ponderador Decimal(5,4)`. **No es un valor de negocio** (el 100% lo fija la regla, no el cliente, así que no va a `parametro`): existe para que un reparto entre tres ítems a 33,33% no quede bloqueado por el último dígito que la base puede representar.
 20. **Una meta con avance aprobado no se quita**, ni por `DELETE` ni dejándola fuera de un `PUT`: borraría puntaje ya validado sin dejar rastro visible (RN-009, CA-01). Para corregirla se ajusta su meta o su ponderador.
 21. **El versionado que pide RF-007 es el período**: la meta cuelga de `periodoId`, así que reconfigurar el trimestre siguiente nunca toca el cerrado. No hace falta una tabla de versiones de meta.
+22. **Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` en la raíz.** Es lo único que el oyente necesita para saber si le toca releer; tenerlo en unas sí y en otras no obligaría a inspeccionar el tipo de evento antes de poder leerlo.
+23. **Un selector no ofrece lo que el servidor va a rechazar.** Vale para toda lista de elección, no solo para esta pantalla: se filtra por el mismo alcance que aplica el backend, y si queda vacía se explica por qué.
 
 ### Bug encontrado por esta prueba (preexistente)
 
@@ -325,11 +354,35 @@ Las dos aparecieron recorriendo el ciclo completo con cuentas distintas, y las d
 
 **Lección incorporada a DESIGN §7**: ningún esqueleto perpetuo, y todo vacío explica su causa y ofrece la acción que sí corresponde a ese rol. **Y a `siguiente-sesion.md`**: probar cada pantalla con los seis roles, no solo con el propio.
 
+## Configuración de metas — Bloque B2, tercera pantalla (1 de septiembre de 2026)
+
+`/metas` (`frontend/src/pages/MetasPage.tsx`) es donde se decide **qué se le mide a una persona y con qué peso** (RF-006, RF-007, HU-05). Todo lo que se calcula después cuelga de aquí, así que la pantalla está construida alrededor de una idea: que sea imposible guardar un reparto que no cuadre.
+
+- **La suma es el protagonista, no un mensaje de error**: un totalizador con cifra, barra y texto acompaña la edición y dice en todo momento `cuadrado en 100%` · `falta 15%` · `se pasa por 8%`. Descubrir el desajuste al guardar es el fallo de la planilla que venimos a reemplazar.
+- **Todos los ítems del cargo se muestran**, tengan meta o no: uno oculto es uno que nadie recuerda repartir. Los que no se miden van desmarcados y se ven en gris.
+- **Se guarda el conjunto con un `PUT`**, no fila por fila: es lo único que puede garantizar RN-001 y evita dejar estados intermedios inválidos en la base.
+- **Repartir 100% en partes iguales** a un clic, con el redondeo acumulado en el último ítem para que dé exactamente 100 y no 99,99.
+- **Lo que ya sumó puntaje no se puede quitar** (RN-009): la casilla se desactiva con su razón escrita al lado. Un botón que siempre falla es peor que un botón ausente. El dato sale de `GET /cumplimiento`, que ya cuenta solo lo aprobado — no hizo falta endpoint nuevo.
+- **Período cerrado y rol sin permiso** ven la pantalla completa en lectura, con el motivo y el camino que sí corresponde (RN-013, RNF-005).
+- **Conflicto en vivo**: `meta_item:*` en el room de la delegación muestra "otra persona cambió esto" con botón para releer. **No recarga sola**: mover los campos bajo el cursor de quien escribe provoca errores.
+- La conversión porcentaje ↔ fracción vive **solo** en `lib/metas.ts`; repartirla por los componentes es la forma segura de que un día 25 se guarde como 25 en vez de 0,25.
+
+### Dos huecos que aparecieron construyéndola
+
+| Hueco | Por qué importaba | Corrección |
+|---|---|---|
+| **`PUT /metas-item` no comparaba `version`**: reemplazaba el conjunto entero a ciegas | Dos personas configurando al mismo funcionario se pisaban en silencio, contra CA-08 | Cada meta existente debe llegar con su `version`; si falta o no coincide, 409 con lo vigente. La comparación va **dentro** de la transacción, no solo en la validación previa |
+| **El selector ofrecía a todo el directorio** | El libro es privado por delegación: elegir a alguien de otra delegación daba 404 y un error que la persona no provocó. Es el mismo fallo que dejó el tubo cargando para el verificador | El selector ofrece solo lo que ese rol puede consultar; cuando eso es nada (verificador, consulta), la pantalla lo explica y enlaza a lo suyo |
+
+El segundo lo encontró **la verificación por roles**, no la vista: `verificador=0, consulta=0` personas configurables. Es la primera vez que la regla de los seis roles se ejecuta automatizada en vez de a mano.
+
+⚠ **Pendiente honesto**: la comprobación *visual* con las seis cuentas (que es lo que detectó los dos errores anteriores) **no se ha hecho** en esta pantalla. Lo verificado es el contrato que consume, con los seis roles.
+
 ## Requerimientos reales de la reunión con el cliente
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:
 - 🔓 **El "Objetivo al día" YA NO ESTÁ BLOQUEADO**: `dias_efectivos = 90 − licencia − vacaciones − compensatorios − emergencia`; `objetivo_al_dia = dias_transcurridos / dias_efectivos × 100`. La meta se prorratea por días trabajados.
-- ✅ **Correcciones del 26-08-2026 (aplicadas y con smoke test 13/13)**: vista `cumplimiento_v2` con umbrales del cliente (verde ≥100 / naranjo 60-99 / rojo <60 sobre el avance relativo al objetivo del día, tope 150% por ítem); libros privados por delegación (`services/alcance.ts`, `puedeVerLibro`) con semáforo consolidado visible por todos; seed con las 6 delegaciones y pilares reales; membresía con `unidadTerritorialId` y `cargo`. Login demo: `javier.godoy@demo.cl`, `jf.labra@demo.cl`, `delegado.centro@demo.cl`, `territorial1.centro@demo.cl` (todos `matriz123`).
+- ✅ **Correcciones del 26-08-2026 (aplicadas y con smoke test 13/13)**: vista `cumplimiento_v2` con umbrales del cliente (verde ≥100 / naranjo 60-99 / rojo <60 sobre el avance relativo al objetivo del día, tope 150% por ítem); libros privados por delegación (`services/alcance.ts`, `puedeVerLibro`) con semáforo consolidado visible por todos; seed con las 6 delegaciones y pilares reales; membresía con `unidadTerritorialId` y `cargo`. ⚠ **Las cuentas que listaba esta línea eran las `@demo.cl` de entonces y ya no existen** (`territorial1.centro@demo.cl` es hoy `territorial.centro@sgr.demo`); las vigentes están en [§Cuentas de demostración y roles](#cuentas-de-demostración-y-roles--fuente-única).
 - 🆕 **La medición es por persona** (cargo → funciones → metas), y **nada suma hasta que el supervisor valida** poniendo el punto tras revisar la foto verificadora.
 - Cifras confirmadas: reclamo −20%, felicitación +10% (máx. 1/mes), emergencia = meta con ponderador 5%, mínimo esperado 80%.
 - Product Owners = los profesores; los requerimientos se canalizan por ellos.

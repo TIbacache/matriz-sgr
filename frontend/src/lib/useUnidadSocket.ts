@@ -16,6 +16,8 @@ interface Handlers {
   onActividadCreada?: (a: Actividad) => void;
   onActividadActualizada?: (a: Actividad) => void;
   onValidacionRegistrada?: (datos: { actividadId: string; codigo: string }) => void;
+  /** RF-007: alguien reconfiguró las metas de un funcionario de esta delegación. */
+  onMetaCambiada?: (datos: { periodoId: string; funcionarioId: string }) => void;
   // HU-3.4: al RECONECTAR se recarga el estado completo en vez de confiar en el
   // próximo evento (los eventos perdidos durante el corte no se reenvían).
   onReconectado?: () => void;
@@ -53,6 +55,14 @@ export function useUnidadSocket(token: string | null, unidadId: string | null, h
     socket.on("validacion:registrada", (d: { actividadId: string; codigo: string }) =>
       handlersRef.current.onValidacionRegistrada?.(d)
     );
+    // Los tres eventos de metas piden lo mismo a la pantalla: releer. La carga
+    // difiere entre ellos (una meta, un conjunto), así que solo se usa el par
+    // período/funcionario, que todas traen.
+    for (const evento of ["meta_item:creada", "meta_item:actualizada", "meta_item:eliminada"]) {
+      socket.on(evento, (d: { periodoId: string; funcionarioId: string }) =>
+        handlersRef.current.onMetaCambiada?.(d)
+      );
+    }
     socket.on(
       "presencia:actualizada",
       (d: { unidadId: string; conectados: Conectado[] }) => {
