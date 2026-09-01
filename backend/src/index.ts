@@ -18,6 +18,7 @@ import { cargosRouter, itemsRouter } from "./routes/cargos.routes.js";
 import { actividadesRouter } from "./routes/actividades.routes.js";
 import { evidenciasRouter } from "./routes/evidencias.routes.js";
 import { cumplimientoRouter } from "./routes/cumplimiento.routes.js";
+import { catalogosRouter } from "./routes/catalogos.routes.js";
 
 const app = express();
 app.use(cors({ origin: env.corsOrigin }));
@@ -51,6 +52,7 @@ app.get("/", (_req, res) =>
         "GET /evidencias?estado=pendiente · GET /evidencias/:id/archivo",
         "POST /evidencias/:id/validacion",
         "GET /cumplimiento/:periodoId",
+        "GET /catalogos?catalogo=formato_evidencia",
       ],
     },
   })
@@ -71,6 +73,7 @@ app.use("/items", itemsRouter);
 app.use("/actividades", actividadesRouter);
 app.use("/evidencias", evidenciasRouter);
 app.use("/cumplimiento", cumplimientoRouter);
+app.use("/catalogos", catalogosRouter);
 
 // Manejador de errores al final: Express 5 captura rechazos async solo.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

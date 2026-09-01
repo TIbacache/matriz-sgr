@@ -219,16 +219,8 @@
   background: var(--acento-suave) !important;
 }
 
-.chip-semaforo {
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: var(--radio-control);
-  padding: 2px var(--esp-2);
-  white-space: nowrap;
-}
-.chip-semaforo--verde { background: var(--estado-verde-bg); color: var(--estado-verde-texto); }
-.chip-semaforo--naranjo { background: var(--estado-amarillo-bg); color: var(--estado-amarillo-texto); }
-.chip-semaforo--rojo { background: var(--estado-rojo-bg); color: var(--estado-rojo-texto); }
+/* .chip-semaforo vive en styles/base.css: es una primitiva del sistema
+   (DESIGN §5), no una pieza del dashboard. */
 
 .tabla-nota {
   font-size: 0.75rem;
