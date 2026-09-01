@@ -35,6 +35,8 @@ Principio: **la interfaz es un tablero de control municipal, no un SaaS genéric
 
 ## 3. Paleta
 
+⚠ **Esta sección queda subordinada a §10.** La identidad gráfica de la Municipalidad de La Serena es normativa y su rojo institucional reemplaza al acento petróleo de §3.3. Los **colores de estado de §3.1 se conservan sin cambio**: no son identidad, son dato. Mientras el rediseño de §10 no se ejecute, lo que está en `tokens.css` sigue siendo lo implementado.
+
 ### 3.1 Colores de estado (núcleo de la identidad)
 
 | Token | Hex | Uso |
@@ -288,7 +290,81 @@ Es la pantalla donde alguien decide **qué se le mide a una persona y con qué p
 - Los parámetros con `confirmado: false` se muestran con un **aviso visible** de que esperan definición del docente. No se presentan como definitivos.
 - Todo cambio indica desde qué período rige y advierte que no altera períodos cerrados.
 
-## 9. Referencias de estilo (dirección, no copia)
+## 10. Identidad municipal y dirección visual — NORMATIVO, pendiente de ejecutar
+
+**Decisión del equipo (1 de septiembre de 2026)**: la norma gráfica de la Municipalidad de La Serena **manda sí o sí**. Dentro de ella, el diseño es nuestro y ahí está el desafío: que sea innovador, moderno, muy amigable, reactivo y animado donde el movimiento signifique algo. *Cumplir la norma es el piso, no el techo.*
+
+⚠ **Esta sección todavía no está implementada.** El frontend actual usa el acento petróleo de §3.3. El rediseño es un bloque de trabajo propio y bloquea a los demás pendientes, porque tocar las pantallas después obligaría a rehacerlo.
+
+### 10.1 La fuente: qué exige el manual
+
+Documento oficial: **«Normas Gráficas La Serena 2019 — Reglamento y Manual»**, Departamento de Comunicaciones Estratégicas ([laserena.cl/documentos/docs/REGLAMENTO_normas_graficas_2019.pdf](https://laserena.cl/documentos/docs/REGLAMENTO_normas_graficas_2019.pdf)). Valores extraídos del documento, no estimados a ojo:
+
+| Color | Hex | Papel en el manual |
+|---|---|---|
+| Rojo luminoso | `#DB0032` | **Color corporativo principal.** Fuerza, valor, determinación |
+| Rojo heráldico | `#8A0007` | Profundidad y conexión histórica |
+| Rojo oscuro | `#971A3A` | Variante para fondos amplios |
+| Negro profundo | `#1A1A1A` | Sobriedad, respeto, formalidad |
+| Gris oscuro | — | Neutro complementario |
+
+- **Tipografía**: *«Como fuente tipográfica para la elaboración de documentos internos, se solicita el uso del tipo Arial»*. El logotipo usa una fuente de palo seco con dos tamaños en el conjunto.
+- **Escudo**: es el único elemento definitivo de identificación y su aplicación debe ser invariable (Artículo 1). Tiene versión a una tinta, positivo y negativo. **Área de autonomía: 10X.** Es *«un castillo que hace de jefe en un campo con torreones arrojando llamas»*.
+- **Artículo 3**: las aplicaciones de mayor complejidad que usen la imagen institucional **deben canalizarse por el Departamento de Comunicaciones Estratégicas**, que da el visto bueno.
+
+**Los cinco valores que el propio manual declara** — y que son el vocabulario legítimo de la dirección visual, en vez de inventar uno:
+
+**Histórica** (468 años, segunda ciudad más antigua de Chile) · **Tradicional** (condición de Ilustre) · **Patrimonial** (Casco Histórico colonial) · **Turística** (atractivos naturales y arquitectónicos) · **Calidad de vida** (paisajes, tranquilidad).
+
+### 10.2 Qué cambia en los tokens
+
+| Token | Hoy | Pasa a |
+|---|---|---|
+| `--acento` | `#153B50` petróleo | `#DB0032` rojo institucional |
+| `--acento-hover` | `#0E2A3A` | `#8A0007` heráldico |
+| `--btn-bg` | petróleo | rojo institucional |
+| `--font-titulo` | Space Grotesk | por resolver — ver 10.3 |
+| `--font-cuerpo` | General Sans | Arial en documentos; en pantalla, ver 10.3 |
+| `--estado-*` | verde / naranjo / rojo | **sin cambio** |
+
+⚠ **El conflicto real que hay que resolver**: el rojo institucional `#DB0032` y el `--estado-rojo` `#C0392B` conviven en la misma pantalla. Si el rojo es a la vez la marca y la señal de alarma, el semáforo deja de leerse. **Regla**: el rojo institucional se reserva para estructura e identidad (barra superior, títulos de sección, foco, botón primario) y **nunca aparece dentro de una zona de datos**; la alarma del semáforo conserva su `#C0392B`, que es más apagado, siempre acompañada de su marca ■ y su texto. Si aun así compiten, se baja la saturación del estado antes que tocar la marca.
+
+### 10.3 La tipografía: la decisión que falta
+
+El manual exige Arial **para documentos internos**. No dice nada de aplicaciones web, y forzar Arial en pantalla nos deja un producto genérico, que es justo lo contrario del desafío.
+
+**Propuesta a resolver en la sesión de diseño**: Arial (o su equivalente métrico, Liberation Sans / Helvetica) en todo documento e informe **exportado**, donde la norma aplica literalmente; y en pantalla un palo seco de la misma familia visual —humanista, sin contraste marcado, como pide el manual para el logotipo— que sea legible en tablas densas y en móvil. La decisión y su justificación se registran como ADR.
+
+### 10.4 La dirección creativa
+
+El punto de partida es la propuesta del equipo: **un login con la costa de La Serena y el Faro Monumental en transparencia**. Es buena porque no es decorativa: el faro es lo que la gente de la ciudad reconoce al instante, y un faro *orienta* — que es exactamente lo que hace el sistema con el trabajo de las delegaciones.
+
+Ideas que están dentro de los cinco valores del manual:
+
+- **Login**: fotografía o ilustración de la Avenida del Mar con el faro, tratada en duotono sobre el rojo institucional, con el formulario en una superficie sólida que garantice el contraste. La imagen ocupa el lado, no el fondo del formulario.
+- **Ciudad de los campanarios**: la silueta de los campanarios da un patrón discreto para estados vacíos y cabeceras, en lugar de las ilustraciones genéricas de siempre.
+- **Movimiento con sentido** (§3.6 ya lo fija): el semáforo late cuando algo está crítico, el avance se llena al validar, la tarjeta del tubo acompaña el arrastre. Nada se mueve porque sí.
+- **Amabilidad**: el cliente fue explícito — *«tenemos un montón de usuarios que no manejan planilla»*, *«mientras más fácil mejor»*. Ante la duda entre elegante y obvio, gana obvio (§8.2).
+
+### 10.5 Los límites que la dirección no puede cruzar
+
+Aquí es donde un rediseño ambicioso se rompe. Ninguno de estos puntos es negociable:
+
+1. **Contraste antes que atmósfera.** Ninguna imagen de fondo puede bajar el texto de 4.5:1. Si el faro compromete la lectura, el faro se atenúa; nunca al revés.
+2. **El semáforo no se toca.** Es el dato que el cliente vino a buscar, y la norma municipal no dice nada sobre colores de estado.
+3. **`prefers-reduced-motion` se respeta siempre** (ya implementado en `base.css`). Toda animación nueva entra con su apagado.
+4. **Peso**: la ficha personal se abre desde un teléfono en terreno. Una fotografía de fondo no puede costar segundos de carga; imagen optimizada, y nunca en la ruta crítica.
+5. **El escudo no se usa sin autorización.** Nuestro proyecto es académico y no está aprobado por el municipio. Se aplican paleta y tipografía —que demuestran que conocemos la norma— y se presenta con identidad propia del proyecto, indicando que es un ejercicio con datos ficticios. Si el docente pide el escudo, se consulta: el propio Artículo 3 exige el visto bueno del Departamento de Comunicaciones Estratégicas.
+6. **Los dos temas se diseñan.** El tema oscuro existe y el rojo institucional necesita su variante para no vibrar sobre fondo oscuro.
+7. **Cada pantalla se prueba con los seis roles** después del rediseño, no solo con el propio.
+
+### 10.6 Alcance del rediseño
+
+Cinco pantallas y el login: `/login`, `/` (tubo), `/ficha`, `/verificacion`, `/metas`, `/dashboard`. Más `tokens.css`, `base.css` y los gráficos de ECharts, que leen los tokens vivos y cambiarán solos si los tokens cambian bien.
+
+**Por qué bloquea a los demás pendientes**: la ficha del vecino y las pantallas de administración se construirían con la identidad vieja y habría que rehacerlas. El Bloque C (dashboard sobre el motor v2) toca los mismos gráficos. Conviene cerrar el diseño primero.
+
+## 11. Referencias de estilo (dirección, no copia)
 
 - Linear (linear.app): densidad y sobriedad cromática.
 - Datadog / Grafana: dashboards donde el color solo codifica estado.

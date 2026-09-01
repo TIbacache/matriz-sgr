@@ -38,9 +38,11 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
 - **Ficha del vecino** (ADR-008): necesita un endpoint de búsqueda de `PersonaUsuaria` que todavía no existe.
 - API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
-- Las rutas **v1** (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar y sin `version`.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
+- **El rediseño visual con la identidad de La Serena** (DESIGN §10): normativo, decidido y sin ejecutar. **Bloquea a los demás pendientes de frontend.**
+
+⚠ **"v1" no significa "obsoleto".** `/tareas` (el tubo: EP-04, RF-016 a RF-021), `/unidades` (RF-001) y `/categorias` sostienen requisitos oficiales vigentes y hay que **endurecerlas** con `version` → 409 y auditoría. Las que sí mueren son `/metas` v1 (unidad × categoría — el frontend ya no la llama) y `/kpis/cumplimiento`, que se van con el Bloque C. Detalle en [docs/estado-proyecto.md §3.2](docs/estado-proyecto.md).
 
 ⚠ **Convivencia de dos cálculos**: `cumplimiento_ponderado_vista` (v1, por delegación, alimenta el dashboard) y `services/cumplimiento.ts` (v2, por funcionario, es el correcto según la especificación). El objetivo es que el v2 reemplace al v1; hasta entonces, **no tocar uno asumiendo que el otro cambia**.
 
@@ -73,7 +75,7 @@ npx prisma migrate deploy
 
 Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
 
-⚠ **Solo existen las `@sgr.demo`.** Las `@demo.cl` de las Fases 2 y 3 se borraron al reescribir el seed; si algo las menciona, está desactualizado. Las 13 cuentas con su rol, cargo y delegación están en [docs/estado-proyecto.md §Cuentas de demostración y roles](docs/estado-proyecto.md) — **esa tabla es la fuente única**. Ahí también está la equivalencia entre el rol técnico y el nombre municipal: `supervisor` = "coordinador", `gerente` = "delegado".
+⚠ **Solo existen las `@sgr.demo`.** Las `@demo.cl` de las Fases 2 y 3 se borraron al reescribir el seed; si algo las menciona, está desactualizado. Las 13 cuentas con su rol, cargo y delegación están en [docs/estado-proyecto.md §1](docs/estado-proyecto.md) — **esa tabla es la fuente única**. Ahí también está la equivalencia entre el rol técnico y el nombre municipal: `supervisor` = "coordinador", `gerente` = "delegado".
 
 ## Reglas del proyecto
 
@@ -90,7 +92,9 @@ Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin
 11. **Trazabilidad de la persona usuaria**: `PersonaUsuaria` es única por organización (RUT único), **no por delegación** — detecta el caso del vecino que pide lo mismo en varias delegaciones (ADR-008).
 12. **Datos ficticios obligatorios**: prohibido cargar datos reales de ciudadanos o funcionarios en repo, base o capturas (§Condiciones del caso del PDF).
 13. **Costo cero**: sin dependencias ni servicios de pago. VPS solo al final si es imprescindible.
-14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado (RNF-012, DESIGN §8.1).
+14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado (RNF-012, DESIGN §8.1). **La identidad gráfica de la Municipalidad de La Serena es normativa** (DESIGN §10): rojo institucional `#DB0032`, heráldico `#8A0007`, Arial en documentos. Cumplir la norma es el piso; el diseño propio es el desafío.
 15. **Una historia no está terminada sin prueba**: al implementarla se actualiza [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) con commit, caso de prueba y resultado.
 16. **Las ambigüedades se documentan, no se inventan**: hay 10 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí, con el mismo formato: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta.
 17. Puertos: API 4000, frontend 5173, Postgres 5432. Los puertos 3000/8000/27017 los ocupa otro proyecto Docker ("talia") — no tocarlos.
+18. **Marco legal chileno**: el sistema trata datos personales de vecinos y de desempeño de funcionarios de un organismo público. Aplican la **Ley 21.663 de ciberseguridad** y las **Leyes 19.628 / 21.719 de protección de datos personales**: finalidad, proporcionalidad, mínimo privilegio y trazabilidad. Ante la duda sobre quién puede ver un dato de desempeño, rige lo restrictivo y se documenta como consulta.
+19. **El docente solo revisará el Planner** (clase del 1-09-2026). Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner, no se evalúa.

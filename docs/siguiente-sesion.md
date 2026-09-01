@@ -35,7 +35,7 @@ Es la regla 1 de CLAUDE.md y el error más caro sería ignorarla. En este punto 
 
 ### ~~Bloque A — API del registro y la validación (EP-01 + EP-03)~~ ✅ TERMINADO (`b1f3e75`)
 
-Los siete puntos del plan quedaron construidos y verificados (`npm run verificar:api` → 57/57). El contrato completo está en [estado-proyecto.md §API del modelo v2](estado-proyecto.md). Resumen:
+Los siete puntos del plan quedaron construidos y verificados (`npm run verificar:api` → 57/57). El contrato completo está en [estado-proyecto.md §3](estado-proyecto.md). Resumen:
 
 1. ✅ `/periodos` con cierre y **reapertura solo de admin, con motivo en la bitácora** (RF-005, RN-013, HU-28).
 2. ✅ `/cargos` e `/items`, que se **desactivan en vez de borrarse** (RF-003, HU-04).
@@ -49,7 +49,7 @@ Los siete puntos del plan quedaron construidos y verificados (`npm run verificar
 
 ### ~~Bloque A2 — Metas por funcionario (RF-006, RF-007, RN-001)~~ ✅ TERMINADO (`de68901`)
 
-`/metas-item` abre la entidad `MetaItem`, que existía desde el modelo v2 pero solo se poblaba por seed. Contrato completo en [estado-proyecto.md §Metas por funcionario](estado-proyecto.md). Lo esencial:
+`/metas-item` abre la entidad `MetaItem`, que existía desde el modelo v2 pero solo se poblaba por seed. Contrato completo en [estado-proyecto.md §3.1](estado-proyecto.md). Lo esencial:
 
 - `GET` con alcance por delegación y un `resumen` que trae `sumaPonderadores`, `cumpleRN001` y `faltante` — la pantalla debe poder decir "falta 15%" antes de guardar.
 - `POST` rechaza **superar** el 100%; `PUT` (conjunto completo de una persona) exige el **100% exacto**, en transacción. Son las dos caras de RN-001.
@@ -62,7 +62,7 @@ Los siete puntos del plan quedaron construidos y verificados (`npm run verificar
 
 ### ~~Bloque B2 — Pantalla de configuración de metas (HU-05)~~ ✅ TERMINADO
 
-`/metas` (`frontend/src/pages/MetasPage.tsx`). Detalle en [estado-proyecto.md §Configuración de metas](estado-proyecto.md) y criterios en [DESIGN §8.2](../DESIGN.md). Lo esencial: totalizador siempre visible, todos los ítems del cargo a la vista, guardado del conjunto con `PUT`, reparto en partes iguales a un clic, y lo que ya sumó puntaje no se puede quitar.
+`/metas` (`frontend/src/pages/MetasPage.tsx`). Detalle en [estado-proyecto.md §6.4](estado-proyecto.md) y criterios en [DESIGN §8.2](../DESIGN.md). Lo esencial: totalizador siempre visible, todos los ítems del cargo a la vista, guardado del conjunto con `PUT`, reparto en partes iguales a un clic, y lo que ya sumó puntaje no se puede quitar.
 
 Cerró de paso dos huecos: el `PUT` no comparaba `version` (CA-08) y el selector ofrecía personas que el servidor rechaza (regla 9). El segundo lo encontró una verificación nueva que prueba **los seis roles**, no un solo camino feliz — vale la pena repetir ese patrón en cada pantalla.
 
@@ -70,11 +70,19 @@ Cerró de paso dos huecos: el `PUT` no comparaba `version` (CA-08) y el selector
 
 ### Bloque B — Pantallas (RF-008, HU-06, HU-11)
 
-- ✅ **Ficha personal** (`/ficha`): cabecera con semáforo, tabla de ítems y registro diario con subida de evidencia, vista de la foto y anulación con motivo. Detalle en [estado-proyecto.md §Ficha personal](estado-proyecto.md).
-- ✅ **Bandeja del verificador** (`/verificacion`): cola, foto grande, tres decisiones, teclado `J`/`K`/`Enter` y aviso de trabajo nuevo en vivo. Detalle en [estado-proyecto.md §Bandeja del verificador](estado-proyecto.md).
+- ✅ **Ficha personal** (`/ficha`): cabecera con semáforo, tabla de ítems y registro diario con subida de evidencia, vista de la foto y anulación con motivo. Detalle en [estado-proyecto.md §6.2](estado-proyecto.md).
+- ✅ **Bandeja del verificador** (`/verificacion`): cola, foto grande, tres decisiones, teclado `J`/`K`/`Enter` y aviso de trabajo nuevo en vivo. Detalle en [estado-proyecto.md §6.3](estado-proyecto.md).
 - ⬜ **Ficha del vecino** (ADR-008, CA-04) ← **empezar aquí en el Bloque B**: buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe** (es lo primero a construir).
 
 **Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: se **anula con motivo**. Reutilizar `ChipSemaforo`, `.tabla-sgr` y `useUnidadSocket` en vez de escribir otros.
+
+### Bloque D0 — Rediseño visual con la identidad de La Serena ← **AQUÍ SE RETOMA**
+
+**Decisión del 1 de septiembre**: la norma gráfica municipal manda sí o sí, y dentro de ella el diseño es nuestro — innovador, moderno, muy amigable, reactivo y animado donde el movimiento signifique algo. Toda la dirección, los valores de color verificados en el manual oficial, la propuesta creativa (login con la costa y el Faro Monumental) y los siete límites que no se pueden cruzar están en **[DESIGN §10](../DESIGN.md)**.
+
+**Bloquea a todo lo demás del frontend**: la ficha del vecino y las pantallas de administración se construirían con la identidad vieja, y el Bloque C toca los mismos gráficos. Por eso va primero.
+
+Dos cosas quedan por resolver dentro de este bloque, y ambas necesitan decisión, no solo código: **la tipografía de pantalla** (§10.3) y **la convivencia del rojo institucional con el rojo del semáforo** (§10.2).
 
 ### Bloque C — Migrar el dashboard al cálculo v2
 
@@ -90,10 +98,11 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
+**Orden acordado el 1 de septiembre**: primero el rediseño (Bloque D0), y **después** todo lo demás — la ficha del vecino, endurecer las rutas heredadas y el Bloque C quedan en pausa hasta que la identidad esté cerrada.
+
 | Cabo | Dónde | Prioridad |
 |---|---|---|
-| ~~`auditoria` sin llamadas~~ → resuelto en el modelo v2; **las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar** | rutas v1 | Media |
-| ~~`version` sin comparar~~ → resuelto en el modelo v2; **las rutas v1 siguen sin bloqueo optimista** | rutas v1 | Media |
+| **Endurecer `/tareas`, `/unidades` y `/categorias`** con `version` → 409 y auditoría. ⚠ No son "v1 obsoleto": sostienen el tubo (EP-04) y las delegaciones (RF-001). Las que sí mueren son `/metas` v1 y `/kpis/cumplimiento` — ver [estado-proyecto §3.2](estado-proyecto.md) | rutas heredadas | Alta, tras el rediseño |
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
 | ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2; ~~falta su pantalla~~ → **resuelta** en el Bloque B2 (`/metas`) | — | ✅ |
 | ~~`PUT /metas-item` no aplica bloqueo optimista~~ → **resuelto** en el Bloque B2: cada meta existente debe traer su `version` | — | ✅ |
