@@ -41,11 +41,11 @@
 
 /* ---- Avisos: siempre dicen la causa y ofrecen la salida (DESIGN §7) ---- */
 
+/* Bloque, no flex: en flex cada <strong> se vuelve un ítem con `gap` propio y
+   el texto corrido queda con huecos delante de la puntuación ("Ficha personal
+   ."). El botón de acción se alinea solo, por ser inline-flex. */
 .metas-aviso {
-  display: flex;
-  align-items: center;
-  gap: var(--esp-3);
-  flex-wrap: wrap;
+  display: block;
   background: var(--fondo-2);
   border-left: 3px solid var(--borde-fuerte);
   border-radius: var(--radio-control);
@@ -53,6 +53,11 @@
   margin-bottom: var(--esp-4);
   font-size: 0.8125rem;
   color: var(--tinta-2);
+}
+
+.metas-aviso .btn-tabla {
+  margin-left: var(--esp-3);
+  vertical-align: baseline;
 }
 
 .metas-aviso--vivo {
@@ -248,16 +253,33 @@
   color: var(--tinta-2);
 }
 
-.metas-nota-bloqueo,
+/* Marca de "no se puede quitar": corta y en la fila; la explicación va una
+   sola vez arriba de la tabla. Repetirla por fila era ruido. */
+.metas-chip-fijo {
+  display: inline-block;
+  margin-left: var(--esp-2);
+  padding: 0 var(--esp-2);
+  border-radius: var(--radio-control);
+  background: var(--fondo-2);
+  border: 1px solid var(--borde);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--tinta-2);
+  vertical-align: middle;
+}
+
+.metas-leyenda {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+  margin-bottom: var(--esp-3);
+}
+
 .metas-error {
   display: block;
   font-size: 0.75rem;
   margin-top: var(--esp-1);
   max-width: 60ch;
-}
-
-.metas-nota-bloqueo {
-  color: var(--tinta-2);
 }
 
 .metas-error {

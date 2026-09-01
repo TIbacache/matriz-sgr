@@ -76,21 +76,31 @@ export function MetasPage() {
       .finally(() => setCargando(false));
   }, [mostrarError]);
 
-  // Quién se puede ofrecer en el selector. Dos filtros, y los dos importan:
+  // Quién se puede ofrecer en el selector. Tres filtros, y los tres importan:
   //
   // 1. **Tener cargo**: sin cargo no hay ítems que medir (RF-003).
-  // 2. **Ser de una delegación visible para este rol** (regla 9), más uno
-  //    mismo. Ofrecer a alguien que el servidor no deja consultar termina en un
-  //    404 al cargar y una pantalla con un error que la persona no provocó —
-  //    es exactamente el fallo que dejó el tubo cargando para el verificador.
+  // 2. **Ser de una delegación visible para este rol** (regla 9). Ofrecer a
+  //    alguien que el servidor no deja consultar termina en un 404 al cargar y
+  //    una pantalla con un error que la persona no provocó — es exactamente el
+  //    fallo que dejó el tubo cargando para el verificador.
+  // 3. **Solo la jefatura ve las metas de otros.** Las metas y el avance de una
+  //    persona son su evaluación de desempeño: dato personal que solo debe ver
+  //    quien tiene necesidad de conocerlo (Ley 19.628 y 21.719 sobre datos
+  //    personales). Un funcionario ve las suyas y nada más, igual que en
+  //    `/ficha`, donde `puedeElegirPersona` ya excluye al rol `usuario`.
+  //    ⚠ Consulta abierta nº 11 al docente: si un funcionario puede ver las
+  //    metas de sus pares. Mientras no se responda, rige lo restrictivo.
   const configurables = useMemo(() => {
     const visibles = new Set(unidades.filter((u) => u.puedeVerLibro).map((u) => u.id));
     const central = usuario?.rol === "admin" || usuario?.rol === "supervisor";
+    const jefatura = central || usuario?.rol === "gerente";
     return directorio
       .filter((m) => m.cargoId !== null)
       .filter(
         (m) =>
-          central || m.userId === usuario?.id || (m.unidad !== null && visibles.has(m.unidad.id))
+          central ||
+          m.userId === usuario?.id ||
+          (jefatura && m.unidad !== null && visibles.has(m.unidad.id))
       )
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [directorio, unidades, usuario]);
@@ -100,6 +110,9 @@ export function MetasPage() {
     if (!funcionarioId && primero) setFuncionarioId(primero.userId);
   }, [configurables, funcionarioId]);
 
+  // Quien no tiene cargo no tiene metas: ofrecerle "tu propia medición" sería
+  // mandarlo a una ficha vacía.
+  const tieneMedicionPropia = directorio.some((m) => m.userId === usuario?.id && m.cargoId);
   const miembro = configurables.find((m) => m.userId === funcionarioId) ?? null;
   const cargo = cargos.find((c) => c.id === miembro?.cargoId) ?? null;
   const periodo = periodos.find((p) => p.id === periodoId) ?? null;
@@ -200,49 +213,65 @@ export function MetasPage() {
           </p>
         </div>
 
-        <div className="metas-filtros">
-          <div className="metas-filtro">
-            <label className="etiqueta" htmlFor="me-periodo">Período</label>
-            <select
-              id="me-periodo"
-              className="campo"
-              value={periodoId ?? ""}
-              onChange={(e) => setPeriodoId(e.target.value)}
-            >
-              {periodos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre}
-                  {p.estado === "cerrado" ? " (cerrado)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Sin nadie que configurar, los filtros no filtran nada: un control
+            vacío invita a interactuar con algo que no responde (DESIGN §7, la
+            lección del tubo del verificador). */}
+        {configurables.length > 0 && (
+          <div className="metas-filtros">
+            <div className="metas-filtro">
+              <label className="etiqueta" htmlFor="me-periodo">Período</label>
+              <select
+                id="me-periodo"
+                className="campo"
+                value={periodoId ?? ""}
+                onChange={(e) => setPeriodoId(e.target.value)}
+              >
+                {periodos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                    {p.estado === "cerrado" ? " (cerrado)" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="metas-filtro">
-            <label className="etiqueta" htmlFor="me-persona">Funcionario</label>
-            <select
-              id="me-persona"
-              className="campo"
-              value={funcionarioId ?? ""}
-              onChange={(e) => setFuncionarioId(e.target.value)}
-            >
-              {configurables.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.nombre} — {m.cargo}
-                  {m.unidad ? ` (${m.unidad.nombre})` : ""}
-                </option>
-              ))}
-            </select>
+            {/* Con una sola persona (un funcionario mirando lo suyo) el
+                desplegable no ofrece elección: se muestra el nombre y ya. */}
+            {configurables.length > 1 && (
+              <div className="metas-filtro">
+                <label className="etiqueta" htmlFor="me-persona">Funcionario</label>
+                <select
+                  id="me-persona"
+                  className="campo"
+                  value={funcionarioId ?? ""}
+                  onChange={(e) => setFuncionarioId(e.target.value)}
+                >
+                  {configurables.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.nombre} — {m.cargo}
+                      {m.unidad ? ` (${m.unidad.nombre})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </header>
 
       {/* Quien no puede editar ve la pantalla igual, en lectura y con el motivo:
-          ni página en blanco ni 403 crudo (DESIGN §8.2.8). */}
-      {!puedeConfigurar && (
+          ni página en blanco ni 403 crudo (DESIGN §8.2.8). Si además no tiene
+          nada que mirar, basta con el vacío explicado de abajo: dos mensajes
+          seguidos diciendo cosas parecidas se leen como ninguno. */}
+      {!puedeConfigurar && configurables.length > 0 && (
         <p className="metas-aviso" role="note">
-          Estás viendo esta pantalla en modo lectura. Configurar metas es tarea de administración y
-          coordinación (RNF-005); tu propia medición está en <strong>Ficha personal</strong>.
+          Estás viendo esta pantalla en modo lectura: configurar metas es tarea de administración y
+          coordinación (RNF-005).{" "}
+          {tieneMedicionPropia && (
+            <>
+              Tu propia medición está en <strong>Ficha personal</strong>.
+            </>
+          )}
         </p>
       )}
 
@@ -329,8 +358,9 @@ export function MetasPage() {
               <div>
                 <h3 className="metas-bloque-titulo">Ítems del cargo «{cargo.nombre}»</h3>
                 <p className="metas-bloque-sub">
-                  Se muestran todos los ítems del cargo. Desmarca los que no se le miden a esta
-                  persona; el avance cuenta solo actividades con evidencia validada (RN-009).
+                  {editable
+                    ? "Se muestran todos los ítems del cargo. Desmarca los que no se le miden a esta persona; el avance cuenta solo actividades con evidencia validada (RN-009)."
+                    : "Se muestran todos los ítems del cargo. Los desmarcados no se le miden a esta persona; el avance cuenta solo actividades con evidencia validada (RN-009)."}
                 </p>
               </div>
               {editable && (
