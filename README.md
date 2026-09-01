@@ -78,7 +78,7 @@ npm run dev
 
 ## Verificación
 
-Cuatro suites automatizadas, **95 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cuatro suites automatizadas, **105 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
@@ -87,7 +87,7 @@ npm run verificar:calculo  # 21 · fórmulas del cálculo, semáforo, parámetro
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 17 · tiempo real, permisos y visibilidad por delegación
-npm run verificar:api      # 57 · registro, evidencia, validación, concurrencia y auditoría
+npm run verificar:api      # 67 · registro, evidencia, validación, concurrencia y auditoría
 ```
 
 ## Estrategia de ramas y versiones
@@ -121,3 +121,5 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 |---|---|
 | `v0.2.0-modelo-v2` | Modelo de datos v2 migrado y verificado, sin API |
 | `v0.3.0-bloque-a` | API del registro y la validación (EP-01 + EP-03), 95 comprobaciones en verde |
+| `v0.4.0-ficha-personal` | Ficha personal (RF-008): la pestaña personal con registro, evidencia y anulación |
+| `v0.5.0-bandeja-verificador` | Bandeja del verificador (RF-013, HU-11): el ciclo evidencia → validación → puntaje, completo en pantalla |

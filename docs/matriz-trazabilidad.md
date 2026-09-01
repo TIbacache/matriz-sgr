@@ -42,7 +42,7 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-08 Desempeño organizacional | RF-029, RF-031 | HU-5.1, HU-5.3 | `b5e7eff` `frontend/src/pages/DashboardPage.tsx` | verificación visual | OK | A | 🟡 falta vista por cargos |
 | HU-09 Evidencia fotográfica | RF-012, RNF-017 | — | `b1f3e75` `POST /actividades/:id/evidencias` + `services/almacenamiento.ts` · **subida y galería** `components/ficha/TablaActividades.tsx`, `VistaEvidencia.tsx` | api:"RF-012 subir evidencia asociada al código", "formato no permitido (415)", "tamaño máximo (413)", "la ruta la deriva el servidor", "descarga por endpoint controlado", "RF-004 los formatos salen del catálogo" | PASS (6/6) | B | ✅ antivirus declarado fuera de alcance |
 | HU-10 Códigos verificadores | RF-011 | — | `91f1917` `services/codigos.ts` + trigger · `b1f3e75` uso en el alta | api:"RF-011 código no ambiguo" (`TOO-20260715-0004`), "el correlativo avanza"; calculo-19, calculo-20 | PASS | B | ✅ |
-| HU-11 Validación de actividades | RF-013, RF-014, RF-036 | — | `b1f3e75` `backend/src/routes/evidencias.routes.ts` | api:"la evidencia entra a la bandeja", "rechazar exige observación", "tres decisiones", "no valida su propia evidencia", "el punto se suma solo tras la aprobación", "una aprobada no se re-decide" | PASS (6/6) | A | ✅ falta la bandeja en pantalla |
+| HU-11 Validación de actividades | RF-013, RF-014, RF-036 | — | `b1f3e75` `backend/src/routes/evidencias.routes.ts` · **bandeja** `frontend/src/pages/BandejaPage.tsx` | api:"la evidencia entra a la bandeja", "rechazar exige observación", "tres decisiones", "no valida su propia evidencia", "el punto se suma solo tras la aprobación", "una aprobada no se re-decide", "la bandeja entrega lo que la pantalla necesita", "lo aprobado sale de la cola", "permite revisar lo ya decidido", "una anulada desaparece", "filtra por delegación" | PASS (11/11) | A | ✅ falta prueba de componente (Bloque D) |
 | HU-12 Agenda compartida | RF-016, RF-017 | HU-3.1 | `91e8fcb` `3eeb705` kanban dnd-kit + Socket.io | smoke-12, smoke-13 | PASS | A | ✅ |
 | HU-13 Actualización de estados | RF-018, RF-036 | HU-3.1 | `tareas.routes.ts` PATCH | smoke-12 | PASS | A | 🟡 falta historial de transición |
 | HU-14 Seguimiento de compromisos | RF-019, RF-021, RF-037 | HU-5.1 | `b5e7eff` `GET /kpis/tubo`, vencidas | smoke-15 | PASS (`vencidas=2`) | A | 🟡 faltan "próximo a vencer" y alertas |
@@ -85,7 +85,7 @@ El modelo de datos de las historias pendientes ya existe y está verificado; fal
 
 ## 3. Verificaciones automatizadas vigentes
 
-**100 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 62 de la API v2, que incluyen las 5 del contrato de la ficha personal).
+**105 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 67 de la API v2, que incluyen las del contrato de la ficha personal y de la bandeja del verificador).
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -132,7 +132,7 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 16-17 | Crear tarea y su evento | RF-016, HU-02 |
 
-### `npm run verificar:api` — 62/62 (Bloques A y B)
+### `npm run verificar:api` — 67/67 (Bloques A y B)
 
 Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
 
@@ -145,8 +145,9 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 | Validación (11) | nadie valida lo propio, consulta no valida, rechazo sin observación → 400, corrección solicitada, aprobación, **el punto suma solo al aprobar y una sola vez**, aprobada no se re-decide, validada no se edita, anulación con motivo, lo anulado deja de sumar, validación auditada | RF-013, RF-014, RN-003, RN-009, CA-01, CA-02, CA-09, RNF-005, ADR-006 |
 | Cumplimiento (5) | cálculo por funcionario expuesto, días del período, parámetros con marca `confirmado`, semáforo visible por el rol consulta, tenant ajeno → 404 | RF-022…RF-027, RF-038, ADR-007 |
 | Contrato de la ficha personal (5) | los formatos salen del catálogo y coinciden con lo que aplica el 415, registro paginado por período y funcionario, las anuladas solo si se piden, la ficha de una persona trae ítems, metas y semáforo | RF-004, RF-008, HU-06 |
+| Contrato de la bandeja (5) | la cola entrega código, funcionario y delegación en cada fila; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
 
-⚠ **Brecha de pruebas que queda**: las 100 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
+⚠ **Brecha de pruebas que queda**: las 105 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
 
 ---
 

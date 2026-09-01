@@ -268,6 +268,20 @@ Piezas reutilizables que salieron de aquí: `ChipSemaforo` (obliga a poner símb
 
 ⚠ **Deuda que abre**: `.tabla-detalle` del dashboard y `.tabla-sgr` son dos tablas con el mismo propósito. Converge en el Bloque C, cuando el dashboard migre al cálculo v2.
 
+## Bandeja del verificador — Bloque B, segunda pantalla (1 de septiembre de 2026)
+
+`/verificacion` (`frontend/src/pages/BandejaPage.tsx`) cierra el ciclo: aquí el punto se otorga o se niega (RF-013, RF-014, HU-11). Es una **lista de trabajo, no un tablero** (DESIGN §8.2): cola a la izquierda, **foto grande** a la derecha —la decisión se toma mirando la imagen— y tres acciones equidistantes.
+
+- **Tres decisiones, no dos**: Aprobar · Solicitar corrección · Rechazar. Las dos últimas exigen observación de al menos 5 caracteres, avisada en el cliente antes de gastar un viaje al servidor y exigida igual por el backend (CA-02).
+- **Teclado completo** (RNF-012, DESIGN §8.2): `J` siguiente, `K` anterior, `Enter` aprobar, **con las teclas visibles en pantalla** — un atajo que nadie descubre no existe. Los atajos se desactivan mientras se escribe en un campo.
+- Al decidir, la evidencia **sale de la cola y avanza sola** a la siguiente: lo decidido ya no es trabajo.
+- **Historial de revisiones previas** a la vista, porque el ciclo real es "solicitar corrección → sube otra foto → revisar de nuevo" y sin ver qué se pidió antes no se puede juzgar si se corrigió.
+- **Orden según el estado** (corregido al detectarlo con una verificación): lo pendiente se ordena de más antiguo a más nuevo, porque es una cola; lo ya decidido, de más nuevo a más antiguo, porque es un historial.
+- **Tiempo real sin sobresaltos**: `evidencia:pendiente` (room de la organización, vía `useOrgSocket`) muestra un aviso "llegaron evidencias nuevas" con botón para actualizar. **La lista no se recarga sola**: mover la cola bajo el cursor de quien está decidiendo es la forma más rápida de provocar un error.
+- **El menú solo muestra la bandeja a quien puede validar** (verificador, coordinador, admin). Si alguien más entra por URL, ve la bandeja en lectura con el aviso de por qué no puede decidir (RNF-005).
+
+Piezas reutilizables nuevas: `useArchivoEvidencia` (descarga con JWT y revoca el object URL; lo usan la bandeja y la ficha) y `useOrgSocket`.
+
 ## Requerimientos reales de la reunión con el cliente
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:

@@ -92,7 +92,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-032 | Buscar y filtrar por delegación, área, funcionario, cargo, período, ítem, estado, fechas | 🟡 | Dashboard filtra por trimestre y delegación |
+| RF-032 | Buscar y filtrar por delegación, área, funcionario, cargo, período, ítem, estado, fechas | 🟡 | `/actividades` filtra por período, funcionario, ítem, delegación y rango de fechas; la bandeja por estado, período y delegación; el dashboard por trimestre y delegación. Falta **búsqueda por texto y por RUT** |
 | RF-033 | Generar y **exportar informes** conservando filtros y encabezados | ⬜ | |
 | RF-034 | Trabajo simultáneo sin sobrescritura | 🟡 | Socket.io + **bloqueo optimista con 409** en todo el modelo v2 (`services/concurrencia.ts`); falta aplicarlo en las rutas v1 |
 | RF-035 | Comentarios/observaciones asociados a registros | ⬜ | Petición literal del cliente |

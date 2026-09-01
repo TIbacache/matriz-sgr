@@ -422,6 +422,20 @@ const avanceDespues = despues.funcionarios[0]?.items.find((i) => i.itemId === it
 check("RF-014 / RN-009 / CA-01 el punto se suma solo tras la aprobación, y una sola vez",
   avanceDespues === avanceAntes + 1, `avance ${avanceAntes} → ${avanceDespues}`);
 
+// La bandeja también sirve para revisar lo ya resuelto (se comprueba ANTES de
+// anular: una actividad anulada desaparece de la bandeja, y eso se verifica
+// más abajo).
+const yaDecididas = await V(
+  "GET",
+  `/evidencias?estado=aprobada&periodo=${periodoActivo.id}&limite=50`
+);
+check(
+  "HU-11 la bandeja permite revisar lo ya decidido, con lo más reciente primero",
+  yaDecididas.status === 200 &&
+    (yaDecididas.datos as { evidencias: { id: string }[] }).evidencias[0]?.id === evidencia.id,
+  `${(yaDecididas.datos as { total: number }).total} aprobadas, la recién aprobada encabeza la lista`
+);
+
 const reAprobar = await V("POST", `/evidencias/${evidencia.id}/validacion`, {
   decision: "rechazada",
   observacion: "Intento de revertir una aprobación ya contabilizada.",
@@ -551,6 +565,55 @@ check(
     soloUno.funcionarios[0]!.funcionarioId === gabriel.usuario.id &&
     soloUno.funcionarios[0]!.items.length > 0,
   `${soloUno.funcionarios[0]?.items.length} ítems`
+);
+
+// ===========================================================================
+// 8. CONTRATO QUE CONSUME LA BANDEJA DEL VERIFICADOR — RF-013 · HU-11
+// ===========================================================================
+
+const bandejaPendientes = await V("GET", `/evidencias?estado=pendiente&periodo=${periodoActivo.id}&limite=200`);
+const pendientes = (bandejaPendientes.datos as {
+  evidencias: { id: string; actividad: { codigo: string; funcionario?: { nombre: string }; unidad?: { nombre: string } } }[];
+}).evidencias;
+check(
+  "HU-11 la bandeja entrega lo que la pantalla necesita para decidir",
+  pendientes.length > 0 &&
+    pendientes.every((e) => !!e.actividad.codigo && !!e.actividad.funcionario && !!e.actividad.unidad),
+  "código, funcionario y delegación en cada fila"
+);
+check(
+  "RF-014 lo ya aprobado sale de la cola de pendientes",
+  !pendientes.some((e) => e.id === evidencia.id),
+  `${pendientes.length} pendientes, la aprobada no está`
+);
+
+// La actividad de esa evidencia quedó anulada en el paso anterior: la bandeja
+// no debe seguir mostrándola en ningún estado (RN-003, lo anulado no cuenta ni
+// se revisa).
+const trasAnularBandeja = await V(
+  "GET",
+  `/evidencias?estado=aprobada&periodo=${periodoActivo.id}&limite=50`
+);
+check(
+  "RN-003 una actividad anulada desaparece de la bandeja",
+  !(trasAnularBandeja.datos as { evidencias: { id: string }[] }).evidencias.some(
+    (e) => e.id === evidencia.id
+  ),
+  `${(trasAnularBandeja.datos as { total: number }).total} aprobadas vigentes`
+);
+
+const centro = unidades.find((u) => u.nombre === "Centro")!;
+const bandejaCentro = await V(
+  "GET",
+  `/evidencias?estado=pendiente&periodo=${periodoActivo.id}&unidad=${centro.id}&limite=200`
+);
+const soloCentro = (bandejaCentro.datos as {
+  evidencias: { actividad: { unidad: { nombre: string } } }[];
+}).evidencias;
+check(
+  "RF-032 la bandeja filtra por delegación",
+  bandejaCentro.status === 200 && soloCentro.every((e) => e.actividad.unidad.nombre === "Centro"),
+  `${soloCentro.length} de ${pendientes.length} son del Centro`
 );
 
 // ===========================================================================

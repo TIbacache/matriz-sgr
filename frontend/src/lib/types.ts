@@ -179,6 +179,39 @@ export interface ListaActividades {
   actividades: Actividad[];
 }
 
+/** Una evidencia tal como la lista la bandeja del verificador (GET /evidencias). */
+export interface EvidenciaEnBandeja {
+  id: string;
+  archivoNombre: string;
+  mimeType: string;
+  tamanoBytes: number;
+  createdAt: string;
+  subidaPorId: string;
+  subidaPor: { id: string; nombre: string };
+  actividad: {
+    id: string;
+    codigo: string;
+    fecha: string;
+    descripcion: string;
+    anulada: boolean;
+    funcionarioId: string;
+    unidadTerritorialId: string;
+    periodoId: string;
+    funcionario: { id: string; nombre: string };
+    unidad: { id: string; nombre: string };
+    item: { id: string; nombre: string } | null;
+  };
+  validaciones: (Validacion & { verificador: { id: string; nombre: string } })[];
+}
+
+export interface ListaEvidencias {
+  total: number;
+  limite: number;
+  desde: number;
+  estado: string;
+  evidencias: EvidenciaEnBandeja[];
+}
+
 export interface CatalogoItem {
   id: string;
   catalogo: string;
