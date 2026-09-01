@@ -23,6 +23,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | [DESIGN.md](DESIGN.md) | Guía visual normativa (tipografías, paleta, accesibilidad, pantallas pendientes, lista negra) |
 | [docs/estado-proyecto.md](docs/estado-proyecto.md) | Estado por fase, contrato de API y Socket.io, deuda técnica |
 | **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** | **Qué sigue, en qué orden, cabos sueltos y trampas del entorno** |
+| [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) | Prompt listo para abrir una sesión nueva sin perder contexto |
 | [docs/diagramas.md](docs/diagramas.md) | Contexto, casos de uso, ERD y secuencia de tiempo real |
 | [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente con citas de la reunión |
 | [docs/historias-usuario.md](docs/historias-usuario.md) | Historias propias del equipo (subordinadas a las 31 oficiales) |
@@ -124,3 +125,4 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.4.0-ficha-personal` | Ficha personal (RF-008): la pestaña personal con registro, evidencia y anulación |
 | `v0.5.0-bandeja-verificador` | Bandeja del verificador (RF-013, HU-11): el ciclo evidencia → validación → puntaje, completo en pantalla |
 | `v0.5.1-bandeja-orden` | Corrección: la cola muestra lo recién subido (orden configurable y paginación explícita) |
+| `v0.5.2-tubo-vacio-explicado` | Corrección: el tubo resuelve su carga y explica el vacío a los roles sin delegación |
