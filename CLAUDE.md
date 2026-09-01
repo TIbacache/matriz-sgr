@@ -21,7 +21,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 ## Estado del código (1 de septiembre de 2026)
 
-**Construido y verificado** (105 comprobaciones en verde):
+**Construido y verificado** (107 comprobaciones en verde):
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.
@@ -51,7 +51,7 @@ npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 17 verificaciones de integración (server corriendo)
 npm run verificar:calculo     # 21 verificaciones del motor de cálculo
-npm run verificar:api         # 67 verificaciones de la API v2 (server corriendo)
+npm run verificar:api         # 69 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo

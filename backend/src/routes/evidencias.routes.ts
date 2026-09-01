@@ -62,7 +62,7 @@ const incluirEvidencia = {
 /**
  * GET /evidencias — bandeja del verificador (HU-11).
  * ?estado=pendiente | aprobada | rechazada | correccion_solicitada
- * ?periodo= ?unidad= ?limite= ?desde=
+ * ?periodo= ?unidad= ?limite= ?desde= ?orden=antiguas|recientes
  *
  * "Pendiente" es no tener ninguna decisión tomada: cubre tanto la evidencia
  * recién subida como las filas en estado `pendiente` que quedaron del cargado
@@ -80,6 +80,10 @@ evidenciasRouter.get("/", async (req, res) => {
   const estado = typeof q.estado === "string" ? q.estado : "pendiente";
   const limite = Math.min(Number(q.limite ?? 50) || 50, 200);
   const desplazamiento = Math.max(Number(q.desde ?? 0) || 0, 0);
+  // Quien revisa necesita las dos vistas: la cola por antigüedad para no dejar
+  // a nadie esperando, y lo recién llegado para atender lo urgente o revisar
+  // lo que acaba de subir un funcionario que está al teléfono.
+  const orden = q.orden === "recientes" ? "desc" : q.orden === "antiguas" ? "asc" : null;
 
   const where: Prisma.EvidenciaWhereInput = {
     organizationId: auth.organizationId,
@@ -104,10 +108,10 @@ evidenciasRouter.get("/", async (req, res) => {
     prisma.evidencia.findMany({
       where,
       include: incluirEvidencia,
-      // Lo PENDIENTE es una cola: primero lo que lleva más tiempo esperando.
-      // Lo ya decidido es un historial: primero lo más reciente, que es lo que
-      // alguien busca cuando revisa qué se resolvió.
-      orderBy: { createdAt: estado === "pendiente" ? "asc" : "desc" },
+      // Por defecto, lo PENDIENTE es una cola: primero lo que lleva más tiempo
+      // esperando. Lo ya decidido es un historial: primero lo más reciente.
+      // `orden` permite invertirlo desde la UI.
+      orderBy: { createdAt: orden ?? (estado === "pendiente" ? "asc" : "desc") },
       take: limite,
       skip: desplazamiento,
     }),
