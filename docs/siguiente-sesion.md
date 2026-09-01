@@ -79,14 +79,14 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | `Comentario`, `AtencionSocial` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
-| Sin estrategia de ramas documentada (la exige el PDF §15, entregable 01) | README | Media |
+| ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |
 | El plan del Planner (`docs/plan-desarrollo.csv`) **aún no se ha cargado** | `scripts/cargar-plan-planner.ps1` | Media |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
-## 5. Las 8 consultas al docente
+## 5. Las 10 consultas al docente
 
-Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md). **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. La nº 8 se agregó al implementar el Bloque A (si una aprobación puede revertirse; decisión provisional: no, se anula y se registra de nuevo). Las dos que más impactan:
+Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con tabla de impacto al inicio. **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Tres nacieron en el Bloque A: la **8** (si una aprobación puede revertirse), la **9** (si el verificador es transversal o por delegación) y la **10** (antivirus y retención de evidencias, RNF-017 — la única que puede implicar costo). Las dos que más impactan en el cálculo:
 
 1. **Felicitación y reclamo**: el PDF dice −20% y −30%; la planilla muestra +10% (máx. 3) y −20%; el audio decía "+10, máx. 1 mensual".
 2. **Tope de 150%**: la planilla lo declara en el encabezado pero muestra valores de 154% y 206% sin recortar. ¿Se aplica o solo se informa?

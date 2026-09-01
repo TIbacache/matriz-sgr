@@ -223,7 +223,22 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 ## 10. Consultas para el docente
 
-El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. Estas son:
+El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. **Esta lista es la que se lleva a la reunión.**
+
+Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras tanto** y **qué cambia cuando llegue la respuesta**. Ninguna está bloqueando el desarrollo: las nº 1 y 3 viven en la tabla `parametro` con `confirmado: false` y se corrigen sin tocar código; las demás son decisiones provisionales acotadas a un archivo. La nº 10 es la única que puede implicar un costo.
+
+| Nº | Consulta | Impacto si cambia la respuesta |
+|---|---|---|
+| 1 | Valor de felicitación y reclamo | Un `UPDATE` en `parametro` |
+| 2 | Cómo se prorratea el objetivo al día | Fórmula en `services/cumplimiento.ts` |
+| 3 | ¿El tope de 150% se aplica o solo se informa? | Un `UPDATE` en `parametro` |
+| 4 | ¿"Ingresado" es estado o total? | Columna del kanban |
+| 5 | ¿Verificador y consulta son perfiles propios? | Ya implementados como perfiles |
+| 6 | Fórmula del ítem inverso | Una función, ya aislada (ADR-009) |
+| 7 | ¿El multi-tenant suma o estorba? | Ninguno técnico; sí de presentación |
+| 8 | ¿Una aprobación puede revertirse? | Quitar una guarda en la validación |
+| 9 | ¿El verificador es transversal o por delegación? | Una línea en `services/alcance.ts` |
+| 10 | Antivirus y retención de evidencias (RNF-017) | Infraestructura y costo |
 
 1. **Ajustes por felicitación y reclamo**: el PDF (RN-011) menciona −20% y −30%; la planilla muestra **+10% (máx. 3)** y **−20%**; el audio dijo "+10, máximo 1 mensual". ¿Cuál rige?
 2. **Objetivo al día por persona**: en la planilla el cuadro global marca 61,54% (56 de 91 días) pero la tabla usa 50,55% por persona. ¿Se descuentan los días no trabajados del **numerador** (días transcurridos de la persona) manteniendo el denominador total? Es lo que sugieren los datos.
@@ -233,3 +248,17 @@ El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. Est
 6. **Ítems de dirección inversa** ("Pendientes en tubo menor a 10%"): ¿la fórmula `meta/avance` es la correcta?
 7. **Multi-tenant**: nuestro sistema soporta varias organizaciones (el cliente pidió que fuera vendible a cualquier municipio o empresa). ¿Se evalúa como valor agregado o se prefiere una sola organización?
 8. **¿Una validación aprobada puede revertirse?** (surgida al implementar RF-013/RF-014). El PDF no lo dice. Nuestra decisión provisional: **no** — la aprobación es definitiva porque su punto ya está contabilizado (CA-01) y revertirla cambiaría en silencio un resultado ya publicado; para corregir se **anula la actividad con motivo** y se registra una nueva (ADR-006). Si el docente indica que el verificador puede rectificar, basta con permitir una validación posterior: el modelo ya guarda el historial completo de decisiones.
+
+9. **¿El Verificador es transversal o hay uno por delegación?** (surgida al implementar RF-013 y la bandeja de HU-11).
+
+   - **Lo que dice cada fuente**: el PDF (§3) define al Verificador como "revisa evidencias, valida o rechaza y deja trazabilidad", **sin decir sobre qué ámbito**. El cliente, en cambio, fue tajante con que *el libro de cada delegación es privado y no se ven entre ellas* (reunión 00:37:11). RNF-005 pide mínimo privilegio y segregación de funciones, que tiran en direcciones opuestas: transversal es mejor segregación, por delegación es menos privilegio.
+   - **Qué hicimos mientras tanto**: el verificador ve la **bandeja de evidencias de todas las delegaciones**, porque si no, nadie podría validar las de una delegación sin verificador propio y el avance quedaría congelado. Pero su acceso **no se amplió a nada más**: no ve el libro de actividades ni el tubo de ninguna delegación. Está en `services/alcance.ts`, en una función aparte (`unidadesParaVerificacion`) precisamente para poder cambiarlo sin tocar el resto.
+   - **Qué cambia con la respuesta**: si son verificadores por delegación, se les asigna `unidadTerritorialId` en la membresía (la columna ya existe) y esa función pasa a devolver sus unidades. Es una línea de código y datos; **no hay migración ni cambio de modelo**.
+   - **Pregunta concreta**: ¿un verificador único revisa las evidencias de todo el municipio, o cada delegación valida las propias? Y si es lo segundo, ¿quién valida cuando esa persona está ausente?
+
+10. **Antivirus y retención de evidencias (RNF-017)** — es el único punto de la especificación que hoy **no** cumplimos, y preferimos declararlo antes que dejarlo pasar.
+
+    - **Lo que exige RNF-017**: "formatos, tamaño máximo, **antivirus**, metadatos, acceso, **retención**, eliminación segura".
+    - **Qué sí está implementado** (defensa en profundidad, verificado con 5 comprobaciones): lista blanca de tipos MIME en el catálogo `formato_evidencia`; tamaño máximo en el parámetro `evidencia_tamano_max_mb`; **el nombre en disco lo deriva el servidor del código inmutable de la actividad**, nunca el que envía el cliente (probado con `../../etc/passwd.jpg`); los archivos viven fuera del árbol público y se descargan por un endpoint autenticado, no como estáticos; y nada se ejecuta ni se interpreta.
+    - **Por qué falta el antivirus**: no es un problema de licencia — ClamAV es libre y gratuito. Es de **hardware**: su demonio necesita cerca de 1 GB de RAM solo para mantener las firmas en memoria, más de lo que da la VPS mínima que contempla nuestra restricción de costo cero, y actualizar firmas exige salida a internet y una tarea programada.
+    - **Preguntas concretas**: (a) ¿se exige antivirus **operativo** para la evaluación, o basta con declarar la mitigación anterior como limitación conocida? (b) Si se exige, ¿se autoriza el gasto de una VPS con 2 GB de RAM, o se acepta un análisis **diferido** (la evidencia queda en cuarentena y no se puede validar hasta pasar el análisis)? (c) ¿Qué **política de retención y eliminación** de evidencias espera? RNF-009 pide "definir conservación y eliminación" y hoy no tenemos plazo definido: sin ese dato no podemos programar el borrado, y borrar por nuestra cuenta sería peor que no borrar.

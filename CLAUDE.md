@@ -85,5 +85,5 @@ Cuentas demo (todas `matriz123`): `admin@sgr.demo` · `coordinador@sgr.demo` · 
 13. **Costo cero**: sin dependencias ni servicios de pago. VPS solo al final si es imprescindible.
 14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado (RNF-012, DESIGN §8.1).
 15. **Una historia no está terminada sin prueba**: al implementarla se actualiza [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) con commit, caso de prueba y resultado.
-16. **Las ambigüedades se documentan, no se inventan**: hay 8 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí.
+16. **Las ambigüedades se documentan, no se inventan**: hay 10 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí, con el mismo formato: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta.
 17. Puertos: API 4000, frontend 5173, Postgres 5432. Los puertos 3000/8000/27017 los ocupa otro proyecto Docker ("talia") — no tocarlos.
