@@ -30,7 +30,7 @@ await new Promise((resolve) => {
 });
 
 const admin = await login("admin@sgr.demo");
-const funcionaria = await login("territorial.centro@sgr.demo"); // Gabriel, delegación Centro
+const funcionario = await login("territorial.centro@sgr.demo"); // Gabriel, delegación Centro
 
 // 2. Datos base: delegaciones Centro y Avenida del Mar; tareas del Centro
 const unidadesAdmin = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${admin.token}` } })).json();
@@ -41,23 +41,23 @@ const tareaAjena = tareas.find((t) => t.responsable?.nombre.includes("Javiera"))
 const tareaPropia = tareas.find((t) => t.responsable?.nombre.includes("Gabriel"));
 
 // 3. VISIBILIDAD (libro privado por delegación, reunión 00:37:11):
-// la funcionaria del Centro ve su libro pero NO el de Avenida del Mar.
-const unidadesFunc = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${funcionaria.token}` } })).json();
+// el funcionario del Centro ve su libro pero NO el de Avenida del Mar.
+const unidadesFunc = await (await fetch(`${API}/unidades`, { headers: { Authorization: `Bearer ${funcionario.token}` } })).json();
 const otraUnidadFunc = unidadesFunc.find((u) => u.nombre === "Rural");
 const centroFunc = unidadesFunc.find((u) => u.nombre === "Centro");
-check("funcionaria: Centro con libro visible", centroFunc?.puedeVerLibro === true);
-check("funcionaria: Rural sin libro", otraUnidadFunc?.puedeVerLibro === false);
+check("funcionario: Centro con libro visible", centroFunc?.puedeVerLibro === true);
+check("funcionario: Rural sin libro", otraUnidadFunc?.puedeVerLibro === false);
 const rLibroAjeno = await fetch(`${API}/tareas?unidad=${otraUnidad.id}`, {
-  headers: { Authorization: `Bearer ${funcionaria.token}` },
+  headers: { Authorization: `Bearer ${funcionario.token}` },
 });
 check("GET tareas de otra delegación → 404", rLibroAjeno.status === 404, `status ${rLibroAjeno.status}`);
 
 // 4. El semáforo consolidado SÍ es visible para todos (Efecto Hawthorne)
 const rKpis = await fetch(`${API}/kpis/cumplimiento?trimestre=2026-Q3`, {
-  headers: { Authorization: `Bearer ${funcionaria.token}` },
+  headers: { Authorization: `Bearer ${funcionario.token}` },
 });
 const kpis = await rKpis.json();
-check("funcionaria ve semáforo consolidado", rKpis.status === 200 && kpis.length >= 20, `${kpis.length} filas`);
+check("funcionario ve semáforo consolidado", rKpis.status === 200 && kpis.length >= 20, `${kpis.length} filas`);
 const colores = new Set(kpis.map((f) => f.semaforo_color));
 check("semáforo con verde/naranjo/rojo", ["verde", "naranjo", "rojo"].every((c) => colores.has(c)),
   [...colores].join(","));
@@ -66,16 +66,16 @@ check("vista expone objetivo_al_dia y avance_relativo",
   typeof fila?.objetivo_al_dia === "number" && typeof fila?.avance_relativo === "number",
   `objetivo=${fila?.objetivo_al_dia} relativo=${fila?.avance_relativo}`);
 
-// 5. Permisos de edición: la funcionaria no mueve tareas ajenas
+// 5. Permisos de edición: el funcionario no mueve tareas ajenas
 const r403 = await fetch(`${API}/tareas/${tareaAjena.id}`, {
   method: "PATCH",
-  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionaria.token}` },
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionario.token}` },
   body: JSON.stringify({ estado: "realizado" }),
 });
 check("usuario no mueve tarea ajena", r403.status === 403, `status ${r403.status}`);
 
 // 6. Socket: join a su delegación OK (con presencia), join a ajena rechazado
-const socket = io(API, { auth: { token: funcionaria.token }, reconnection: false });
+const socket = io(API, { auth: { token: funcionario.token }, reconnection: false });
 await new Promise((resolve, reject) => {
   socket.on("connect", resolve);
   socket.on("connect_error", reject);
@@ -95,7 +95,7 @@ check("join al room de otra delegación rechazado", joinAjeno === false);
 const eventoPromise = new Promise((res) => socket.once("tarea:actualizada", res));
 const rOk = await fetch(`${API}/tareas/${tareaPropia.id}`, {
   method: "PATCH",
-  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionaria.token}` },
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionario.token}` },
   body: JSON.stringify({ estado: "en_proceso" }),
 });
 check("usuario mueve su propia tarea", rOk.status === 200, `status ${rOk.status}`);
@@ -106,33 +106,33 @@ const evento = await Promise.race([
 check("evento tarea:actualizada llega al room", evento?.id === tareaPropia.id && evento?.estado === "en_proceso");
 
 // 8. Endpoints de Fase 4: directorio de usuarios y estadísticas del tubo
-const delegada = await login("delegado.centro@sgr.demo");
+const delegado = await login("delegado.centro@sgr.demo");
 const equipo = await (await fetch(`${API}/usuarios?unidad=${centro.id}`, {
-  headers: { Authorization: `Bearer ${delegada.token}` },
+  headers: { Authorization: `Bearer ${delegado.token}` },
 })).json();
 check("GET /usuarios con cargos", equipo.some((m) => m.cargo === "Territorial 1"),
   `${equipo.length} miembros`);
 const tuboStats = await (await fetch(`${API}/kpis/tubo`, {
-  headers: { Authorization: `Bearer ${funcionaria.token}` },
+  headers: { Authorization: `Bearer ${funcionario.token}` },
 })).json();
 const statCentro = tuboStats.find((s) => s.unidadNombre === "Centro");
 check("GET /kpis/tubo agregado", tuboStats.length === 6 && typeof statCentro?.vencidas === "number",
   `Centro: ${JSON.stringify(statCentro?.estados)} vencidas=${statCentro?.vencidas}`);
 
-// 9. La delegada crea una tarea (HU-3.2) → 201 y el room recibe tarea:creada
+// 9. El delegado crea una tarea (HU-3.2) → 201 y el room recibe tarea:creada
 const creadaPromise = new Promise((res) => socket.once("tarea:creada", res));
 const rCrear = await fetch(`${API}/tareas`, {
   method: "POST",
-  headers: { "Content-Type": "application/json", Authorization: `Bearer ${delegada.token}` },
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${delegado.token}` },
   body: JSON.stringify({
     titulo: "Tarea de prueba smoke",
     unidadTerritorialId: centro.id,
     categoriaId: tareaPropia.categoriaId,
-    responsableId: funcionaria.usuario.id,
+    responsableId: funcionario.usuario.id,
   }),
 });
 const creada = await rCrear.json();
-check("delegada crea tarea", rCrear.status === 201, `status ${rCrear.status}`);
+check("delegado crea tarea", rCrear.status === 201, `status ${rCrear.status}`);
 const eventoCreada = await Promise.race([
   creadaPromise,
   new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000)),
@@ -141,7 +141,7 @@ check("evento tarea:creada llega al room", eventoCreada?.id === creada.id);
 // limpieza
 await fetch(`${API}/tareas/${creada.id}`, {
   method: "DELETE",
-  headers: { Authorization: `Bearer ${delegada.token}` },
+  headers: { Authorization: `Bearer ${delegado.token}` },
 });
 
 socket.close();

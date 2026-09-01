@@ -71,7 +71,9 @@ npx prisma migrate diff --from-schema-datasource prisma\schema.prisma --to-schem
 npx prisma migrate deploy
 ```
 
-Cuentas demo (todas `matriz123`): `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+
+⚠ **Solo existen las `@sgr.demo`.** Las `@demo.cl` de las Fases 2 y 3 se borraron al reescribir el seed; si algo las menciona, está desactualizado. Las 13 cuentas con su rol, cargo y delegación están en [docs/estado-proyecto.md §Cuentas de demostración y roles](docs/estado-proyecto.md) — **esa tabla es la fuente única**. Ahí también está la equivalencia entre el rol técnico y el nombre municipal: `supervisor` = "coordinador", `gerente` = "delegado".
 
 ## Reglas del proyecto
 

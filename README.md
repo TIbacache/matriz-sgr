@@ -69,6 +69,21 @@ npm install
 npm run dev
 ```
 
+## Cuentas de demostración
+
+Todas con contraseña `matriz123`, una por cada rol del PDF §3. Los datos son **100% ficticios** y deben seguir siéndolo.
+
+| Correo | Rol | Se le dice | Qué se prueba con esta cuenta |
+|---|---|---|---|
+| `admin@sgr.demo` | `admin` | Administrador | Configuración completa, reapertura de períodos |
+| `coordinador@sgr.demo` | `supervisor` | Coordinador | Metas, validación y nivel central |
+| `verificador@sgr.demo` | `verificador` | Verificador | Bandeja de verificación (transversal, **sin libro**) |
+| `consulta@sgr.demo` | `consulta` | Usuario de consulta | Solo lectura del consolidado |
+| `delegado.centro@sgr.demo` | `gerente` | Delegado | Libro y tubo de su delegación |
+| `territorial.centro@sgr.demo` | `usuario` | Funcionario | Ficha personal y registro diario |
+
+La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-proyecto.md §Cuentas de demostración y roles](docs/estado-proyecto.md), que es la **fuente única**. Las cuentas `@demo.cl` de las Fases 2 y 3 ya no existen.
+
 ## Puertos
 
 | Servicio | Puerto |

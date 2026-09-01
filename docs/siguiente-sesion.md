@@ -89,7 +89,8 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~`auditoria` sin llamadas~~ → resuelto en el modelo v2; **las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar** | rutas v1 | Media |
 | ~~`version` sin comparar~~ → resuelto en el modelo v2; **las rutas v1 siguen sin bloqueo optimista** | rutas v1 | Media |
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
-| ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2 (`de68901`); falta su **pantalla** (HU-05) | frontend | Media |
+| ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2 (`de68901`); falta su **pantalla** (HU-05) ← **en construcción (Bloque B2)** | frontend | Alta |
+| **`PUT /metas-item` no aplica bloqueo optimista**: reemplaza el conjunto sin comparar `version`, así que dos personas configurando al mismo funcionario a la vez se pisan en silencio (contra CA-08). Detectado al diseñar la pantalla, se cierra en el Bloque B2 | backend | Alta |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |

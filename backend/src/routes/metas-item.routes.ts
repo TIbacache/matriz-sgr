@@ -73,8 +73,20 @@ const metaCrearSchema = metaBaseSchema.extend({
 const metaLoteSchema = z.object({
   periodoId: z.string().uuid(),
   funcionarioId: z.string().uuid(),
-  metas: z.array(metaBaseSchema.extend({ itemId: z.string().uuid() })).min(1),
+  metas: z
+    .array(
+      metaBaseSchema.extend({
+        itemId: z.string().uuid(),
+        // Obligatoria para las metas que YA existen: sin ella el conjunto se
+        // sobrescribiría a ciegas (CA-08). Las nuevas no la llevan.
+        version: z.number().int().positive().optional(),
+      })
+    )
+    .min(1),
 });
+
+/** Aborta la transacción del `PUT` cuando una meta cambió bajo los pies. */
+class ConflictoDeVersion extends Error {}
 
 const incluir = {
   item: {
@@ -467,6 +479,10 @@ metasItemRouter.delete("/:id", requireRol("admin", "supervisor"), async (req, re
 // sus ítems y **exige el 100% exacto** (RN-001). El alta unitaria permite
 // quedarse corta porque se carga de a una; aquí no hay excusa, el conjunto está
 // completo. Todo ocurre en una transacción: o queda cuadrado, o no cambia nada.
+//
+// Cada meta que ya existía debe traer su `version`: reemplazar el conjunto sin
+// compararlas dejaría que dos personas configurando al mismo funcionario se
+// pisaran en silencio, que es justo lo que CA-08 prohíbe.
 metasItemRouter.put("/", requireRol("admin", "supervisor"), async (req, res) => {
   const parsed = metaLoteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Datos inválidos", detalle: parsed.error.issues });
@@ -513,41 +529,70 @@ metasItemRouter.put("/", requireRol("admin", "supervisor"), async (req, res) => 
     }
   }
 
-  const resultado = await prisma.$transaction(async (tx) => {
-    await tx.metaItem.deleteMany({
-      where: {
-        organizationId: auth.organizationId,
-        periodoId,
-        funcionarioId,
-        itemId: { notIn: [...itemsEntrantes] },
-      },
+  // CA-08 · ADR-005: el conjunto tampoco se sobrescribe a ciegas. Cada meta que
+  // ya existe debe llegar con la `version` sobre la que se editó; si no coincide,
+  // otra persona reconfiguró a este funcionario mientras tanto.
+  const previas = new Map(anteriores.map((a) => [a.itemId, a]));
+  const sinVersion = metas.filter((m) => previas.has(m.itemId) && m.version === undefined);
+  if (sinVersion.length > 0) {
+    return res.status(409).json({
+      error:
+        "Faltan las versiones de las metas que ya existían: recarga la configuración vigente antes de guardar (CA-08)",
+      metas: anteriores,
     });
-    for (const m of metas) {
-      await tx.metaItem.upsert({
-        where: { periodoId_itemId_funcionarioId: { periodoId, itemId: m.itemId, funcionarioId } },
-        // Actualiza de verdad: si solo creara, reconfigurar no cambiaría nada
-        // y la suma seguiría siendo la vieja.
-        update: {
-          metaValor: new Prisma.Decimal(m.metaValor),
-          ponderador: new Prisma.Decimal(m.ponderador),
-          version: { increment: 1 },
-        },
-        create: {
+  }
+
+  let resultado;
+  try {
+    resultado = await prisma.$transaction(async (tx) => {
+      await tx.metaItem.deleteMany({
+        where: {
           organizationId: auth.organizationId,
           periodoId,
-          itemId: m.itemId,
           funcionarioId,
-          metaValor: new Prisma.Decimal(m.metaValor),
-          ponderador: new Prisma.Decimal(m.ponderador),
+          itemId: { notIn: [...itemsEntrantes] },
         },
       });
-    }
-    return tx.metaItem.findMany({
+      for (const m of metas) {
+        const previa = previas.get(m.itemId);
+        const datos = {
+          metaValor: new Prisma.Decimal(m.metaValor),
+          ponderador: new Prisma.Decimal(m.ponderador),
+        };
+        if (previa) {
+          // La comparación va DENTRO de la transacción, no solo en la
+          // validación de arriba: entre una y otra puede colarse otra escritura.
+          const afectadas = await tx.metaItem.updateMany({
+            where: { id: previa.id, organizationId: auth.organizationId, version: m.version },
+            data: { ...datos, version: { increment: 1 } },
+          });
+          if (afectadas.count === 0) throw new ConflictoDeVersion();
+        } else {
+          await tx.metaItem.create({
+            data: { organizationId: auth.organizationId, periodoId, itemId: m.itemId, funcionarioId, ...datos },
+          });
+        }
+      }
+      return tx.metaItem.findMany({
+        where: { organizationId: auth.organizationId, periodoId, funcionarioId },
+        include: incluir,
+        orderBy: { item: { orden: "asc" } },
+      });
+    });
+  } catch (err) {
+    if (!(err instanceof ConflictoDeVersion)) throw err;
+    // La transacción se deshizo entera: nada quedó a medias.
+    const vigentes = await prisma.metaItem.findMany({
       where: { organizationId: auth.organizationId, periodoId, funcionarioId },
       include: incluir,
       orderBy: { item: { orden: "asc" } },
     });
-  });
+    return res.status(409).json({
+      error:
+        "Otra persona reconfiguró las metas de este funcionario mientras editabas. Revisa lo vigente antes de guardar.",
+      metas: vigentes,
+    });
+  }
 
   await auditarDesde(auth, req)({
     accion: "actualizar",

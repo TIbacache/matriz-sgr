@@ -772,10 +772,41 @@ const reparto = itemsTerritorial.map((it, i) => ({
       ? Math.round((1 - base * (itemsTerritorial.length - 1)) * 10_000) / 10_000
       : base,
 }));
-const repartoCompleto = await A("PUT", "/metas-item", {
+
+// CA-08: el conjunto tampoco se sobrescribe a ciegas. `itemA` ya tiene meta,
+// así que el lote debe traer su versión.
+const repartoSinVersion = await A("PUT", "/metas-item", {
   periodoId: periodoPrueba.id,
   funcionarioId: gabriel.usuario.id,
   metas: reparto,
+});
+check("CA-08 la carga en lote sin las versiones vigentes → 409",
+  repartoSinVersion.status === 409, `status ${repartoSinVersion.status}`);
+
+const vigentes = (await A("GET", `/metas-item?periodo=${periodoPrueba.id}&funcionario=${gabriel.usuario.id}`))
+  .datos as { metas: { itemId: string; version: number }[] };
+const versionPorItem = new Map(vigentes.metas.map((m) => [m.itemId, m.version]));
+const repartoConVersiones = reparto.map((m) => ({
+  ...m,
+  ...(versionPorItem.has(m.itemId) ? { version: versionPorItem.get(m.itemId) } : {}),
+}));
+
+const repartoVersionVieja = await A("PUT", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  funcionarioId: gabriel.usuario.id,
+  metas: repartoConVersiones.map((m) =>
+    m.itemId === itemA.id ? { ...m, version: 1 } : m // versión ya consumida por el PATCH
+  ),
+});
+check("CA-08 la carga en lote con una versión vieja → 409 y no aplica nada",
+  repartoVersionVieja.status === 409 &&
+    (repartoVersionVieja.datos as { metas: unknown[] }).metas !== undefined,
+  `status ${repartoVersionVieja.status}, devuelve lo vigente`);
+
+const repartoCompleto = await A("PUT", "/metas-item", {
+  periodoId: periodoPrueba.id,
+  funcionarioId: gabriel.usuario.id,
+  metas: repartoConVersiones,
 });
 const conjunto = repartoCompleto.datos as { metas: { id: string; itemId: string }[]; sumaPonderadores: number };
 check("RN-001 la carga en lote deja al funcionario cuadrado en 100%",

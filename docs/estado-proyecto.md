@@ -3,6 +3,32 @@
 **Actualizado**: 1 de septiembre de 2026 (Bloque A2 — API de metas por funcionario)
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fase.
 
+## Cuentas de demostración y roles — FUENTE ÚNICA
+
+⚠ **Las únicas cuentas válidas son las `@sgr.demo` del seed v2.** Las `@demo.cl` que aparecen más abajo en la historia de las Fases 2 y 3 **ya no existen**: se borraron al reescribir el seed con datos 100% ficticios. Si un documento, un script o una captura las menciona, está desactualizado. Contraseña de todas: `matriz123`.
+
+**Roles**: el enum de la base tiene seis (`admin`, `supervisor`, `gerente`, `usuario`, `verificador`, `consulta`), que son los seis actores del PDF §3. El nombre del rol técnico **no siempre coincide con el nombre del cargo municipal**: lo que el cliente llama "coordinador" es el rol `supervisor`, y lo que llama "delegado" es `gerente`. Al escribir código se usa el nombre del enum; al escribir texto de pantalla, el del municipio.
+
+| Correo (`@sgr.demo`) | Nombre ficticio | Rol (enum) | Se le dice | Cargo | Delegación |
+|---|---|---|---|---|---|
+| `admin` | Ana Contreras Bravo | `admin` | Administrador | — | nivel central |
+| `coordinador` | Carlos Miranda Soto | `supervisor` | Coordinador | — | nivel central |
+| `verificador` | Valeria Ortega Lillo | `verificador` | Verificador | — | transversal (sin libro) |
+| `consulta` | Camila Fuentes Rivas | `consulta` | Usuario de consulta | — | sin libro |
+| `delegado.centro` | Diego Salinas Peña | `gerente` | Delegado | — | Centro |
+| `delegado.rural` | Daniela Aguirre Mella | `gerente` | Delegado | — | Rural |
+| `apoyo.centro` | Paula Herrera Vidal | `usuario` | Funcionario | Apoyo Administrativo | Centro |
+| `territorial.centro` | Gabriel Muñoz Reyes | `usuario` | Funcionario | Territorial OO.CC. 1 | Centro |
+| `social.centro` | Javiera Cáceres Núñez | `usuario` | Funcionario | Gestor Social 1 | Centro |
+| `diserco.centro` | Rodrigo Valenzuela Pino | `usuario` | Funcionario | Coordinador DISERCO | Centro |
+| `planificacion.centro` | Elena Tapia Godoy | `usuario` | Funcionario | Planificación y Control | Centro |
+| `territorial.rural` | Ignacio Bustos Farías | `usuario` | Funcionario | Territorial OO.CC. 1 | Rural |
+| `social.rural` | Marcela Rojas Leiva | `usuario` | Funcionario | Gestor Social 1 | Rural |
+
+Las **siete personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición. Los nombres son ficticios y deben seguir siéndolo (§Condiciones del caso del PDF).
+
+**Para probar con los seis roles** (regla que ya detectó dos errores reales): `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+
 ## Resumen por fases
 
 | Fase | Estado | Contenido |
@@ -18,7 +44,7 @@ Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fa
 - **Repo privado**: https://github.com/TIbacache/matriz-sgr (rama `main`).
 - **Postgres 16** en Docker (`docker compose up -d` en la raíz, contenedor `matriz-sgr-db`, puerto 5432, volumen persistente `matriz_sgr_pgdata`).
 - **2 migraciones Prisma** aplicadas: `init` (tablas) y `vista_cumplimiento` (vista materializada con índice único para `REFRESH ... CONCURRENTLY`).
-- **Seed demo** (`npx prisma db seed`): Municipalidad Demo, 3 delegaciones, 4 pilares, 18 tareas, metas 2026-Q3 con ponderadores 0.25. Password de todos: `matriz123`. Usuarios: `admin@demo.cl`, `supervisora@demo.cl`, `delegado.norte@demo.cl` (gerente de Norte), `delegada.centro@demo.cl` (gerente de Centro), `funcionario1@demo.cl`, `funcionaria2@demo.cl`.
+- **Seed demo de esta fase** (histórico): Municipalidad Demo, 3 delegaciones, 4 pilares, 18 tareas, metas 2026-Q3 con ponderadores 0.25. ⚠ **Sus usuarios `@demo.cl` ya no existen**: el seed se reescribió con datos 100% ficticios y las cuentas vigentes son las de [§Cuentas de demostración y roles](#cuentas-de-demostración-y-roles--fuente-única).
 - **Smoke test de integración**: `npm run smoke` en `/backend` (servidor corriendo) → 7/7 PASS. Cubre: rechazo de handshake sin token, 403 tarea ajena, join a room, presencia, rechazo unidad ajena, PATCH propio, evento en room.
 - **Build limpio**: `npm run build` (tsc estricto) sin errores.
 
@@ -329,7 +355,7 @@ Las dos aparecieron recorriendo el ciclo completo con cuentas distintas, y las d
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:
 - 🔓 **El "Objetivo al día" YA NO ESTÁ BLOQUEADO**: `dias_efectivos = 90 − licencia − vacaciones − compensatorios − emergencia`; `objetivo_al_dia = dias_transcurridos / dias_efectivos × 100`. La meta se prorratea por días trabajados.
-- ✅ **Correcciones del 26-08-2026 (aplicadas y con smoke test 13/13)**: vista `cumplimiento_v2` con umbrales del cliente (verde ≥100 / naranjo 60-99 / rojo <60 sobre el avance relativo al objetivo del día, tope 150% por ítem); libros privados por delegación (`services/alcance.ts`, `puedeVerLibro`) con semáforo consolidado visible por todos; seed con las 6 delegaciones y pilares reales; membresía con `unidadTerritorialId` y `cargo`. Login demo: `javier.godoy@demo.cl`, `jf.labra@demo.cl`, `delegado.centro@demo.cl`, `territorial1.centro@demo.cl` (todos `matriz123`).
+- ✅ **Correcciones del 26-08-2026 (aplicadas y con smoke test 13/13)**: vista `cumplimiento_v2` con umbrales del cliente (verde ≥100 / naranjo 60-99 / rojo <60 sobre el avance relativo al objetivo del día, tope 150% por ítem); libros privados por delegación (`services/alcance.ts`, `puedeVerLibro`) con semáforo consolidado visible por todos; seed con las 6 delegaciones y pilares reales; membresía con `unidadTerritorialId` y `cargo`. ⚠ **Las cuentas que listaba esta línea eran las `@demo.cl` de entonces y ya no existen** (`territorial1.centro@demo.cl` es hoy `territorial.centro@sgr.demo`); las vigentes están en [§Cuentas de demostración y roles](#cuentas-de-demostración-y-roles--fuente-única).
 - 🆕 **La medición es por persona** (cargo → funciones → metas), y **nada suma hasta que el supervisor valida** poniendo el punto tras revisar la foto verificadora.
 - Cifras confirmadas: reclamo −20%, felicitación +10% (máx. 1/mes), emergencia = meta con ponderador 5%, mínimo esperado 80%.
 - Product Owners = los profesores; los requerimientos se canalizan por ellos.
