@@ -64,9 +64,54 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 
 ---
 
+## 2.1 Modelo v2 — base implementada (commit `91f1917`, 01-09-2026)
+
+El modelo de datos de las historias pendientes ya existe y está verificado; falta la capa de API y las pantallas. Estado de los cimientos:
+
+| Requisito | Base implementada | Verificación | Falta |
+|---|---|---|---|
+| RF-003 Cargos e ítems | `Cargo`, `ItemMedicion` con `tipo` y `direccion` | calculo-3, calculo-4 (ítem inverso) | CRUD y pantalla |
+| RF-005 Períodos | `Periodo` con fechas y días calculados | calculo-13 (92 días desde las fechas) | CRUD, cierre y reapertura |
+| RF-007 Metas por funcionario | `MetaItem` | calculo-15 (RN-001: ponderadores suman 100%) | CRUD y versionado |
+| RF-009/011 Actividades y código | `Actividad` + `services/codigos.ts` | calculo-19, calculo-20 (1.126 códigos únicos, formato no ambiguo) | API y pantalla |
+| RF-012/013/014 Evidencias y validación | `Evidencia`, `Validacion` | calculo-17 (solo lo aprobado suma) | subida de archivo, bandeja del verificador |
+| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` | calculo-1 a 10, 16 | exponerlo por API y en el dashboard |
+| RF-025 Ajustes | `Ajuste` + parámetros | calculo-11, calculo-12 | API y pantalla |
+| RF-036 / RNF-008 Auditoría | `Auditoria` + triggers anti-UPDATE/DELETE | verificado contra la base | llamarla desde los controladores |
+| RF-038 Parámetros | `Parametro` con vigencia | calculo-11 | pantalla de configuración |
+| ADR-008 Trazabilidad del vecino | `PersonaUsuaria` con RUT único por organización | calculo-21 (un vecino aparece en Centro y Rural) | ficha con historial cruzado |
+
 ## 3. Verificaciones automatizadas vigentes
 
-`npm run smoke` en `/backend` — **17/17 PASS** al 26-08-2026:
+**38 comprobaciones, todas en verde** al 01-09-2026.
+
+### `npm run verificar:calculo` — 21/21
+
+Pruebas unitarias de las fórmulas (lo que el PDF §14.3 exige como cobertura mínima) más comprobaciones de integración sobre datos sembrados:
+
+| # | Verificación | Cubre |
+|---|---|---|
+| 1 | Cumplimiento = avance/meta | RN-004 |
+| 2 | Tope configurable recorta 206% a 150% | RN-005 |
+| 3-4 | Ítem inverso: penaliza exceso (11 sobre meta 10 → 90,9%) y premia estar bajo | ADR-009, RN-002 |
+| 5 | Meta cero no divide por cero | RN-002 |
+| 6-8 | Los tres colores del semáforo | RN-008 |
+| 9-10 | **Casos reales de la planilla**: 98 vs 50,55 → verde · 15,5 vs 39,56 → rojo | RN-008 |
+| 11-12 | Parámetros leídos de base y marcados los no confirmados | RF-038, ADR-007 |
+| 13 | Días del período calculados desde las fechas | RF-005 |
+| 14 | El cálculo produce resultados por funcionario | RF-022 |
+| 15 | Ponderadores suman 100% por funcionario | RN-001 |
+| 16 | Las ausencias producen objetivo al día distinto por persona | RN-007 |
+| 17 | Solo las actividades con validación aprobada suman | RN-009, RF-014 |
+| 18 | El semáforo produce más de un color con datos reales | RF-027 |
+| 19-20 | 1.126 códigos únicos con formato no ambiguo | RF-011, RN-010 |
+| 21 | Un vecino es rastreable entre delegaciones | ADR-008, CA-04 |
+
+### `npm run verificar:rut` — 16 RUT + casos de normalización
+
+Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `17.721.947-9` y `17,721,947-9` (el formato de Google Sheets) y se rechacen un DV incorrecto y el dato sucio `216944` que aparece en la planilla real. Cubre RF-010 y ADR-001.
+
+### `npm run smoke` — 17/17
 
 | # | Verificación | Cubre |
 |---|---|---|
@@ -85,7 +130,7 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 16-17 | Crear tarea y su evento | RF-016, HU-02 |
 
-⚠ **Brecha de pruebas**: no hay pruebas unitarias (Jest) ni de componentes (RTL). El PDF (§14.3) exige unitarias de fórmulas y validadores, integración, aceptación Dado/Cuando/Entonces, seguridad y usabilidad. Es el mayor riesgo de la entrega.
+⚠ **Brecha de pruebas que queda**: las 38 comprobaciones cubren fórmulas, validadores, integración y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque menor que antes.
 
 ---
 
