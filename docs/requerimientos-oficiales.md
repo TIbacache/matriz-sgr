@@ -44,7 +44,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-001 | Administrar delegaciones (crear, modificar, activar, desactivar) | 🟡 | Falta activar/desactivar (hoy se elimina) |
 | RF-002 | Administrar usuarios y roles (estado, cargo, delegación, uno o más roles) | 🟡 | Existe membresía con cargo y unidad; falta **múltiples roles** y estado, y la UI de administración |
 | RF-003 | Configurar cargos y funciones: asociar a cada cargo los ítems medidos | ✅ | `GET/POST/PATCH /cargos` y `/items` (`b1f3e75`). Falta la pantalla |
-| RF-004 | Catálogo de actividades, servicios, atenciones y subatenciones por área | 🟡 | Tabla `CatalogoItem` sembrada y **ya consumida** (`formato_evidencia`); falta su CRUD |
+| RF-004 | Catálogo de actividades, servicios, atenciones y subatenciones por área | 🟡 | `GET /catalogos` alimenta la UI con los valores **vigentes** (los formatos de evidencia ya salen de ahí); falta el CRUD y la desactivación (HU-27) |
 | RF-005 | Configurar períodos: inicio, término, estado y **días computables** | ✅ | `/periodos` con cierre y reapertura auditada (`b1f3e75`); los días se calculan desde las fechas |
 | RF-006 | Configurar ponderaciones por ítem, cargo y período | 🟡 | Validamos suma ≤ 100% en metas por unidad; falta la API de `MetaItem` (por cargo/ítem) |
 | RF-007 | Configurar metas y umbrales, **versionado**, rige desde el período | 🟡 | `MetaItem` existe y el período ya es una entidad; falta su API y el versionado (RF-038) |
@@ -53,7 +53,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-008 | Ficha personal: funcionario, cargo, delegación, ítems, metas, avance, ponderado | 🟡 | Los datos ya se sirven (`GET /cumplimiento/:periodoId?funcionario=`); falta la **pantalla** |
+| RF-008 | Ficha personal: funcionario, cargo, delegación, ítems, metas, avance, ponderado | ✅ | Pantalla `/ficha` con los tres bloques de DESIGN §8.2 y registro en línea. Falta prueba de componente (Bloque D) |
 | RF-009 | Registrar actividades (fecha, actividad, acción, contacto, teléfono, ítem, ingreso a tubo) | ✅ | `POST /actividades` (`b1f3e75`); falta la pantalla |
 | RF-010 | Validar campos: obligatoriedad, formatos, coherencia | ✅ | Zod + RUT (`lib/rut.ts`), teléfono (`lib/telefono.ts`), fecha dentro del período, ítem del cargo |
 | RF-011 | Generar código de evidencia único e **inmutable** | ✅ | `services/codigos.ts` + trigger; verificado en `verificar:api` |
@@ -100,7 +100,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
 | RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 13 ✅ · 16 🟡 · 9 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜)
+**Resumen: 38 RF → 14 ✅ · 15 🟡 · 9 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜)
 
 ---
 
@@ -190,10 +190,10 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 - ✅ Registro de actividades con identificador único, evidencia y flujo de validación — **completo por API**, falta la pantalla
 - 🟡 Agenda colectiva con responsables, estados, plazos e **historial de cambios**
 - ✅ Cálculo de avance, cumplimiento ponderado, meta esperada al día y semáforo
-- 🟡 Panel **personal** y resumen de delegación con filtros y acceso al detalle — los datos ya se sirven; falta la ficha
+- ✅ Panel **personal** (ficha `/ficha`) y resumen de delegación con filtros y acceso al detalle
 - 🟡 Informe o exportación básica y **auditoría de operaciones críticas** — auditoría ✔ en el modelo v2; exportación ⬜
 
-**Brecha principal restante**: las **pantallas** del eje actividad → evidencia → validación (ficha personal, formulario, bandeja del verificador) y la migración del dashboard al cálculo por funcionario. La API de ese eje ya está construida y verificada (commit `b1f3e75`).
+**Brecha principal restante**: la **bandeja del verificador** (HU-11 en pantalla) y la migración del dashboard al cálculo por funcionario. La API del eje está construida y verificada (`b1f3e75`) y la ficha personal con su registro y su subida de evidencia ya funciona.
 
 ---
 

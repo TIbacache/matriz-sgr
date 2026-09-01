@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
 import { TuboPage } from "./pages/TuboPage";
+import { FichaPage } from "./pages/FichaPage";
 
 // Carga perezosa: ECharts pesa; solo se descarga al entrar al dashboard,
 // y el tubo (la pantalla de todos los días) queda liviano.
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<RutasProtegidas />}>
             <Route path="/" element={<TuboPage />} />
+            <Route path="/ficha" element={<FichaPage />} />
             <Route
               path="/dashboard"
               element={

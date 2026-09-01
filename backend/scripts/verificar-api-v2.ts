@@ -491,6 +491,69 @@ check("Multi-tenant: un período inexistente o ajeno responde 404", periodoAjeno
   `status ${periodoAjeno.status}`);
 
 // ===========================================================================
+// 7. CONTRATO QUE CONSUME LA FICHA PERSONAL — RF-004 · RF-008 · HU-06
+//    La pantalla no calcula nada: se apoya en estas llamadas. Verificarlas es
+//    verificar que la ficha tiene de dónde sacar lo que muestra.
+// ===========================================================================
+
+const catalogoFormatos = await G("GET", "/catalogos?catalogo=formato_evidencia");
+const formatosCatalogo = (catalogoFormatos.datos as { valor: string }[]).map((c) => c.valor);
+check(
+  "RF-004 los formatos de evidencia salen del catálogo, no del código",
+  catalogoFormatos.status === 200 && formatosCatalogo.includes("image/jpeg"),
+  formatosCatalogo.join(", ")
+);
+check(
+  "RF-004 el catálogo coincide con lo que el servidor acepta",
+  JSON.stringify(formatosCatalogo.sort()) ===
+    JSON.stringify(
+      [...((formatoMalo.datos as { formatosPermitidos: string[] }).formatosPermitidos ?? [])].sort()
+    ),
+  "la lista que ve la pantalla es la misma que aplica el 415"
+);
+
+const paginado = await G(
+  "GET",
+  `/actividades?periodo=${periodoActivo.id}&funcionario=${gabriel.usuario.id}&limite=5`
+);
+const pagina = paginado.datos as { total: number; limite: number; actividades: unknown[] };
+check(
+  "RF-008 el registro personal se lee paginado por período y funcionario",
+  paginado.status === 200 && pagina.limite === 5 && pagina.actividades.length <= 5 && pagina.total > 5,
+  `${pagina.actividades.length} de ${pagina.total}`
+);
+
+const sinAnuladas = await G(
+  "GET",
+  `/actividades?periodo=${periodoActivo.id}&funcionario=${gabriel.usuario.id}&limite=200`
+);
+const conAnuladas = await G(
+  "GET",
+  `/actividades?periodo=${periodoActivo.id}&funcionario=${gabriel.usuario.id}&limite=200&anuladas=1`
+);
+const idsSin = (sinAnuladas.datos as { actividades: { id: string }[] }).actividades.map((a) => a.id);
+const idsCon = (conAnuladas.datos as { actividades: { id: string }[] }).actividades.map((a) => a.id);
+check(
+  "RF-008 las anuladas se ven solo si se piden (la ficha las muestra tachadas)",
+  !idsSin.includes(actividad1.id) && idsCon.includes(actividad1.id),
+  `${idsSin.length} vigentes, ${idsCon.length} con anuladas`
+);
+
+const fichaPersona = await G(
+  "GET",
+  `/cumplimiento/${periodoActivo.id}?funcionario=${gabriel.usuario.id}`
+);
+const soloUno = fichaPersona.datos as { funcionarios: { funcionarioId: string; items: unknown[] }[] };
+check(
+  "RF-008 la ficha de una persona trae sus ítems, metas y semáforo",
+  fichaPersona.status === 200 &&
+    soloUno.funcionarios.length === 1 &&
+    soloUno.funcionarios[0]!.funcionarioId === gabriel.usuario.id &&
+    soloUno.funcionarios[0]!.items.length > 0,
+  `${soloUno.funcionarios[0]?.items.length} ítems`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
 for (const e of creado.evidencias) await eliminarArchivo(e.ruta);

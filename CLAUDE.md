@@ -21,17 +21,18 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 ## Estado del código (1 de septiembre de 2026)
 
-**Construido y verificado** (95 comprobaciones en verde):
+**Construido y verificado** (100 comprobaciones en verde):
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.
 - **Modelo v2 completo**: 16 entidades de la especificación oficial, con triggers de inmutabilidad de auditoría y código, y CHECKs de RUT, fechas y metas.
 - **API del modelo v2 (Bloque A)**: `/periodos` (con cierre y reapertura auditada), `/cargos`, `/items`, `/actividades` (código inmutable, anulación con motivo), evidencias, `/evidencias/:id/validacion` y `GET /cumplimiento/:periodoId`. Con `version` → 409 y auditoría en cada write. Contrato en [docs/estado-proyecto.md](docs/estado-proyecto.md).
+- **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
 - Seed 100% ficticio con 1.126 actividades validadas.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
-- **Pantallas del modelo v2**: la ficha personal (RF-008), el formulario de actividad con evidencia y la bandeja del verificador. El frontend aún no consume ningún endpoint v2.
+- **Bandeja del verificador** y **ficha del vecino** (esta última necesita un endpoint de búsqueda de `PersonaUsuaria` que no existe).
 - API de `MetaItem` (metas por funcionario), `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - Las rutas **v1** (`/tareas`, `/metas`, `/unidades`, `/categorias`) siguen sin auditar y sin `version`.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.

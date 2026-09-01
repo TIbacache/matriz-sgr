@@ -247,6 +247,27 @@ El eje **actividad → código → evidencia → validación → puntaje** ya fu
 
 RNF-017 pide además **antivirus** sobre las evidencias. Queda fuera de alcance por la restricción de costo cero; está declarado, no oculto.
 
+## Ficha personal — Bloque B, primera pantalla (1 de septiembre de 2026)
+
+`/ficha` (`frontend/src/pages/FichaPage.tsx`) es la "pestaña personal" de la planilla y la pantalla más importante del sistema (RF-008, HU-06). Sigue los tres bloques que DESIGN §8.2 fijó **antes** de construirla:
+
+1. **Cabecera**: identidad, período y **una** cifra hero (cumplimiento) junto al chip ●▲■. El semáforo se explica al lado, porque la cifra sola engaña sin el objetivo al día (RN-008). Debajo, objetivo al día, avance relativo y actividad reciente (RF-030).
+2. **Ítems medidos**: ponderador, meta, avance, % y ponderado, con `tabular-nums` y total separado por **borde** de 2px. Los ítems inversos llevan la marca textual "menor es mejor" (ADR-009) — nunca se distinguen solo por comportamiento.
+3. **Registro de actividades**: la fila de alta está **siempre visible arriba**, sin modal, porque registrar es lo que estas personas hacen varias veces al día. Cada actividad muestra su código, su estado del ciclo evidencia→validación y sus acciones: subir evidencia (un toque, con cámara en móvil), verla y anular con motivo.
+
+Detalles que importan:
+
+- **Ningún dato se calcula en el cliente**: todo viene de `GET /cumplimiento/:periodoId`. Incluso **"hoy" se deriva del período que devuelve el servidor**, no del reloj del navegador (ADR-002).
+- Los **formatos aceptados** llegan de `GET /catalogos?catalogo=formato_evidencia` y el **tamaño máximo** del parámetro; ambos se anuncian **antes** de elegir el archivo (RNF-017, DESIGN §8.2). Endpoint nuevo: `GET /catalogos` (solo lectura; el CRUD de HU-27 sigue pendiente).
+- La **evidencia no se enlaza con un `src` directo**: el endpoint exige el JWT, así que se descarga por fetch y se muestra desde un object URL que se revoca al cerrar. El `alt` describe código y actividad (RNF-012).
+- **Tiempo real**: la ficha escucha el room de su delegación. Al llegar `validacion:registrada` recarga cumplimiento y actividades juntos, para que la cifra de arriba y el estado de la fila nunca cuenten cosas distintas (CA-06).
+- **Visibilidad**: el selector de funcionario solo ofrece personas de delegaciones cuyo libro este rol puede abrir (`puedeVerLibro`), más uno mismo. El detalle sigue privado por delegación; el consolidado público vive en el dashboard.
+- **Accesibilidad** (RNF-012): etiqueta visible en cada campo, obligatorios marcados con texto, el teléfono se valida **al salir del campo** con `role="alert"` junto al campo, y el input de archivo se oculta con `.sr-only` (no con `hidden`) para no sacarlo del orden de tabulación.
+
+Piezas reutilizables que salieron de aquí: `ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color), `.tabla-sgr`, `.btn-peligro` y `.btn-tabla` en `base.css`, y `useUnidadSocket` generalizado con handlers opcionales para que el tubo y la ficha compartan un solo hook.
+
+⚠ **Deuda que abre**: `.tabla-detalle` del dashboard y `.tabla-sgr` son dos tablas con el mismo propósito. Converge en el Bloque C, cuando el dashboard migre al cálculo v2.
+
 ## Requerimientos reales de la reunión con el cliente
 
 **[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:

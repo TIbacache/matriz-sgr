@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ResumenDelegacion } from "../../lib/dashboard";
-import { SIMBOLO_SEMAFORO } from "../../lib/useTokens";
+import { ChipSemaforo } from "../ChipSemaforo";
 
 interface Props {
   resumen: ResumenDelegacion[];
@@ -77,10 +77,7 @@ export function TablaDetalle({ resumen, seleccion, onSeleccionar }: Props) {
               <td className="num">{r.proyeccion.toFixed(1)}%</td>
               <td className="num">{r.vencidas}</td>
               <td>
-                <span className={`chip-semaforo chip-semaforo--${r.semaforo}`}>
-                  {SIMBOLO_SEMAFORO[r.semaforo]}{" "}
-                  {r.semaforo === "verde" ? "Al día" : r.semaforo === "naranjo" ? "Atención" : "Crítico"}
-                </span>
+                <ChipSemaforo semaforo={r.semaforo} />
               </td>
             </tr>
           ))}

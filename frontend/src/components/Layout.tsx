@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, SquareKanban } from "lucide-react";
+import {
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  SquareKanban,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
 import { MarcaSemaforo } from "./Marca";
@@ -11,6 +18,8 @@ const ROL_LABEL: Record<string, string> = {
   supervisor: "Supervisor",
   gerente: "Gerente",
   usuario: "Funcionario",
+  verificador: "Verificador",
+  consulta: "Consulta",
 };
 
 const SIDEBAR_KEY = "matriz.sidebar";
@@ -51,6 +60,10 @@ export function Layout() {
           <NavLink to="/" end className="layout-nav-item" title="Tubo de trabajo">
             <SquareKanban size={18} strokeWidth={1.5} />
             <span className="layout-nav-texto">Tubo de trabajo</span>
+          </NavLink>
+          <NavLink to="/ficha" className="layout-nav-item" title="Ficha personal">
+            <ClipboardList size={18} strokeWidth={1.5} />
+            <span className="layout-nav-texto">Ficha personal</span>
           </NavLink>
           <NavLink to="/dashboard" className="layout-nav-item" title="Dashboard">
             <LayoutDashboard size={18} strokeWidth={1.5} />

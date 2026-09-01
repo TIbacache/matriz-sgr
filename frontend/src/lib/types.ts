@@ -1,6 +1,8 @@
 // Tipos espejo del contrato de la API (docs/estado-proyecto.md)
 
-export type Rol = "admin" | "supervisor" | "gerente" | "usuario";
+// Los 6 actores del PDF §3. `verificador` y `consulta` existen desde el
+// modelo v2 (segregación de funciones, RNF-005).
+export type Rol = "admin" | "supervisor" | "gerente" | "usuario" | "verificador" | "consulta";
 
 export interface Usuario {
   id: string;
@@ -53,4 +55,135 @@ export interface Conectado {
   userId: string;
   nombre: string;
   rol: Rol;
+}
+
+// ---------------------------------------------------------------------------
+// Modelo v2 — espejo del contrato de docs/estado-proyecto.md §API del modelo v2
+// ---------------------------------------------------------------------------
+
+export type Semaforo = "verde" | "naranjo" | "rojo";
+
+export interface Periodo {
+  id: string;
+  nombre: string;
+  estado: "abierto" | "cerrado";
+  fechaInicio: string; // ISO 8601, solo día
+  fechaTermino: string;
+  version: number;
+  // Calculados por el servidor desde las fechas: el sistema nunca fija 90/91
+  // días (§13.1 del PDF).
+  diasTotales: number;
+  diasTranscurridos: number;
+  porcentajeTranscurrido: number;
+}
+
+export interface CumplimientoItem {
+  itemId: string;
+  itemNombre: string;
+  tipo: "cantidad" | "porcentaje";
+  direccion: "mayor_mejor" | "menor_mejor";
+  meta: number;
+  avance: number;
+  cumplimiento: number;
+  ponderador: number;
+  ponderado: number;
+}
+
+export interface CumplimientoFuncionario {
+  funcionarioId: string;
+  nombre: string;
+  cargo: string | null;
+  unidadTerritorialId: string | null;
+  items: CumplimientoItem[];
+  cumplimientoTotal: number;
+  ajustes: number;
+  cumplimientoFinal: number;
+  diasComputables: number;
+  diasTranscurridosComputables: number;
+  objetivoAlDia: number;
+  avanceRelativo: number;
+  semaforo: Semaforo;
+  ultimoIngreso: string | null;
+  diasSinIngreso: number | null;
+  totalIngresos: number;
+  promedioDiario: number;
+}
+
+/** Un parámetro vigente. `confirmado: false` = espera definición del docente. */
+export interface ParametroVigente {
+  valor: number;
+  confirmado: boolean;
+  descripcion: string | null;
+}
+
+export interface CumplimientoRespuesta {
+  periodo: Omit<Periodo, "version" | "porcentajeTranscurrido">;
+  parametros: Record<string, ParametroVigente>;
+  resumen: {
+    funcionarios: number;
+    promedioCumplimiento: number;
+    porSemaforo: Record<Semaforo, number>;
+  };
+  funcionarios: CumplimientoFuncionario[];
+}
+
+export type DecisionValidacion = "pendiente" | "aprobada" | "rechazada" | "correccion_solicitada";
+
+export interface Validacion {
+  id: string;
+  decision: DecisionValidacion;
+  observacion: string | null;
+  decididaEn: string | null;
+  verificadorId: string;
+  createdAt: string;
+}
+
+export interface Evidencia {
+  id: string;
+  archivoNombre: string;
+  mimeType: string;
+  tamanoBytes: number;
+  createdAt: string;
+  subidaPorId: string;
+  validaciones: Validacion[];
+}
+
+export interface Actividad {
+  id: string;
+  codigo: string;
+  fecha: string;
+  descripcion: string;
+  accion: string | null;
+  itemId: string | null;
+  funcionarioId: string;
+  unidadTerritorialId: string;
+  contactoNombre: string | null;
+  contactoFono: string | null;
+  ingresoATubo: boolean;
+  anulada: boolean;
+  motivoAnulacion: string | null;
+  version: number;
+  item: { id: string; nombre: string; tipo: string; direccion: string } | null;
+  funcionario: { id: string; nombre: string };
+  unidad: { id: string; nombre: string };
+  personaUsuaria: { id: string; rut: string | null; nombres: string; apellidoPaterno: string } | null;
+  evidencias: Evidencia[];
+  /** Solo en la respuesta del alta: ADR-008, la persona ya fue atendida en otra delegación */
+  alertaTrazabilidad?: { mensaje: string; delegaciones: string[] } | null;
+}
+
+export interface ListaActividades {
+  total: number;
+  limite: number;
+  desde: number;
+  actividades: Actividad[];
+}
+
+export interface CatalogoItem {
+  id: string;
+  catalogo: string;
+  valor: string;
+  area: string | null;
+  orden: number;
+  vigente: boolean;
 }

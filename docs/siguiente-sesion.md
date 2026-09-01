@@ -15,7 +15,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
 | **API del modelo v2** (Bloque A) | ✅ Períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento — 57/57 |
 | API pendiente del modelo v2 | ⬜ `MetaItem`, `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
-| Pantallas del modelo v2 | ⬜ No existen ← **aquí se retoma** (criterios ya fijados en DESIGN §8.2) |
+| Pantallas del modelo v2 | 🟡 Ficha personal lista; faltan bandeja del verificador y ficha del vecino ← **aquí se retoma** |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
@@ -47,11 +47,13 @@ Los siete puntos del plan quedaron construidos y verificados (`npm run verificar
 
 **Lo que quedó fuera y hay que hacer**: la API de `MetaItem` (meta y ponderador por funcionario, RF-007), `Ajuste` (RF-025), `AtencionSocial` (RF-015), `Comentario` (RF-035), `Ausencia`, y el CRUD de catálogos y parámetros. Sin la de `MetaItem`, las metas solo se cargan por seed.
 
-### Bloque B — Pantallas (RF-008, HU-06, HU-11) ← **empezar aquí**
+### Bloque B — Pantallas (RF-008, HU-06, HU-11)
 
-Ficha personal, formulario de actividad con evidencia, bandeja del verificador. Criterios de diseño **ya fijados** en [DESIGN.md §8.2](../DESIGN.md) — leerlos antes de maquetar. La API ya existe entera: no hace falta backend nuevo para estas tres pantallas.
+- ✅ **Ficha personal** (`/ficha`): cabecera con semáforo, tabla de ítems y registro diario con subida de evidencia, vista de la foto y anulación con motivo. Detalle en [estado-proyecto.md §Ficha personal](estado-proyecto.md).
+- ⬜ **Bandeja del verificador** ← **empezar aquí**. La API está lista (`GET /evidencias?estado=pendiente`, `POST /evidencias/:id/validacion`). DESIGN §8.2 ya fija sus criterios: lista de trabajo (no tablero), **foto grande** porque la decisión se toma mirándola, tres acciones equidistantes (Aprobar · Solicitar corrección · Rechazar) y **navegación por teclado con `J`/`K` y `Enter`, con las teclas visibles**.
+- ⬜ **Ficha del vecino** (ADR-008, CA-04): buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe**.
 
-**Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: la UI debe ofrecer **anular con motivo**.
+**Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: se **anula con motivo**. Reutilizar `ChipSemaforo`, `.tabla-sgr` y `useUnidadSocket` en vez de escribir otros.
 
 ### Bloque C — Migrar el dashboard al cálculo v2
 
@@ -74,7 +76,9 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
 | Falta la API de `MetaItem`: sin ella las metas por funcionario solo se cargan por seed | backend | Alta |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
-| El frontend aún no consume ningún endpoint del modelo v2 | `frontend/src/lib/` | Alta |
+| ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
+| Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
+| Sin endpoint de búsqueda de `PersonaUsuaria`: la ficha del vecino no se puede construir todavía | backend | Media |
 | El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `frontend/src/lib/dashboard.ts` | Media |
 | `Comentario`, `AtencionSocial` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |

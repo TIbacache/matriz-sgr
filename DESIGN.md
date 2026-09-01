@@ -213,13 +213,15 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 ## 8.2 Pantallas pendientes — criterios de diseño
 
-Las pantallas del modelo v2 aún no existen. Estas reglas se fijan **antes** de construirlas para que no haya deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
+Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
+
+**Estado**: ✅ ficha personal (construida el 01-09-2026, `frontend/src/pages/FichaPage.tsx`) · ⬜ bandeja del verificador · ⬜ ficha del vecino · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
 El cliente fue explícito: *"tenemos un montón de usuarios que no manejan planilla"* y *"mientras más fácil mejor"*. **La usabilidad es requisito (RNF-011), no preferencia.** Ante la duda entre elegante y obvio, gana obvio.
 
-### Ficha personal (RF-008) — la pantalla más importante
+### Ficha personal (RF-008) — la pantalla más importante ✅ construida
 
 Es la "pestaña personal" de la planilla: donde cada funcionario ve su medición y registra su trabajo. Estructura en tres bloques verticales:
 

@@ -220,6 +220,94 @@ td,
   color: var(--acento);
 }
 
+/* Peligro: SOLO acciones destructivas (DESIGN §5). Texto sobre el fondo pálido
+   del estado, nunca texto oscuro sobre el rojo fuerte. */
+.btn-peligro {
+  background: var(--estado-rojo-bg);
+  color: var(--estado-rojo-texto);
+  border: 1px solid var(--estado-rojo);
+  border-radius: var(--radio-control);
+  padding: var(--esp-2) var(--esp-4);
+  font-weight: 600;
+  transition: background var(--dur-1) var(--ease-expo);
+}
+.btn-peligro:hover { background: var(--estado-rojo); color: var(--superficie); }
+.btn-peligro:disabled { background: var(--fondo-2); color: var(--tinta-3); border-color: var(--borde); cursor: default; }
+
+/* Acción dentro de una celda: peso de texto, no de botón, para no competir
+   con el dato (DESIGN §5, densidad alta). */
+.btn-tabla {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-1);
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  padding: 2px var(--esp-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tinta-2);
+  white-space: nowrap;
+  transition: border-color var(--dur-1) var(--ease-expo), color var(--dur-1) var(--ease-expo);
+}
+.btn-tabla:hover { border-color: var(--borde-fuerte); color: var(--tinta); }
+.btn-tabla--peligro:hover { border-color: var(--estado-rojo); color: var(--estado-rojo-texto); }
+/* El input de archivo está oculto con .sr-only pero sigue siendo tabulable:
+   el foco se muestra sobre la etiqueta que lo envuelve. */
+.btn-archivo { cursor: pointer; }
+.btn-archivo:focus-within { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+/* ---- Tabla del sistema (DESIGN §5) ---- */
+.tabla-envoltura {
+  overflow-x: auto;
+}
+
+.tabla-sgr {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.tabla-sgr th {
+  text-align: left;
+  background: var(--fondo);
+  border-bottom: 1px solid var(--borde);
+  padding: var(--esp-2) var(--esp-3);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+.tabla-sgr td {
+  border-bottom: 1px solid var(--borde);
+  padding: var(--esp-2) var(--esp-3);
+  line-height: 1.35;
+  vertical-align: top;
+}
+.tabla-sgr--densa td { padding: var(--esp-1) var(--esp-3); }
+.tabla-sgr th.num,
+.tabla-sgr td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tabla-sgr tbody tr:hover { background: var(--fondo); }
+/* Fila de total: se separa con BORDE, no con color de fondo (DESIGN §8.2) */
+.tabla-sgr tfoot th,
+.tabla-sgr tfoot td {
+  background: transparent;
+  border-top: 2px solid var(--borde-fuerte);
+  border-bottom: none;
+  padding: var(--esp-2) var(--esp-3);
+  font-size: 0.8125rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--tinta);
+}
+.tabla-sgr tfoot th { text-align: right; }
+.tabla-sgr tfoot td.num { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.tabla-sgr tfoot tr + tr th,
+.tabla-sgr tfoot tr + tr td { border-top: none; }
+
 .campo {
   display: block;
   width: 100%;
@@ -261,6 +349,35 @@ td,
   font-weight: 500;
   box-shadow: var(--sombra-2);
   animation: entrada var(--dur-2) var(--ease-expo) both;
+}
+
+/* Chip de semáforo (DESIGN §5): fondo pálido + texto fuerte del par de estado.
+   Lo usa el componente ChipSemaforo, que además obliga a poner el símbolo. */
+.chip-semaforo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radio-control);
+  padding: 2px var(--esp-2);
+  white-space: nowrap;
+}
+.chip-semaforo--verde { background: var(--estado-verde-bg); color: var(--estado-verde-texto); }
+.chip-semaforo--naranjo { background: var(--estado-amarillo-bg); color: var(--estado-amarillo-texto); }
+.chip-semaforo--rojo { background: var(--estado-rojo-bg); color: var(--estado-rojo-texto); }
+/* Neutro: ni bueno ni malo (sin evidencia, anulada). No usa color de estado. */
+.chip-semaforo--neutro { background: var(--fondo-2); color: var(--tinta-2); }
+
+/* Visible para lectores de pantalla, no para la vista. Se usa en inputs de
+   archivo: ocultarlos con [hidden] los saca del orden de tabulación y rompe
+   la navegación por teclado (DESIGN §8.1.1). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Estado vacío (DESIGN §7): texto + acción, sin ilustraciones */
