@@ -46,8 +46,8 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-003 | Configurar cargos y funciones: asociar a cada cargo los ítems medidos | ✅ | `GET/POST/PATCH /cargos` y `/items` (`b1f3e75`). Falta la pantalla |
 | RF-004 | Catálogo de actividades, servicios, atenciones y subatenciones por área | 🟡 | `GET /catalogos` alimenta la UI con los valores **vigentes** (los formatos de evidencia ya salen de ahí); falta el CRUD y la desactivación (HU-27) |
 | RF-005 | Configurar períodos: inicio, término, estado y **días computables** | ✅ | `/periodos` con cierre y reapertura auditada (`b1f3e75`); los días se calculan desde las fechas |
-| RF-006 | Configurar ponderaciones por ítem, cargo y período | 🟡 | Validamos suma ≤ 100% en metas por unidad; falta la API de `MetaItem` (por cargo/ítem) |
-| RF-007 | Configurar metas y umbrales, **versionado**, rige desde el período | 🟡 | `MetaItem` existe y el período ya es una entidad; falta su API y el versionado (RF-038) |
+| RF-006 | Configurar ponderaciones por ítem, cargo y período | ✅ | `GET/POST/PATCH/DELETE/PUT /metas-item` (`de68901`). El ítem debe ser del cargo del funcionario; la respuesta siempre informa la suma y cuánto falta. Falta la pantalla |
+| RF-007 | Configurar metas y umbrales, **versionado**, rige desde el período | ✅ | `de68901`. El versionado **es el período**: la meta cuelga de `periodoId`, así que reconfigurar el trimestre siguiente nunca toca el cerrado (RN-013). Los umbrales viven en `parametro` (RF-038). Falta la pantalla |
 
 ### 3.2 Registro personal y evidencias
 
@@ -100,7 +100,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
 | RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 14 ✅ · 15 🟡 · 9 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜)
+**Resumen: 38 RF → 16 ✅ · 13 🟡 · 9 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜)
 
 ---
 
@@ -133,8 +133,8 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Regla | Estado |
 |---|---|---|
-| RN-001 | Ponderadores de un cargo y período suman **100%** | 🟡 validado por unidad, falta por cargo |
-| RN-002 | Meta > 0; ítems porcentuales declaran su fórmula | ⬜ ver [ADR-009](decisiones-tecnicas.md) |
+| RN-001 | Ponderadores de un cargo y período suman **100%** | ✅ exigido por funcionario en `/metas-item` (`de68901`): el alta unitaria rechaza superar el 100%, la carga en lote exige el 100% exacto, y toda respuesta trae `sumaPonderadores`, `cumpleRN001` y `faltante` |
+| RN-002 | Meta > 0; ítems porcentuales declaran su fórmula | ✅ meta > 0 rechazada en la API y por `CHECK` en la base; `tipo` y `direccion` del ítem declaran la fórmula ([ADR-009](decisiones-tecnicas.md)) |
 | RN-003 | Avance = actividades **válidas** del ítem en el período | ✅ verificado: lo anulado y lo no aprobado no suman |
 | RN-004 | % cumplimiento = avance / meta × 100 | ✅ |
 | RN-005 | Ponderado = ponderador × % cumplimiento; **máximo 150% por confirmar** | 🟡 parametrizar |
