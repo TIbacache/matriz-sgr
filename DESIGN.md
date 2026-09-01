@@ -1,8 +1,9 @@
 # DESIGN.md — Especificación visual Matriz SGR
 
-**Versión**: 1.2 · **Fecha**: 31 de agosto de 2026
+**Versión**: 1.3 · **Fecha**: 1 de septiembre de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
-**v1.2**: se agrega §8.1 Accesibilidad como norma obligatoria (RNF-012 y RNF-013 del PDF de los profesores).
+**v1.2**: §8.1 Accesibilidad como norma obligatoria (RNF-012 y RNF-013 del PDF).
+**v1.3**: §8.2 con los criterios de las pantallas pendientes (ficha personal, formularios, evidencias, bandeja del verificador, ficha del vecino, parámetros), fijados antes de construirlas.
 **v1.1**: cuerpo pasa a General Sans; se agregan tema oscuro, sistema de movimiento y marca ●▲■ (receta portada de la app de referencia ebus-test, adaptada a CSS3 puro). La implementación viva de los tokens es `frontend/src/styles/tokens.css`.
 
 ---
@@ -209,6 +210,54 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 6. **Formularios**: `<label>` asociado a cada campo, campos obligatorios marcados en el texto (no solo con color), errores anunciados con `role="alert"` y descritos junto al campo que los origina.
 7. **Movimiento**: respetar `prefers-reduced-motion` (ya implementado). Ninguna información depende de una animación.
 8. **Compatibilidad (RNF-013)**: probar en **Chrome y Edge**, escritorio y móvil, antes de cada entrega.
+
+## 8.2 Pantallas pendientes — criterios de diseño
+
+Las pantallas del modelo v2 aún no existen. Estas reglas se fijan **antes** de construirlas para que no haya deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
+
+### Contexto que manda sobre la estética
+
+El cliente fue explícito: *"tenemos un montón de usuarios que no manejan planilla"* y *"mientras más fácil mejor"*. **La usabilidad es requisito (RNF-011), no preferencia.** Ante la duda entre elegante y obvio, gana obvio.
+
+### Ficha personal (RF-008) — la pantalla más importante
+
+Es la "pestaña personal" de la planilla: donde cada funcionario ve su medición y registra su trabajo. Estructura en tres bloques verticales:
+
+1. **Cabecera de identidad**: nombre, cargo, delegación y período, más el semáforo personal con su chip ●▲■ y el objetivo al día. Una sola cifra hero (§Marcas), nunca cuatro compitiendo.
+2. **Tabla de ítems**: ítem · ponderador · meta · avance · % cumplimiento · ponderado. Números con `tabular-nums`, alineados a la derecha. La fila de total se separa con borde superior de 2px, no con color de fondo. Los ítems **inversos** (menor es mejor) llevan una marca textual explícita — nunca se distinguen solo por comportamiento.
+3. **Registro de actividades**: la tabla densa del día a día. Fila nueva siempre visible arriba, sin abrir modal para lo frecuente.
+
+### Formularios de registro (RF-009, RF-010)
+
+- **Campos obligatorios marcados en el texto** (`*` más `aria-required`), nunca solo con color.
+- **El RUT se valida al salir del campo**, no al enviar: mensaje inmediato y específico ("dígito verificador no corresponde"), y se **formatea solo al mostrar** (`17.721.947-9`) mientras se guarda canónico.
+- Los errores viven **junto al campo** que los origina, con `role="alert"`, no en un resumen arriba.
+- Los desplegables salen de `CatalogoItem` y muestran **solo los vigentes** (RF-004): un catálogo desactivado no aparece en registros nuevos pero sigue legible en los antiguos.
+
+### Evidencias y galería (RF-012, HU-09)
+
+- **Subir debe costar un toque desde el teléfono.** Botón grande, cámara directa, sin pasos intermedios.
+- El **código verificador se muestra siempre** junto a la foto (es lo que la gente busca), en fuente de cuerpo con `tabular-nums`.
+- Galería en grilla con `object-fit: cover`, radio 6px, y `alt` descriptivo con el código y la actividad (RNF-012).
+- Estado de validación con el par color+símbolo de siempre: aprobada ●, pendiente ▲, rechazada ■. **Nunca solo color.**
+- Peso y formato permitidos se declaran **antes** de elegir archivo, no en el error (RNF-017).
+
+### Bandeja del verificador (RF-013, HU-11)
+
+- Lista de trabajo, no tablero: prioriza lo pendiente y **muestra la foto grande** — la decisión se toma mirando la imagen.
+- Tres acciones explícitas y equidistantes: **Aprobar · Solicitar corrección · Rechazar**. Rechazar usa `--estado-rojo`; las tres exigen observación cuando no son aprobación.
+- Debe funcionar **con teclado**: `J`/`K` para navegar y `Enter` para aprobar, con las teclas visibles en pantalla.
+
+### Ficha del vecino y trazabilidad (ADR-008, CA-04)
+
+- Buscador por RUT arriba, con resultado inmediato.
+- **Historial cruzando delegaciones** en línea de tiempo vertical, indicando la delegación de cada atención.
+- Cuando la misma persona tiene atenciones del mismo tipo en distintas delegaciones, se muestra un **aviso ámbar con texto explícito** (es el caso del regalo de Navidad). El aviso informa; no bloquea ni acusa.
+
+### Configuración de parámetros (RF-038)
+
+- Los parámetros con `confirmado: false` se muestran con un **aviso visible** de que esperan definición del docente. No se presentan como definitivos.
+- Todo cambio indica desde qué período rige y advierte que no altera períodos cerrados.
 
 ## 9. Referencias de estilo (dirección, no copia)
 

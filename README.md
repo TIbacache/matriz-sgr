@@ -20,8 +20,9 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 
 | Documento | Contenido |
 |---|---|
-| [DESIGN.md](DESIGN.md) | Guía visual normativa (tipografías, paleta, accesibilidad, lista negra) |
+| [DESIGN.md](DESIGN.md) | Guía visual normativa (tipografías, paleta, accesibilidad, pantallas pendientes, lista negra) |
 | [docs/estado-proyecto.md](docs/estado-proyecto.md) | Estado por fase, contrato de API y Socket.io, deuda técnica |
+| **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** | **Qué sigue, en qué orden, cabos sueltos y trampas del entorno** |
 | [docs/diagramas.md](docs/diagramas.md) | Contexto, casos de uso, ERD y secuencia de tiempo real |
 | [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente con citas de la reunión |
 | [docs/historias-usuario.md](docs/historias-usuario.md) | Historias propias del equipo (subordinadas a las 31 oficiales) |

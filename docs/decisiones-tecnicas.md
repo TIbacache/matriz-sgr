@@ -78,13 +78,21 @@ El profesor plantea la duda de separar o concatenar. La planilla los tiene junto
 **Guardar separado, exponer concatenado — y que el concatenado no se programe más de una vez.**
 
 ```
-nombres           VARCHAR(80)   NOT NULL   -- "María José"
-apellido_paterno  VARCHAR(60)   NOT NULL   -- "Jimenez"
-apellido_materno  VARCHAR(60)              -- "Rojas" (opcional: extranjeros)
-nombre_completo   GENERATED ALWAYS AS (...) STORED   -- columna generada
+nombres           VARCHAR   NOT NULL   -- "María José"
+apellido_paterno  VARCHAR   NOT NULL   -- "Jimenez"
+apellido_materno  VARCHAR              -- "Rojas" (opcional: extranjeros)
 ```
 
-`nombre_completo` es una **columna generada por la base** (`GENERATED ALWAYS AS ... STORED` en PostgreSQL). Se escribe la regla de concatenación **una sola vez, en el esquema**; todas las consultas, búsquedas e informes la leen como una columna normal, y se puede indexar para búsqueda por nombre.
+La regla de concatenación se escribe **una sola vez**, en `backend/src/lib/persona.ts` (`nombreCompleto`, `nombreFormal`, `iniciales`), y se aplica en la capa de serialización. Ningún componente ni consulta la vuelve a escribir.
+
+Para **buscar** por nombre completo sin duplicar el dato, la migración crea un **índice de expresión** en PostgreSQL:
+
+```sql
+CREATE INDEX personas_usuarias_nombre_completo
+  ON personas_usuarias ((nombres || ' ' || apellido_paterno || ' ' || COALESCE(apellido_materno, '')));
+```
+
+> **Nota de implementación** (por qué no una columna generada): la primera versión de este ADR proponía `GENERATED ALWAYS AS ... STORED`. Se descartó porque Prisma no modela columnas generadas y cada `prisma migrate` las detecta como deriva del esquema, lo que rompería las migraciones del equipo. El índice de expresión da la misma capacidad de búsqueda indexada sin ese costo, y el helper cumple el objetivo de escribir la regla una sola vez.
 
 ### Justificación
 Separar es obligatorio para ordenar por apellido, buscar por apellido y generar informes formales ("Apellido, Nombre"). Concatenar en cada consulta o en cada componente del frontend es exactamente el "programar de más" que se busca evitar: la columna generada elimina esa repetición y garantiza que todos vean la misma cadena. Guardar solo el nombre completo sería irreversible (separar "de la Fuente Ramírez" después es imposible de forma confiable).
