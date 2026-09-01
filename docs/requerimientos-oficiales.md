@@ -221,6 +221,21 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 ---
 
+## 9.bis Instrucciones verbales del docente (aún sin rúbrica publicada)
+
+Dichas en clase el **1 de septiembre de 2026**, no están en el PDF ni en ningún documento entregado. Se registran aquí porque **cambian el alcance de la entrega** y porque, si la rúbrica dice otra cosa, hay que poder mostrar de dónde salió lo que hicimos.
+
+| Instrucción | Qué implica | Estado |
+|---|---|---|
+| **El docente solo revisará el Planner** | Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner **no se evalúa**. Cargar el plan (58 tareas en `plan-desarrollo.csv`) deja de ser deuda técnica y pasa a ser bloqueante | ⬜ El tablero sigue vacío |
+| **Diagrama de clases** | No lo pide el PDF, que habla de "modelo de datos y principales diagramas de interacción" (§15, entregable 03). Se construye desde cero | ⬜ |
+| **Mínimo 10 casos de uso** | Tampoco está en el PDF con ese número. Se derivan de los 38 RF | ⬜ |
+| **Entrega el 15 de septiembre de 2026** | Es documentación de análisis y diseño, no código | ⬜ |
+
+La guía paso a paso para producir todo esto está en **[Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx)**, que marca cada exigencia con su origen (ESCRITO / VERBAL / EQUIPO) para no confundir lo que está documentado con lo que se dijo.
+
+**Cuando salga la rúbrica**: contrastar esta tabla con ella y corregir aquí lo que cambie.
+
 ## 10. Consultas para el docente
 
 El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. **Esta lista es la que se lleva a la reunión.**
