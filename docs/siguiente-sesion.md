@@ -108,7 +108,8 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
 | ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |
-| El plan del Planner (`docs/plan-desarrollo.csv`) **aún no se ha cargado** | `scripts/cargar-plan-planner.ps1` | Media |
+| 🔴 **El plan del Planner no está cargado, y el docente dijo que SOLO revisará el Planner** (clase del 1-09-2026). Lo que no esté adjunto ahí no se evalúa, por mucho que esté en el repositorio. Receta lista en [guia-cargar-planner.md](guia-cargar-planner.md) | `scripts/cargar-plan-planner.ps1` | **Bloqueante** |
+| **Entrega del 15 de septiembre**: mockups, MER, modelo de datos, diagrama de clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en [Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx) | documentación | Alta |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
