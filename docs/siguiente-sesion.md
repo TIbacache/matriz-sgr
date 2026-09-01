@@ -105,6 +105,7 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **Here-strings de PowerShell con comillas dobles rompen `git commit -m`.** Usar `git commit -F archivo.txt`.
 - El puerto 4000 puede quedar ocupado por un `tsx watch` huérfano de una sesión anterior: revisar con `Get-Process node`.
 - **`npm run verificar:api` necesita el servidor corriendo** (como el smoke) y toca la base: crea un período, un cargo, ítems, actividades y una evidencia, y **los borra al terminar**. Si se interrumpe a la mitad, quedan datos de prueba: `npx prisma db seed` los limpia.
+- **El seed deja 88 evidencias pendientes**: cualquier cosa que se registre al probar cae al final de la cola de la bandeja. Para verla, usar el orden **"Recientes primero"**. Toda lista nueva que se construya debe decir "N de TOTAL" y paginar; una lista que oculta el resto en silencio hace creer que el sistema perdió el dato (pasó, y quedó cubierto con dos verificaciones).
 - Al agregar un parámetro nuevo a `services/parametros.ts` hay que **volver a sembrar** (`npx prisma db seed`) o el endpoint que lo lee falla con "parámetro no configurado".
 
 ## 7. Definición de terminado

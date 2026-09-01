@@ -276,7 +276,10 @@ Piezas reutilizables que salieron de aquí: `ChipSemaforo` (obliga a poner símb
 - **Teclado completo** (RNF-012, DESIGN §8.2): `J` siguiente, `K` anterior, `Enter` aprobar, **con las teclas visibles en pantalla** — un atajo que nadie descubre no existe. Los atajos se desactivan mientras se escribe en un campo.
 - Al decidir, la evidencia **sale de la cola y avanza sola** a la siguiente: lo decidido ya no es trabajo.
 - **Historial de revisiones previas** a la vista, porque el ciclo real es "solicitar corrección → sube otra foto → revisar de nuevo" y sin ver qué se pidió antes no se puede juzgar si se corrigió.
-- **Orden según el estado** (corregido al detectarlo con una verificación): lo pendiente se ordena de más antiguo a más nuevo, porque es una cola; lo ya decidido, de más nuevo a más antiguo, porque es un historial.
+- **Orden según el estado**: lo pendiente se ordena de más antiguo a más nuevo, porque es una cola; lo ya decidido, de más nuevo a más antiguo, porque es un historial. El selector **Orden** permite invertirlo (`?orden=antiguas|recientes`).
+- **Paginación explícita**: la cola carga de a 50 y el encabezado dice siempre "N de TOTAL", con botón "Cargar más". El aviso de trabajo nuevo lleva a **"Ver las más recientes"**, no a recargar la misma página.
+
+  ⚠ **Por qué existe todo lo anterior**: la primera versión cargaba 50 evidencias ordenadas solo por antigüedad y no decía cuántas quedaban fuera. Con las 88 pendientes del seed, una evidencia recién subida caía en la **posición 87** y era invisible en pantalla — parecía que el ciclo no funcionaba. Lo detectó el equipo probando el flujo completo, no una prueba. Ahora hay dos verificaciones que cubren exactamente ese caso ("lo recién subido es alcanzable en la primera página con orden=recientes" y "la cola pagina sin repetir").
 - **Tiempo real sin sobresaltos**: `evidencia:pendiente` (room de la organización, vía `useOrgSocket`) muestra un aviso "llegaron evidencias nuevas" con botón para actualizar. **La lista no se recarga sola**: mover la cola bajo el cursor de quien está decidiendo es la forma más rápida de provocar un error.
 - **El menú solo muestra la bandeja a quien puede validar** (verificador, coordinador, admin). Si alguien más entra por URL, ve la bandeja en lectura con el aviso de por qué no puede decidir (RNF-005).
 

@@ -142,6 +142,11 @@
   height: 320px;
 }
 
+.bandeja-mas {
+  width: 100%;
+  margin-top: var(--esp-3);
+}
+
 /* ---- Panel de decisión ---- */
 
 .bandeja-panel {

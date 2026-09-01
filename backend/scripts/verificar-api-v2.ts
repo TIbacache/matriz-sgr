@@ -382,6 +382,31 @@ const enBandeja = (bandeja.datos as { evidencias: { id: string }[] }).evidencias
 check("HU-11 la evidencia entra a la bandeja del verificador", bandeja.status === 200 && enBandeja,
   `${(bandeja.datos as { total: number }).total} pendientes`);
 
+// REGRESIÓN: con la cola por antigüedad y una página de 50, una evidencia
+// recién subida quedaba en la posición 87 y era invisible en la pantalla.
+// Por eso la bandeja ofrece "recientes primero" y paginación explícita.
+const bandejaRecientes = await V(
+  "GET",
+  `/evidencias?estado=pendiente&periodo=${periodoActivo.id}&orden=recientes&limite=50`
+);
+const primeraPagina = (bandejaRecientes.datos as { evidencias: { id: string }[] }).evidencias;
+check(
+  "HU-11 lo recién subido es alcanzable en la primera página con orden=recientes",
+  bandejaRecientes.status === 200 && primeraPagina[0]?.id === evidencia.id,
+  `${(bandejaRecientes.datos as { total: number }).total} pendientes y la nueva encabeza la lista`
+);
+
+const pagina2 = await V(
+  "GET",
+  `/evidencias?estado=pendiente&periodo=${periodoActivo.id}&orden=recientes&limite=1&desde=1`
+);
+check(
+  "HU-11 la cola pagina sin repetir (desde=)",
+  (pagina2.datos as { evidencias: { id: string }[] }).evidencias[0]?.id !== evidencia.id &&
+    (pagina2.datos as { evidencias: unknown[] }).evidencias.length === 1,
+  "la segunda página trae otra evidencia"
+);
+
 // ===========================================================================
 // 5. VALIDACIÓN — RF-013 · RF-014 · RN-009 · CA-01 · CA-02 · HU-11
 // ===========================================================================

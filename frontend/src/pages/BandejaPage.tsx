@@ -40,6 +40,7 @@ export function BandejaPage() {
   const [periodoId, setPeriodoId] = useState<string>("");
   const [unidadId, setUnidadId] = useState<string>("");
   const [estado, setEstado] = useState<string>("pendiente");
+  const [orden, setOrden] = useState<"antiguas" | "recientes">("antiguas");
   const [evidencias, setEvidencias] = useState<EvidenciaEnBandeja[]>([]);
   const [total, setTotal] = useState(0);
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
@@ -59,25 +60,48 @@ export function BandejaPage() {
       .catch((e) => mostrarError(e instanceof Error ? e.message : "Error al cargar la bandeja"));
   }, [mostrarError]);
 
-  const cargar = useCallback(() => {
-    if (!periodoId) return;
-    setCargando(true);
-    setHayNuevas(false);
-    const filtros = new URLSearchParams({ estado, periodo: periodoId, limite: String(LIMITE) });
-    if (unidadId) filtros.set("unidad", unidadId);
-    api
-      .get<ListaEvidenciasResp>(`/evidencias?${filtros.toString()}`)
-      .then((r) => {
-        setEvidencias(r.evidencias);
-        setTotal(r.total);
-        // Se conserva la selección si sigue en la lista; si no, la primera.
-        setSeleccionadaId((actual) =>
-          actual && r.evidencias.some((e) => e.id === actual) ? actual : (r.evidencias[0]?.id ?? null)
-        );
-      })
-      .catch((e) => mostrarError(e instanceof Error ? e.message : "Error al cargar las evidencias"))
-      .finally(() => setCargando(false));
-  }, [estado, periodoId, unidadId, mostrarError]);
+  // La cola se pagina: con cientos de evidencias esperando, cargarlas todas
+  // sería lento y mostrar solo las primeras SIN decirlo es peor — fue
+  // exactamente el error que escondía una evidencia recién subida detrás de
+  // las 87 anteriores.
+  const cargarPagina = useCallback(
+    (desde: number, anexar: boolean) => {
+      if (!periodoId) return;
+      setCargando(true);
+      setHayNuevas(false);
+      const filtros = new URLSearchParams({
+        estado,
+        periodo: periodoId,
+        orden,
+        limite: String(LIMITE),
+        desde: String(desde),
+      });
+      if (unidadId) filtros.set("unidad", unidadId);
+      api
+        .get<ListaEvidenciasResp>(`/evidencias?${filtros.toString()}`)
+        .then((r) => {
+          setTotal(r.total);
+          setEvidencias((prev) => {
+            if (!anexar) return r.evidencias;
+            const nuevos = r.evidencias.filter((n) => !prev.some((p) => p.id === n.id));
+            return [...prev, ...nuevos];
+          });
+          if (!anexar) {
+            // Se conserva la selección si sigue en la lista; si no, la primera.
+            setSeleccionadaId((actual) =>
+              actual && r.evidencias.some((e) => e.id === actual)
+                ? actual
+                : (r.evidencias[0]?.id ?? null)
+            );
+          }
+        })
+        .catch((e) => mostrarError(e instanceof Error ? e.message : "Error al cargar las evidencias"))
+        .finally(() => setCargando(false));
+    },
+    [estado, periodoId, unidadId, orden, mostrarError]
+  );
+
+  const cargar = useCallback(() => cargarPagina(0, false), [cargarPagina]);
 
   useEffect(() => {
     cargar();
@@ -223,6 +247,20 @@ export function BandejaPage() {
             </select>
           </div>
           <div className="bandeja-filtro">
+            <label className="etiqueta" htmlFor="bv-orden">
+              Orden
+            </label>
+            <select
+              id="bv-orden"
+              className="campo"
+              value={orden}
+              onChange={(e) => setOrden(e.target.value as "antiguas" | "recientes")}
+            >
+              <option value="antiguas">Antiguas primero (cola)</option>
+              <option value="recientes">Recientes primero</option>
+            </select>
+          </div>
+          <div className="bandeja-filtro">
             <label className="etiqueta" htmlFor="bv-unidad">
               Delegación
             </label>
@@ -253,8 +291,11 @@ export function BandejaPage() {
       {hayNuevas && (
         <p className="bandeja-nuevas" role="status">
           Llegaron evidencias nuevas mientras revisabas.
-          <button className="btn-tabla" onClick={cargar}>
-            Actualizar la lista
+          <button
+            className="btn-tabla"
+            onClick={() => (orden === "recientes" ? cargar() : setOrden("recientes"))}
+          >
+            Ver las más recientes
           </button>
         </p>
       )}
@@ -263,20 +304,36 @@ export function BandejaPage() {
         <section className="card bandeja-cola" aria-label="Cola de revisión">
           <h3 className="bandeja-cola-titulo">
             {ESTADOS.find((s) => s.valor === estado)?.etiqueta ?? estado}
-            <span className="bandeja-contador tnum">{total}</span>
+            {/* Se dice SIEMPRE cuántas se ven de cuántas hay: una lista que
+                oculta el resto sin avisar hace pensar que algo se perdió. */}
+            <span className="bandeja-contador tnum">
+              {evidencias.length} de {total}
+            </span>
           </h3>
-          {cargando ? (
+          {cargando && evidencias.length === 0 ? (
             <div className="skeleton bandeja-skeleton" aria-hidden="true" />
           ) : (
-            <ListaEvidencias
-              evidencias={evidencias}
-              seleccionadaId={seleccionadaId}
-              onSeleccionar={(id) => {
-                setSeleccionadaId(id);
-                setObservacion("");
-                setErrorAccion(null);
-              }}
-            />
+            <>
+              <ListaEvidencias
+                evidencias={evidencias}
+                seleccionadaId={seleccionadaId}
+                onSeleccionar={(id) => {
+                  setSeleccionadaId(id);
+                  setObservacion("");
+                  setErrorAccion(null);
+                }}
+              />
+              {evidencias.length < total && (
+                <button
+                  type="button"
+                  className="btn-secundario bandeja-mas"
+                  onClick={() => cargarPagina(evidencias.length, true)}
+                  disabled={cargando}
+                >
+                  {cargando ? "Cargando…" : `Cargar ${Math.min(LIMITE, total - evidencias.length)} más`}
+                </button>
+              )}
+            </>
           )}
         </section>
 

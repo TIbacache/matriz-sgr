@@ -85,7 +85,7 @@ El modelo de datos de las historias pendientes ya existe y está verificado; fal
 
 ## 3. Verificaciones automatizadas vigentes
 
-**105 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 67 de la API v2, que incluyen las del contrato de la ficha personal y de la bandeja del verificador).
+**107 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 69 de la API v2, que incluyen las del contrato de la ficha personal y de la bandeja del verificador).
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -132,7 +132,7 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 16-17 | Crear tarea y su evento | RF-016, HU-02 |
 
-### `npm run verificar:api` — 67/67 (Bloques A y B)
+### `npm run verificar:api` — 69/69 (Bloques A y B)
 
 Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
 
@@ -145,9 +145,11 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 | Validación (11) | nadie valida lo propio, consulta no valida, rechazo sin observación → 400, corrección solicitada, aprobación, **el punto suma solo al aprobar y una sola vez**, aprobada no se re-decide, validada no se edita, anulación con motivo, lo anulado deja de sumar, validación auditada | RF-013, RF-014, RN-003, RN-009, CA-01, CA-02, CA-09, RNF-005, ADR-006 |
 | Cumplimiento (5) | cálculo por funcionario expuesto, días del período, parámetros con marca `confirmado`, semáforo visible por el rol consulta, tenant ajeno → 404 | RF-022…RF-027, RF-038, ADR-007 |
 | Contrato de la ficha personal (5) | los formatos salen del catálogo y coinciden con lo que aplica el 415, registro paginado por período y funcionario, las anuladas solo si se piden, la ficha de una persona trae ítems, metas y semáforo | RF-004, RF-008, HU-06 |
-| Contrato de la bandeja (5) | la cola entrega código, funcionario y delegación en cada fila; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
+| Contrato de la bandeja (7) | la cola entrega código, funcionario y delegación en cada fila; **lo recién subido es alcanzable en la primera página con `orden=recientes`**; **la cola pagina sin repetir**; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
 
-⚠ **Brecha de pruebas que queda**: las 105 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
+Las dos comprobaciones en negrita son **regresiones**: nacieron de un error real encontrado probando el ciclo completo (una evidencia recién subida caía en la posición 87 de la cola y no se veía en pantalla).
+
+⚠ **Brecha de pruebas que queda**: las 107 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
 
 ---
 
