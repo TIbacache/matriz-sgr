@@ -12,6 +12,8 @@ import bcrypt from "bcrypt";
 import { randomUUID } from "node:crypto";
 import { normalizarRut } from "../src/lib/rut.js";
 import { sembrarParametros } from "../src/services/parametros.js";
+import { guardarArchivo, rutaRelativa } from "../src/services/almacenamiento.js";
+import { imagenEvidencia } from "./imagen-demo.js";
 
 const prisma = new PrismaClient();
 
@@ -415,6 +417,7 @@ async function main() {
     const actividades: Prisma.ActividadCreateManyInput[] = [];
     const evidencias: Prisma.EvidenciaCreateManyInput[] = [];
     const validaciones: Prisma.ValidacionCreateManyInput[] = [];
+    const archivos: { ruta: string; contenido: Buffer }[] = [];
     const correlativoPorDia = new Map<string, number>();
     const inicioMs = periodo.fechaInicio.getTime();
     const hoyMs = Date.now();
@@ -454,14 +457,20 @@ async function main() {
             accion: "Gestión realizada",
             ingresoATubo: n % 5 === 0,
           });
+          // La ruta la deriva el mismo helper que usa el alta real (RNF-017):
+          // si el seed inventara el formato, la ficha y la bandeja pedirían un
+          // archivo que el servidor no sabe resolver y responderían 410.
+          const rutaEvidencia = rutaRelativa(org.id, codigo, 1, "image/png");
+          const contenido = imagenEvidencia(codigo);
+          archivos.push({ ruta: rutaEvidencia, contenido });
           evidencias.push({
             id: evidenciaId,
             organizationId: org.id,
             actividadId,
-            archivoNombre: `${codigo}.jpg`,
-            archivoRuta: `/evidencias/${codigo}.jpg`,
-            mimeType: "image/jpeg",
-            tamanoBytes: 250_000,
+            archivoNombre: `${codigo}.png`,
+            archivoRuta: rutaEvidencia,
+            mimeType: "image/png",
+            tamanoBytes: contenido.length,
             subidaPorId: funcionarioId,
           });
           // Una de cada 10 queda pendiente, para demostrar que lo no validado
@@ -490,7 +499,11 @@ async function main() {
     for (let i = 0; i < validaciones.length; i += LOTE) {
       await prisma.validacion.createMany({ data: validaciones.slice(i, i + LOTE) });
     }
+    // Los archivos van al almacén después de las filas: si algo falla arriba,
+    // no quedan huérfanos en disco.
+    for (const a of archivos) await guardarArchivo(a.ruta, a.contenido);
     console.log(`  ${actividades.length} actividades con evidencia y validación`);
+    console.log(`  ${archivos.length} imágenes sintéticas escritas en el almacén de evidencias`);
   }
 
   await prisma.$executeRawUnsafe("REFRESH MATERIALIZED VIEW cumplimiento_ponderado_vista");

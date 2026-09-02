@@ -34,6 +34,8 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | Documento | Contenido |
 |---|---|
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
+| **[docs/mockups/](docs/mockups/)** | **Las seis pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
+| [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
 | [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
 | [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Visión inicial del equipo (histórico, superado en parte) |
@@ -108,6 +110,17 @@ npm run verificar:api      # 95 · registro, evidencia, validación, metas, conc
 cd frontend
 npm run verificar:contraste          # 83 · WCAG AA en los dos temas, los dos rojos separados, sin hex fuera de tokens
 node scripts/capturas.mjs capturas   # cada pantalla con las seis cuentas (--movil, --solo=login,ficha); servers arriba
+```
+
+## Las pantallas
+
+Las seis pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
+
+```powershell
+cd frontend
+npm run mockups            # regenera .html + .png (con los servidores arriba)
+npm run verificar:mockups  # los abre desde file:// con la red bloqueada
+npm run diagramas          # exporta los diagramas mermaid a PNG
 ```
 
 ## Estrategia de ramas y versiones
