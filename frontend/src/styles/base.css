@@ -26,6 +26,21 @@ h3 {
   font-family: var(--font-titulo);
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ADR-010: en todo lo que se imprime o exporta rige Arial, como pide el
+   manual municipal para documentos. En pantalla, el par de la identidad. */
+@media print {
+  body,
+  h1,
+  h2,
+  h3,
+  button,
+  input,
+  select {
+    font-family: var(--font-documento);
+  }
 }
 
 h1 { font-size: 1.9375rem; } /* 31px */
@@ -177,6 +192,14 @@ td,
 .marca-semaforo .ms-rojo {
   background: var(--estado-rojo);
 }
+/* Sobre la barra heráldica y el panel del login la marca va en un solo tono:
+   las tres FORMAS siguen distinguiéndose (esa es la gracia) y el color de
+   estado no entra en una zona de identidad (ADR-011). */
+.marca-semaforo--mono .ms-verde,
+.marca-semaforo--mono .ms-amarillo,
+.marca-semaforo--mono .ms-rojo {
+  background: currentColor;
+}
 
 /* ---- Controles ---- */
 .btn-primario {
@@ -220,10 +243,11 @@ td,
   color: var(--acento);
 }
 
-/* Peligro: SOLO acciones destructivas (DESIGN §5). Texto sobre el fondo pálido
-   del estado, nunca texto oscuro sobre el rojo fuerte. */
+/* Peligro: SOLO acciones destructivas (DESIGN §5). Contorno del rojo de
+   estado, sin relleno: junto al primario (sólido, rojo institucional) los dos
+   rojos se distinguen por la forma antes que por el matiz (ADR-011). */
 .btn-peligro {
-  background: var(--estado-rojo-bg);
+  background: transparent;
   color: var(--estado-rojo-texto);
   border: 1px solid var(--estado-rojo);
   border-radius: var(--radio-control);
@@ -254,12 +278,17 @@ td,
 .btn-tabla--peligro:hover { border-color: var(--estado-rojo); color: var(--estado-rojo-texto); }
 /* El input de archivo está oculto con .sr-only pero sigue siendo tabulable:
    el foco se muestra sobre la etiqueta que lo envuelve. */
-.btn-archivo { cursor: pointer; }
+/* position: relative para que el input absoluto quede contenido en su etiqueta:
+   sin eso escapaba de la envoltura con scroll de la tabla y, a 390px,
+   ensanchaba la página entera (lo encontró la captura móvil de la ficha). */
+.btn-archivo { cursor: pointer; position: relative; }
 .btn-archivo:focus-within { outline: 2px solid var(--acento); outline-offset: 2px; }
 
 /* ---- Tabla del sistema (DESIGN §5) ---- */
 .tabla-envoltura {
   overflow-x: auto;
+  /* Contenedor de lo posicionado dentro de la tabla: nada absoluto se sale */
+  position: relative;
 }
 
 .tabla-sgr {
@@ -311,6 +340,9 @@ td,
 .campo {
   display: block;
   width: 100%;
+  /* Un <select> con una opción larga ("Nombre — Cargo (Delegación)") se
+     ensancha a su contenido y a 390px desbordaba la página: se acota. */
+  max-width: 100%;
   border: 1px solid var(--borde);
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-3);
@@ -319,8 +351,8 @@ td,
 }
 .campo:focus {
   outline: none;
-  border-color: var(--borde-fuerte);
-  box-shadow: 0 0 0 2px var(--acento-suave);
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px var(--acento-suave);
 }
 
 .etiqueta {
@@ -341,7 +373,7 @@ td,
   transform: translateX(-50%);
   z-index: 100;
   background: var(--estado-rojo-bg);
-  color: var(--estado-rojo);
+  color: var(--estado-rojo-texto);
   border: 1px solid var(--estado-rojo);
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-4);

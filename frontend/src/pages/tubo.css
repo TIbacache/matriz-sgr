@@ -9,7 +9,7 @@
 
 .tubo-solo-lectura {
   font-size: 0.75rem;
-  color: var(--estado-amarillo);
+  color: var(--estado-amarillo-texto);
   background: var(--estado-amarillo-bg);
   border-radius: var(--radio-control);
   padding: 2px var(--esp-2);
@@ -27,6 +27,19 @@
 .tubo-selector {
   width: auto;
   min-width: 200px;
+}
+
+@media (max-width: 720px) {
+  /* Presencia, botón y selector no caben en una fila de 390px: se envuelven
+     y el selector toma el ancho completo. */
+  .tubo-header-derecha {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .tubo-selector {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 /* Skeleton con la geometría real (DESIGN §7): tres columnas con brillo */

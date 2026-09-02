@@ -17,6 +17,7 @@ export interface Tokens {
   verdeBg: string;
   amarilloBg: string;
   rojoBg: string;
+  textoSobreEstado: string;
   tubo1: string;
   tubo2: string;
   tubo3: string;
@@ -41,6 +42,7 @@ function leerTokens(): Tokens {
     verdeBg: v("--estado-verde-bg"),
     amarilloBg: v("--estado-amarillo-bg"),
     rojoBg: v("--estado-rojo-bg"),
+    textoSobreEstado: v("--texto-sobre-estado"),
     tubo1: v("--tubo-1"),
     tubo2: v("--tubo-2"),
     tubo3: v("--tubo-3"),

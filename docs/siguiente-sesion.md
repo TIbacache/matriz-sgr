@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 1 de septiembre de 2026 (cierre del Bloque B2 — pantalla de configuración de metas)
+**Actualizado**: 2 de septiembre de 2026 (cierre del Bloque D0 — identidad visual de La Serena)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -16,6 +16,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **API del modelo v2** (Bloques A y A2) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación y cumplimiento — 95/95 |
 | API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
 | Pantallas del modelo v2 | 🟡 Ficha personal, bandeja del verificador y **configuración de metas** listas; falta la ficha del vecino ← **aquí se retoma** |
+| **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
@@ -29,7 +30,8 @@ Es la regla 1 de CLAUDE.md y el error más caro sería ignorarla. En este punto 
 2. Revisar si la entidad **ya está** en `backend/prisma/schema.prisma` — casi siempre sí. **No crear tablas nuevas sin comprobarlo.**
 3. Revisar si hay un servicio que ya lo resuelve (`parametros`, `auditoria`, `codigos`, `cumplimiento`, `alcance`, `broadcast`).
 4. Revisar las columnas reales en [estructura-planilla-real.md](estructura-planilla-real.md) antes de inventar campos.
-5. Correr `npm run build`, `npm run smoke` y `npm run verificar:calculo` **antes** de empezar, para saber de qué base se parte.
+5. Correr `npm run build`, `npm run smoke` y `npm run verificar:calculo` **antes** de empezar, para saber de qué base se parte. Si el bloque toca la UI, también `npm run verificar:contraste` (frontend).
+6. **Toda pantalla nueva nace con la identidad de DESIGN §10 y §3.3**: `--marca`/`--acento` fuera de las zonas de datos, `--seleccion` para lo activo dentro de una tabla, marca ●▲■ en `mono` sobre rojo, y se mira con las seis cuentas (`node scripts/capturas.mjs`) antes de darla por buena.
 
 ## 3. Orden recomendado
 
@@ -72,17 +74,17 @@ Cerró de paso dos huecos: el `PUT` no comparaba `version` (CA-08) y el selector
 
 - ✅ **Ficha personal** (`/ficha`): cabecera con semáforo, tabla de ítems y registro diario con subida de evidencia, vista de la foto y anulación con motivo. Detalle en [estado-proyecto.md §6.2](estado-proyecto.md).
 - ✅ **Bandeja del verificador** (`/verificacion`): cola, foto grande, tres decisiones, teclado `J`/`K`/`Enter` y aviso de trabajo nuevo en vivo. Detalle en [estado-proyecto.md §6.3](estado-proyecto.md).
-- ⬜ **Ficha del vecino** (ADR-008, CA-04) ← **empezar aquí en el Bloque B**: buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe** (es lo primero a construir).
+- ⬜ **Ficha del vecino** (ADR-008, CA-04) ← **AQUÍ SE RETOMA (Bloque B3)**: buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe** (es lo primero a construir). Criterios en [DESIGN §8.2](../DESIGN.md) («Ficha del vecino y trazabilidad»). Ojo con la Ley 19.628: la ficha muestra datos personales de vecinos; quién puede buscarlos es una decisión de mínimo privilegio que hay que documentar (¿el rol consulta? ¿solo dentro de la delegación propia, aunque el historial cruce?).
 
 **Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: se **anula con motivo**. Reutilizar `ChipSemaforo`, `.tabla-sgr` y `useUnidadSocket` en vez de escribir otros.
 
-### Bloque D0 — Rediseño visual con la identidad de La Serena ← **AQUÍ SE RETOMA**
+### ~~Bloque D0 — Rediseño visual con la identidad de La Serena~~ ✅ TERMINADO (`d6e6dbf`, `v0.8.0-identidad-la-serena`)
 
-**Decisión del 1 de septiembre**: la norma gráfica municipal manda sí o sí, y dentro de ella el diseño es nuestro — innovador, moderno, muy amigable, reactivo y animado donde el movimiento signifique algo. Toda la dirección, los valores de color verificados en el manual oficial, la propuesta creativa (login con la costa y el Faro Monumental) y los siete límites que no se pueden cruzar están en **[DESIGN §10](../DESIGN.md)**.
+Las dos decisiones que estaban abiertas quedaron en **ADR-010** (Libre Franklin + General Sans en pantalla, Arial en lo impreso) y **ADR-011** (los dos rojos se separan por rol, zona y forma; el semáforo no cambió). El equipo eligió además el faro en SVG duotono y la frase «Lo que se atiende, se registra; lo que se registra, avanza». Detalle en [DESIGN §10](../DESIGN.md) y [estado-proyecto §6.0](estado-proyecto.md).
 
-**Bloquea a todo lo demás del frontend**: la ficha del vecino y las pantallas de administración se construirían con la identidad vieja, y el Bloque C toca los mismos gráficos. Por eso va primero.
+Dejó dos herramientas que valen para todo lo que venga: `npm run verificar:contraste` (83 comprobaciones sobre `tokens.css`) y `node scripts/capturas.mjs` (cada pantalla con las seis cuentas, dos temas, escritorio y móvil). Las capturas encontraron cinco cosas que ninguna prueba de API habría visto, tres de ellas desbordes a 390px que ya existían.
 
-Dos cosas quedan por resolver dentro de este bloque, y ambas necesitan decisión, no solo código: **la tipografía de pantalla** (§10.3) y **la convivencia del rojo institucional con el rojo del semáforo** (§10.2).
+⚠ **Lo que dejó abierto**: la ficha del rol consulta habla de una "fila de arriba" que ese rol no tiene; la barra muestra el rol técnico ("Supervisor", "Gerente") y no el municipal; el nombre de la organización se trunca a 240px. Están en [estado-proyecto §9](estado-proyecto.md).
 
 ### Bloque C — Migrar el dashboard al cálculo v2
 
@@ -98,7 +100,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
-**Orden acordado el 1 de septiembre**: primero el rediseño (Bloque D0), y **después** todo lo demás — la ficha del vecino, endurecer las rutas heredadas y el Bloque C quedan en pausa hasta que la identidad esté cerrada.
+**Orden acordado el 1 de septiembre**: primero el rediseño (Bloque D0, ✅ cerrado el 2 de septiembre), y **después** la ficha del vecino (Bloque B3), endurecer las rutas heredadas y el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
@@ -150,6 +152,10 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **Probar cada pantalla con los seis roles, no solo con el propio.** Dos errores reales aparecieron así: el tubo se quedaba cargando para siempre con el verificador (no tiene delegación) y la bandeja escondía lo recién subido. Ninguna prueba automatizada los habría visto: son de pantalla.
 - **El seed deja 88 evidencias pendientes**: cualquier cosa que se registre al probar cae al final de la cola de la bandeja. Para verla, usar el orden **"Recientes primero"**. Toda lista nueva que se construya debe decir "N de TOTAL" y paginar; una lista que oculta el resto en silencio hace creer que el sistema perdió el dato (pasó, y quedó cubierto con dos verificaciones).
 - Al agregar un parámetro nuevo a `services/parametros.ts` hay que **volver a sembrar** (`npx prisma db seed`) o el endpoint que lo lee falla con "parámetro no configurado".
+- **El 5173 también deja huérfanos**: un `vite` de una sesión de una semana atrás seguía sirviendo. Misma receta que el 4000 (`Get-NetTCPConnection -LocalPort 5173 -State Listen` → `Stop-Process`).
+- **`scripts/capturas.mjs` usa `playwright-core` con `channel: "msedge"`**: no descarga navegador (costo cero) y necesita los dos servidores arriba. Se corre desde `frontend/` (un script en otra carpeta no resuelve el paquete). Las capturas van a una carpeta fuera del repo: **no se commitean** (pesan y podrían mostrar datos).
+- **Un elemento `position: absolute` "oculto" (`.sr-only`) sin ancestro `relative` ensancha el documento** aunque esté dentro de una envoltura con scroll. Se ve solo en móvil y solo midiendo: la captura sale más ancha que el viewport.
+- **El contraste no se juzga a ojo**: 4.1:1 y 4.5:1 se ven iguales. `npm run verificar:contraste` antes de cada merge que toque `tokens.css` o un color de texto.
 
 ## 7. Definición de terminado
 
@@ -158,4 +164,4 @@ Una historia está terminada cuando:
 2. Tiene **verificación automatizada** que lo demuestra.
 3. Está en [matriz-trazabilidad.md](matriz-trazabilidad.md) con commit, prueba y resultado.
 4. `npm run build` pasa en backend y frontend.
-5. Si toca la UI, cumple DESIGN.md (incluida §8.1 accesibilidad).
+5. Si toca la UI, cumple DESIGN.md (incluida §8.1 accesibilidad y §3.3 los dos rojos), pasa `npm run verificar:contraste` y se miró con las seis cuentas (`scripts/capturas.mjs`).

@@ -211,3 +211,53 @@ En ambos casos se aplica el tope configurable del ADR-007.
 
 ### Justificación
 Sin esto, "Pendientes en tubo menor a 10%" premiaría al funcionario por tener más pendientes, invirtiendo el incentivo. RN-002 ya anticipa que "los ítems porcentuales deberán declarar su fórmula específica"; el atributo `direccion` es la forma declarativa y configurable de cumplirlo sin escribir un caso especial por ítem.
+
+---
+
+## ADR-010 — Tipografía de pantalla frente a la norma de Arial
+
+### Contexto
+El manual «Normas Gráficas La Serena 2019» dice: *«Como fuente tipográfica para la elaboración de documentos internos, se solicita el uso del tipo Arial»*. No dice nada de aplicaciones web. DESIGN §10.3 dejó la decisión abierta: forzar Arial en pantalla entrega un producto genérico, que es lo contrario del desafío del bloque; ignorar la norma sería no conocerla. El par vigente hasta este ADR era Space Grotesk (títulos) + General Sans (cuerpo).
+
+### Decisión (2 de septiembre de 2026)
+
+| Ámbito | Fuente | Por qué |
+|---|---|---|
+| **Documentos e informes exportados** (PDF, impresión, planillas que salen del sistema) | **Arial**, con `Liberation Sans` y `Helvetica` como equivalentes métricos | Es donde la norma aplica literalmente. En `base.css`, `@media print` cambia el cuerpo a `--font-documento`; la exportación de informes (RF-033) hereda la misma pila. |
+| **Pantalla — cuerpo, tablas, formularios** | **General Sans** (se mantiene) | Palo seco humanista sin contraste marcado —la misma familia visual que el manual pide para el logotipo—, con cifras tabulares, probada en las tablas densas de la ficha y en móvil. Ya estaba cargada: cero costo. |
+| **Pantalla — títulos y cifras de KPI** | **Libre Franklin** (reemplaza a Space Grotesk) | Franklin Gothic es el idioma de la señalética cívica y del diario impreso: da peso institucional e histórico sin verse tecnológico. Space Grotesk junto al rojo luminoso `#DB0032` se leería como marca de fintech, y los valores que el propio municipio declara son *histórica, tradicional, patrimonial*. Libre Franklin es libre (Google Fonts, OFL), variable y liviana. |
+
+Se cargan solo los pesos que se usan (Libre Franklin 500/700/800; General Sans 400/500/600) con `font-display: swap`. La ficha personal, que se abre desde un teléfono en terreno, no espera por las fuentes.
+
+### Consecuencias
+- `--font-titulo` pasa a Libre Franklin; `--font-cuerpo` no cambia; nace `--font-documento` (Arial) para todo lo que sale del sistema.
+- Inter sigue prohibida (DESIGN §8.1).
+- Si el docente o el municipio exigen Arial también en pantalla, el cambio es de un token: la decisión es reversible sin tocar componentes.
+
+---
+
+## ADR-011 — Convivencia del rojo institucional con el rojo del semáforo
+
+### Contexto
+La norma municipal fija el rojo luminoso `#DB0032` como color corporativo principal, con el heráldico `#8A0007` y el rojo oscuro `#971A3A` como variantes. El sistema ya tiene un rojo con significado propio: `--estado-rojo #C0392B`, que dice *«avance relativo bajo 60%»*. Si la marca y la alarma comparten color, el semáforo —que es el dato que el cliente vino a buscar— deja de leerse. DESIGN §10.2 lo declara el riesgo real del bloque y §10.5 prohíbe tocar el semáforo.
+
+### Decisión (2 de septiembre de 2026)
+
+Los dos rojos se separan por **rol, zona y forma**, no por matiz, y el semáforo no cambia.
+
+1. **Rol**: el rojo institucional es *identidad e interacción*; el rojo del semáforo es *dato*. Ningún token cumple los dos papeles.
+   - `--marca` (`#DB0032`) y `--marca-profundo` (`#8A0007`): identidad y estructura — barra lateral, wordmark, título de sección, panel del login.
+   - `--acento` (`#DB0032`), `--acento-hover`, `--btn-bg`: lo interactivo — botón primario, enlaces, navegación activa, anillo de foco.
+   - `--estado-rojo`, `--estado-rojo-bg`, `--estado-rojo-texto`: **sin cambio**, exclusivamente para el estado crítico.
+2. **Zona**: el rojo institucional **nunca aparece dentro de una zona de datos** (tablas, chips, gauges, heatmap, tarjetas del tubo, series de gráficos). Lo que en una zona de datos significa *«esto es lo seleccionado / lo actual»* usa los tokens nuevos `--seleccion` y `--seleccion-bg`, derivados del negro profundo del manual, no del rojo. La rampa ordinal del tubo (`--tubo-*`) y los colores de categoría (`--cat-*`) tampoco usan rojo: el único rojo que un gráfico puede pintar es el del estado.
+3. **Forma**: el rojo institucional aparece como tipografía, como fondo sólido de la barra o del botón, o como anillo de foco; **nunca como el par fondo pálido + texto fuerte** que es la firma visual del chip de estado. Y el estado crítico nunca aparece sin su marca ■ o su texto (DESIGN §8.7), así que aunque los dos rojos coincidan en una pantalla, la forma los distingue antes que el color.
+4. **Tema oscuro**: el rojo luminoso vibra sobre carbón y no alcanza 4.5:1 como texto (3.5:1). Como texto y foco se eleva a `#FF4D6D`; como fondo de botón con texto blanco conserva `#DB0032`, que sí cumple. El heráldico se profundiza para la barra.
+5. **Verificación con script, no a ojo**: `npm run verificar:contraste` (frontend) comprueba cada par texto/fondo de ambos temas contra WCAG AA y, además, que la distancia perceptual (ΔE CIE76) entre `--acento` y `--estado-rojo` no baje de un umbral. Un cambio de token que acerque los dos rojos hace fallar la verificación.
+
+### Justificación
+DESIGN §10.2 ofrecía como último recurso «bajar la saturación del estado antes que tocar la marca». No hizo falta: los dos rojos no compiten porque nunca ocupan el mismo lugar ni la misma forma. Cambiar `#C0392B` habría obligado a revalidar los tres tokens de estado en los dos temas y a explicar al cliente por qué su rojo cambió, para ganar unos grados de matiz que la separación por zona hace innecesarios.
+
+### Consecuencias
+- Nacen `--marca`, `--marca-profundo`, `--marca-oscuro`, `--seleccion`, `--seleccion-bg`, `--barra-*` (tokens de la barra lateral) y `--cat-1..6`. Los hex sueltos de `lib/kanban.ts` desaparecen.
+- El radar del dashboard, que pintaba su serie con `--acento`, pasa a un neutro de datos: una serie en rojo institucional violaría el punto 2.
+- Regla para revisiones: si un PR pinta `--acento` o `--marca` dentro de `.tabla-sgr`, un chip, un gráfico o una tarjeta del tubo, se rechaza (se agrega a DESIGN §8).

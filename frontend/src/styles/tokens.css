@@ -1,9 +1,15 @@
-/* Tokens de DESIGN.md v1.1 — normativo. Dos capas: :root define el tema claro
+/* Tokens de DESIGN.md v1.4 — normativo. Dos capas: :root define el tema claro
    completo; [data-theme="oscuro"] SOLO redefine lo que cambia. Ningún color
-   se usa fuera de estas variables. */
+   se usa fuera de estas variables.
+
+   Identidad: Normas Gráficas de la Municipalidad de La Serena 2019 (DESIGN
+   §10, ADR-010 y ADR-011). Los dos rojos del sistema tienen papeles distintos
+   y no se mezclan: --marca/--acento son identidad e interacción;
+   --estado-rojo es dato. Verificado con `npm run verificar:contraste`. */
 :root {
-  /* Estado (núcleo de identidad): siempre en par color fuerte + fondo pálido.
-     El estado nunca se comunica solo con color (símbolo ● ▲ ■ o texto). */
+  /* Estado (núcleo del dato): siempre en par color fuerte + fondo pálido.
+     El estado nunca se comunica solo con color (símbolo ● ▲ ■ o texto).
+     SIN CAMBIO con la identidad municipal: el semáforo no es identidad. */
   --estado-verde: #1f7a3d;
   --estado-verde-bg: #e3f2e8;
   --estado-amarillo: #b87e00;
@@ -15,15 +21,27 @@
   --estado-verde-texto: #1f7a3d;
   --estado-amarillo-texto: #8a5e00;
   --estado-rojo-texto: #a52e20;
+  /* Texto ENCIMA de un relleno fuerte de estado (celdas del heatmap): blanco
+     en los dos temas, porque el relleno no cambia de luminosidad. */
+  --texto-sobre-estado: #ffffff;
 
-  /* Rampa ordinal del tubo (estados pendiente→en_proceso→realizado):
-     un solo tono petróleo, claro→oscuro, validada con --ordinal. */
-  --tubo-1: #9db9c9;
-  --tubo-2: #4e7e96;
-  --tubo-3: #153b50;
+  /* Rampa ordinal del tubo (pendiente → en_proceso → realizado): neutros
+     cálidos claro → negro profundo del manual. Es zona de datos: sin rojo. */
+  --tubo-1: #cfcac4;
+  --tubo-2: #857f79;
+  --tubo-3: #1a1a1a;
 
-  /* Neutros */
-  --tinta: #1a1d1f;
+  /* Colores de categoría de gestión (franja de la tarjeta del tubo). Tonos
+     apagados, ninguno rojo: el único rojo de una zona de datos es el estado. */
+  --cat-1: #3b6b8f;
+  --cat-2: #5b7a1f;
+  --cat-3: #8f4a2b;
+  --cat-4: #5a4f8a;
+  --cat-5: #6b4a2b;
+  --cat-6: #2e6f6a;
+
+  /* Neutros. --tinta es el negro profundo del manual. */
+  --tinta: #1a1a1a;
   --tinta-2: #5b6166;
   --tinta-3: #8a9094;
   --fondo: #f4f4f2;
@@ -32,19 +50,42 @@
   --borde: #dddfe0;
   --borde-fuerte: #b9bdbf;
 
-  /* Acento único (azul petróleo). --acento es el color interactivo (texto
-     activo, enlaces, focos); el botón primario usa sus propios tokens porque
-     en oscuro el acento se invierte a claro. */
-  --acento: #153b50;
-  --acento-hover: #0e2a3a;
-  --acento-suave: #e8eef1;
-  --btn-bg: #153b50;
-  --btn-bg-hover: #0e2a3a;
+  /* Identidad municipal (manual 2019): luminoso, heráldico y oscuro.
+     Solo estructura: barra, wordmark, panel del login. Nunca dentro de datos. */
+  --marca: #db0032;
+  --marca-profundo: #8a0007;
+  --marca-oscuro: #971a3a;
+
+  /* Acento interactivo = rojo institucional: botón primario, enlaces,
+     navegación activa, foco. El botón tiene tokens propios porque en oscuro
+     el acento de texto se eleva pero el fondo del botón no. */
+  --acento: #db0032;
+  --acento-hover: #8a0007;
+  --acento-suave: rgba(219, 0, 50, 0.1);
+  --btn-bg: #db0032;
+  --btn-bg-hover: #8a0007;
   --btn-texto: #ffffff;
 
-  /* Tipografía: General Sans (Fontshare) cuerpo, Space Grotesk títulos/cifras */
-  --font-titulo: "Space Grotesk", system-ui, sans-serif;
+  /* "Esto es lo seleccionado / lo actual" DENTRO de una zona de datos (fila
+     activa, gauge filtrado, columna de destino). Derivado del negro, no del
+     rojo, para que nunca se confunda con el estado crítico (ADR-011). */
+  --seleccion: #1a1a1a;
+  --seleccion-bg: #e9e8e4;
+
+  /* Barra lateral: el heráldico como campo de identidad. Todo lo que se
+     dibuja sobre ella usa estos tokens, no los neutros de página. */
+  --barra-fondo: #8a0007;
+  --barra-texto: #ffffff;
+  --barra-texto-2: rgba(255, 255, 255, 0.74);
+  --barra-borde: rgba(255, 255, 255, 0.18);
+  --barra-hover-bg: rgba(255, 255, 255, 0.08);
+  --barra-activo-bg: rgba(255, 255, 255, 0.14);
+
+  /* Tipografía (ADR-010): Libre Franklin títulos y cifras, General Sans
+     cuerpo y tablas, Arial en todo lo que se imprime o exporta. */
+  --font-titulo: "Libre Franklin", "Franklin Gothic Medium", system-ui, sans-serif;
   --font-cuerpo: "General Sans", "Public Sans", system-ui, sans-serif;
+  --font-documento: Arial, "Liberation Sans", Helvetica, sans-serif;
 
   /* Espaciado: 4/8/12/16/24/32/48/64 */
   --esp-1: 4px;
@@ -62,9 +103,9 @@
   --radio-control: 4px;
 
   /* Sombras */
-  --sombra-1: 0 1px 2px rgba(26, 29, 31, 0.08);
-  --sombra-2: 0 4px 12px rgba(26, 29, 31, 0.12);
-  --sombra-3: 0 12px 32px rgba(26, 29, 31, 0.18);
+  --sombra-1: 0 1px 2px rgba(26, 26, 26, 0.08);
+  --sombra-2: 0 4px 12px rgba(26, 26, 26, 0.12);
+  --sombra-3: 0 12px 32px rgba(26, 26, 26, 0.18);
 
   /* Movimiento: UNA curva compartida para todo el sistema */
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -80,15 +121,23 @@
   --estado-amarillo-bg: rgba(184, 126, 0, 0.2);
   --estado-rojo: #e2695b;
   --estado-rojo-bg: rgba(192, 57, 43, 0.22);
-  /* En oscuro los tonos base ya superan 4.5:1 sobre la superficie */
+  /* En oscuro verde y amarillo base ya superan 4.5:1 sobre su fondo pálido;
+     el rojo se quedaba en 4.44:1 y se eleva un paso (lo encontró el script). */
   --estado-verde-texto: #62b980;
   --estado-amarillo-texto: #d9a430;
-  --estado-rojo-texto: #e2695b;
+  --estado-rojo-texto: #ea7c70;
 
-  /* Rampa ordinal invertida para superficie oscura (validada) */
-  --tubo-1: #3a5a6e;
-  --tubo-2: #6f9cb4;
-  --tubo-3: #b7d8e8;
+  /* Rampa ordinal invertida para superficie oscura */
+  --tubo-1: #4a4f52;
+  --tubo-2: #969da2;
+  --tubo-3: #e6e9ea;
+
+  --cat-1: #7fb0d4;
+  --cat-2: #a4c25a;
+  --cat-3: #d98a63;
+  --cat-4: #a79bd6;
+  --cat-5: #c49a6c;
+  --cat-6: #63b8b1;
 
   --tinta: #e6e9ea;
   --tinta-2: #a2abaf;
@@ -99,12 +148,22 @@
   --borde: #272d30;
   --borde-fuerte: #3a4246;
 
-  --acento: #9cc7dc;
-  --acento-hover: #b7d8e8;
-  --acento-suave: rgba(156, 199, 220, 0.12);
-  --btn-bg: #9cc7dc;
-  --btn-bg-hover: #b7d8e8;
-  --btn-texto: #0f1518;
+  /* El rojo luminoso vibra sobre carbón y como texto no llega a 4.5:1: se
+     eleva. Como fondo de botón con texto blanco sí cumple y se conserva. */
+  --marca: #ff4d6d;
+  --marca-profundo: #6b0006;
+
+  --acento: #ff4d6d;
+  --acento-hover: #ff7a92;
+  --acento-suave: rgba(255, 77, 109, 0.14);
+  --btn-bg: #db0032;
+  --btn-bg-hover: #b8002a;
+  --btn-texto: #ffffff;
+
+  --seleccion: #e6e9ea;
+  --seleccion-bg: rgba(255, 255, 255, 0.07);
+
+  --barra-fondo: #6b0006;
 
   --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.45);
   --sombra-2: 0 4px 12px rgba(0, 0, 0, 0.5);

@@ -57,7 +57,7 @@
   color: var(--tinta-2);
 }
 
-/* Cifra display: Space Grotesk con figuras PROPORCIONALES (la skill prohíbe
+/* Cifra display: Libre Franklin con figuras PROPORCIONALES (la skill prohíbe
    tabular-nums a tamaño display; tabular queda para la tabla) */
 .kpi-tile-valor {
   font-family: var(--font-titulo);
@@ -139,9 +139,10 @@
     opacity var(--dur-1) var(--ease-expo);
 }
 
+/* Gauge filtrado: selección en zona de datos, sin rojo (ADR-011) */
 .gauge-card--activa {
-  border-color: var(--acento);
-  box-shadow: 0 0 0 2px var(--acento-suave);
+  border-color: var(--seleccion);
+  box-shadow: 0 0 0 2px var(--seleccion-bg);
 }
 
 .gauge-card--apagada {
@@ -216,7 +217,8 @@
 }
 
 .tabla-fila--activa {
-  background: var(--acento-suave) !important;
+  background: var(--seleccion-bg) !important;
+  box-shadow: inset 3px 0 0 var(--seleccion);
 }
 
 /* .chip-semaforo vive en styles/base.css: es una primitiva del sistema

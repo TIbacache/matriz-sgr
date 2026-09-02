@@ -1,7 +1,8 @@
-# DESIGN.md — Especificación visual Matriz SGR
+# DESIGN.md — Especificación visual SGR
 
-**Versión**: 1.3 · **Fecha**: 1 de septiembre de 2026
+**Versión**: 1.4 · **Fecha**: 2 de septiembre de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.4**: §10 ejecutado — identidad de la Municipalidad de La Serena en tokens, barra y login (ADR-010 tipografía, ADR-011 los dos rojos). §2 y §3 actualizadas a lo implementado; §8 suma la regla 11; nace §10.7 con la verificación por script.
 **v1.2**: §8.1 Accesibilidad como norma obligatoria (RNF-012 y RNF-013 del PDF).
 **v1.3**: §8.2 con los criterios de las pantallas pendientes (ficha personal, formularios, evidencias, bandeja del verificador, ficha del vecino, parámetros), fijados antes de construirlas.
 **v1.1**: cuerpo pasa a General Sans; se agregan tema oscuro, sistema de movimiento y marca ●▲■ (receta portada de la app de referencia ebus-test, adaptada a CSS3 puro). La implementación viva de los tokens es `frontend/src/styles/tokens.css`.
@@ -18,24 +19,28 @@ Principio: **la interfaz es un tablero de control municipal, no un SaaS genéric
 
 ## 2. Tipografía
 
+Decidida en **ADR-010** (2 de septiembre de 2026), frente a la norma municipal que pide Arial para documentos.
+
 | Uso | Fuente | Fallback | Pesos |
 |---|---|---|---|
-| Títulos (h1–h3), cifras grandes de KPI | **Space Grotesk** | `system-ui, sans-serif` | 500, 700 |
+| Títulos (h1–h3), wordmark, cifras grandes de KPI | **Libre Franklin** (Google Fonts, OFL) | `"Franklin Gothic Medium", system-ui, sans-serif` | 500, 700, 800 |
 | Cuerpo, tablas, formularios, etiquetas | **General Sans** (Fontshare, gratis) | `Public Sans, system-ui` | 400, 500, 600 |
 | Datos tabulares/numéricos alineados | **General Sans** con `font-variant-numeric: tabular-nums` (aplicado global a `th, td, .tnum`) | — | 400, 600 |
+| **Todo lo que se imprime o exporta** (`@media print`, informes RF-033) | **Arial** — es donde la norma municipal aplica literalmente | `"Liberation Sans", Helvetica, sans-serif` | — |
 
 - **PROHIBIDO usar Inter** en cualquier parte.
-- El par Space Grotesk (display) + General Sans (cuerpo) es deliberado: General Sans sola es el look de la referencia; el par lo hace propio.
-- Carga: Space Grotesk vía Google Fonts, General Sans vía Fontshare CDN, ambas con `font-display: swap`. En producción (Fase 5) evaluar auto-hospedar los woff2.
-- Escala tipográfica (base 16px): `12 / 14 / 16 / 20 / 25 / 31 / 39` (ratio ~1.25).
+- Por qué Libre Franklin y no Space Grotesk: Franklin Gothic es el idioma de la señalética cívica y del diario impreso; da peso institucional e histórico (los valores que el manual declara) sin verse tecnológico. Space Grotesk junto al rojo luminoso `#DB0032` se habría leído como marca de fintech.
+- General Sans se queda porque es un palo seco humanista sin contraste marcado —la misma familia visual que el manual pide para el logotipo— y ya estaba probado en tablas densas y móvil.
+- Carga: Libre Franklin vía Google Fonts, General Sans vía Fontshare CDN, ambas con `font-display: swap` y solo los pesos usados. En producción (Fase 5) evaluar auto-hospedar los woff2.
+- Escala tipográfica (base 16px): `12 / 14 / 16 / 20 / 25 / 31 / 39` (ratio ~1.25). Títulos con `letter-spacing: -0.01em`; wordmark y frase del login, `-0.02em`.
 - Line-height: 1.2 en títulos, 1.5 en cuerpo, 1.35 en celdas de tabla.
-- Cifras de KPI: Space Grotesk 700, tamaño 39–48px, `tabular-nums`.
+- Cifras de KPI: Libre Franklin 700, tamaño 39–48px, figuras proporcionales (tabular queda para las tablas).
 
 ---
 
 ## 3. Paleta
 
-⚠ **Esta sección queda subordinada a §10.** La identidad gráfica de la Municipalidad de La Serena es normativa y su rojo institucional reemplaza al acento petróleo de §3.3. Los **colores de estado de §3.1 se conservan sin cambio**: no son identidad, son dato. Mientras el rediseño de §10 no se ejecute, lo que está en `tokens.css` sigue siendo lo implementado.
+La identidad gráfica de la Municipalidad de La Serena es normativa (§10) y está implementada en `frontend/src/styles/tokens.css`, que es la fuente de verdad de los valores. Los **colores de estado de §3.1 no cambiaron** con la identidad: no son identidad, son dato (ADR-011).
 
 ### 3.1 Colores de estado (núcleo de la identidad)
 
@@ -67,14 +72,28 @@ Reglas:
 | `--borde` | `#DDDFE0` | Bordes de tarjetas y tablas |
 | `--borde-fuerte` | `#B9BDBF` | Bordes de inputs con foco/hover |
 
-### 3.3 Acento
+### 3.3 Identidad y acento (ADR-011)
 
-| Token | Hex | Uso |
-|---|---|---|
-| `--acento` | `#153B50` | Azul petróleo oscuro: navegación activa, enlaces, botón primario |
-| `--acento-hover` | `#0E2A3A` | Hover del primario |
+Los dos rojos del sistema tienen papeles distintos y **ningún token cumple los dos**:
 
-- Un solo acento. No es el "tech blue" `#3B82F6` de todo dashboard SaaS; es un petróleo profundo que no compite con el semáforo.
+| Token | Hex (claro) | Hex (oscuro) | Papel |
+|---|---|---|---|
+| `--marca` | `#DB0032` rojo luminoso | `#FF4D6D` | Identidad como texto o marca |
+| `--marca-profundo` | `#8A0007` heráldico | `#6B0006` | Campo de identidad: panel del login |
+| `--marca-oscuro` | `#971A3A` | igual | Segunda tinta del duotono (el mar del faro) |
+| `--acento` / `--acento-hover` | `#DB0032` / `#8A0007` | `#FF4D6D` / `#FF7A92` | Lo interactivo: enlaces, navegación activa, anillo de foco |
+| `--btn-bg` / `--btn-bg-hover` / `--btn-texto` | `#DB0032` / `#8A0007` / blanco | `#DB0032` / `#B8002A` / blanco | Botón primario (en oscuro conserva el luminoso como fondo: con blanco cumple 5.17:1) |
+| `--barra-fondo`, `--barra-texto`, `--barra-texto-2`, `--barra-borde`, `--barra-hover-bg`, `--barra-activo-bg` | heráldico + blancos con opacidad | heráldico profundo | Todo lo que se dibuja sobre la barra lateral |
+| `--seleccion` / `--seleccion-bg` | `#1A1A1A` / `#E9E8E4` | `#E6E9EA` / blanco al 7% | "Esto es lo seleccionado" **dentro de una zona de datos**: fila activa, gauge filtrado, columna de destino del tubo, aviso de conflicto |
+| `--cat-1` … `--cat-6` | acero, oliva, teja, violeta, tierra, verde azulado | versiones claras | Franja de categoría de la tarjeta del tubo. Ninguno rojo |
+| `--tubo-1..3` | neutros cálidos → negro profundo | invertida | Rampa ordinal del tubo apilado y de la proyección |
+| `--texto-sobre-estado` | blanco | blanco | Texto encima de un relleno fuerte de estado (celdas del heatmap) |
+
+**La regla que lo sostiene**: el rojo institucional se separa del rojo del semáforo por **rol, zona y forma**, no por matiz.
+- *Zona*: `--marca` y `--acento` **nunca aparecen dentro de una zona de datos** (tablas, chips, gauges, heatmap, tarjetas del tubo, series de gráficos). Ahí lo seleccionado usa `--seleccion`, y el único rojo posible es `--estado-rojo`.
+- *Forma*: el rojo institucional es tipografía, fondo sólido de la barra o del botón, o anillo de foco; **nunca el par fondo pálido + texto fuerte**, que es la firma del chip de estado. Por eso `.btn-peligro` es de contorno, sin relleno: junto a un primario sólido se distinguen por la forma.
+- Verificado por script: `npm run verificar:contraste` exige ΔE ≥ 15 entre `--acento` y `--estado-rojo` en los dos temas (hoy 19,4 y 24,2).
+
 - **PROHIBIDO**: gradientes morado-azul, paletas beige/crema con acento naranja, cualquier gradiente como fondo de tarjeta o botón.
 
 ### 3.4 Paleta secuencial para heatmap (ECharts `visualMap`)
@@ -85,7 +104,7 @@ De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C03
 ### 3.5 Tema oscuro
 
 - Arquitectura de **dos capas**: `:root` define el tema claro completo; `[data-theme="oscuro"]` SOLO redefine lo que cambia. Ningún componente usa colores fuera de tokens, por lo que no existe ni una regla `dark:` en el código.
-- Valores exactos en `frontend/src/styles/tokens.css` (fuente de verdad). Ideas clave: fondos carbón (no negro puro), acento petróleo se invierte a celeste `#9CC7DC` (por eso el botón primario tiene tokens propios `--btn-*`), estados suben luminosidad y sus fondos pálidos pasan a transparencias del color.
+- Valores exactos en `frontend/src/styles/tokens.css` (fuente de verdad). Ideas clave: fondos carbón (no negro puro); el rojo luminoso vibra sobre carbón y como texto no llega a 4.5:1, así que `--acento` y `--marca` se elevan a `#FF4D6D` mientras el botón conserva `#DB0032` de fondo (por eso tiene tokens propios `--btn-*`); la barra pasa al heráldico profundo `#6B0006`; los estados suben luminosidad y sus fondos pálidos pasan a transparencias del color. El script encontró que `--estado-rojo-texto` en oscuro quedaba en 4.44:1 sobre su fondo pálido: se elevó a `#EA7C70`.
 - **Sin parpadeo**: script inline en `index.html` aplica `data-theme` desde `localStorage` (clave `matriz.tema`) o `prefers-color-scheme` ANTES del primer paint. El toggle sincroniza entre pestañas vía evento `storage`.
 
 ## 3.6 Movimiento (el movimiento significa estado, no decora)
@@ -104,7 +123,10 @@ De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C03
 ## 3.7 Marca
 
 - La marca es el **trío del semáforo ● ▲ ■** (verde, amarillo, rojo, siempre en ese orden) — componente `MarcaSemaforo`. No es decoración: son los tres símbolos de estado del sistema (legibles sin color), usados como identidad en sidebar y login.
-- Wordmark "Matriz SGR" en Space Grotesk 700 con tracking -0.01em.
+- **Sobre la barra heráldica y el panel del login el trío va en un solo tono** (`MarcaSemaforo mono`, `currentColor`): las tres formas siguen distinguiéndose —esa es la gracia— y el color de estado no entra en una zona de identidad (ADR-011).
+- Wordmark **"SGR"** en Libre Franklin 800 con tracking -0.02em. Es el nombre del producto; "Matriz SGR" es la planilla del cliente que se reemplaza. Debajo, "Sistema de Gestión de Resultados" o el nombre de la organización.
+- **La frase del producto** (§10.4.bis): *«Lo que se atiende, se registra; lo que se registra, avanza.»* Vive bajo la marca en el login y es el hilo de los microtextos. Una sola.
+- **Sin escudo municipal** (§10.5.5): el login declara que es un ejercicio académico con datos ficticios, con paleta y tipografía según la norma y sin el escudo.
 
 ---
 
@@ -172,7 +194,7 @@ De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C03
 
 ## 6. Layout
 
-- Navegación lateral fija de 240px, fondo `--superficie`, borde derecho 1px; ítem activo con fondo `#E8EEF1` y texto `--acento`, sin píldoras redondeadas.
+- Navegación lateral fija de 240px sobre el **rojo heráldico** (`--barra-fondo`): es el campo de identidad del sistema y lo único que lleva el rojo institucional como fondo amplio. Texto en `--barra-texto` / `--barra-texto-2`; ítem activo con `--barra-activo-bg` **y** filo izquierdo de 3px en blanco (nunca solo color), sin píldoras redondeadas; anillo de foco en blanco (el del acento sería invisible sobre rojo). En móvil pasa a cabecera y conserva el heráldico; el botón de colapso se oculta (a 390px empujaba el cierre de sesión fuera de la barra).
 - Contenido con `max-width: 1440px`, padding lateral 24px.
 - Dashboard en grid de 12 columnas: KPIs arriba (4 tarjetas), heatmap + gauges al medio, tabla de detalle abajo.
 - Responsive: kanban con scroll horizontal por columna en móvil; dnd-kit con pointer events (funciona táctil).
@@ -200,7 +222,8 @@ Un PR **se rechaza** si aparece cualquiera de estos:
 7. Estado comunicado solo con color, sin texto ni símbolo.
 8. Valores de espaciado/radio fuera de las escalas definidas aquí.
 9. Animación decorativa sin significado de estado (pulsos en cosas no críticas, parallax, entrada aparatosa de páginas), o cualquier animación sin su apagado en `prefers-reduced-motion`.
-10. Colores fuera de tokens (hex sueltos en componentes) o una regla de tema oscuro escrita a mano en un componente.
+10. Colores fuera de tokens (hex sueltos en componentes) o una regla de tema oscuro escrita a mano en un componente. **Lo comprueba `npm run verificar:contraste`**: un hex fuera de `tokens.css` hace fallar la verificación.
+11. **Rojo institucional dentro de una zona de datos** (ADR-011): `--marca` o `--acento` pintando una fila, un chip, una serie de gráfico, una celda del heatmap o una tarjeta del tubo. Ahí lo seleccionado es `--seleccion` y el único rojo es `--estado-rojo`.
 
 ## 8.1 Accesibilidad — normativo (RNF-012)
 
@@ -208,12 +231,12 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 1. **Teclado**: toda acción alcanzable con `Tab`/`Shift+Tab` en orden lógico y ejecutable con `Enter`/`Espacio`. El foco **siempre visible** (`:focus-visible` con anillo del acento, ya en `base.css`). Ningún `outline: none` sin reemplazo.
 2. **El drag & drop necesita alternativa por teclado**: dnd-kit trae `KeyboardSensor`; hay que activarlo y anunciar los movimientos. Un tablero que solo funciona con mouse incumple el requisito.
-3. **Contraste**: texto normal ≥ 4.5:1, texto grande y marcas gráficas ≥ 3:1, verificado con script (no a ojo). Los tokens `--estado-*-texto` existen exactamente para esto: **las marcas usan `--estado-*`, el texto usa `--estado-*-texto`**.
+3. **Contraste**: texto normal ≥ 4.5:1, texto grande y marcas gráficas ≥ 3:1, verificado con script (no a ojo): `npm run verificar:contraste` (frontend) comprueba 83 pares en los dos temas y corre antes de cada merge. Los tokens `--estado-*-texto` existen exactamente para esto: **las marcas usan `--estado-*`, el texto usa `--estado-*-texto`**. El script encontró tres textos que usaban la marca como texto y no llegaban a 4.5:1 (toast, aviso de solo lectura del tubo, rojo de estado en oscuro).
 4. **Nunca solo color**: todo estado lleva símbolo (●▲■) o texto además del color. Aplica a semáforos, chips, celdas del heatmap y filas de tabla.
 5. **Textos alternativos**: `alt` descriptivo en toda imagen con contenido (evidencias fotográficas incluidas); `aria-label` en botones de solo icono; los gráficos ECharts van acompañados de su **tabla equivalente**.
 6. **Formularios**: `<label>` asociado a cada campo, campos obligatorios marcados en el texto (no solo con color), errores anunciados con `role="alert"` y descritos junto al campo que los origina.
 7. **Movimiento**: respetar `prefers-reduced-motion` (ya implementado). Ninguna información depende de una animación.
-8. **Compatibilidad (RNF-013)**: probar en **Chrome y Edge**, escritorio y móvil, antes de cada entrega.
+8. **Compatibilidad (RNF-013)**: probar en **Chrome y Edge**, escritorio y móvil, antes de cada entrega. `node scripts/capturas.mjs [carpeta] [--movil] [--solo=login,ficha]` (frontend) captura cada pantalla con las seis cuentas en los dos temas usando el Edge instalado; a 390px una captura más ancha que 390 es un desborde horizontal, y así se encontraron tres.
 
 ## 8.2 Pantallas pendientes — criterios de diseño
 
@@ -290,11 +313,11 @@ Es la pantalla donde alguien decide **qué se le mide a una persona y con qué p
 - Los parámetros con `confirmado: false` se muestran con un **aviso visible** de que esperan definición del docente. No se presentan como definitivos.
 - Todo cambio indica desde qué período rige y advierte que no altera períodos cerrados.
 
-## 10. Identidad municipal y dirección visual — NORMATIVO, pendiente de ejecutar
+## 10. Identidad municipal y dirección visual — NORMATIVO, ejecutado el 2 de septiembre de 2026
 
 **Decisión del equipo (1 de septiembre de 2026)**: la norma gráfica de la Municipalidad de La Serena **manda sí o sí**. Dentro de ella, el diseño es nuestro y ahí está el desafío: que sea innovador, moderno, muy amigable, reactivo y animado donde el movimiento signifique algo. *Cumplir la norma es el piso, no el techo.*
 
-⚠ **Esta sección todavía no está implementada.** El frontend actual usa el acento petróleo de §3.3. El rediseño es un bloque de trabajo propio y bloquea a los demás pendientes, porque tocar las pantallas después obligaría a rehacerlo.
+✅ **Implementado en el Bloque D0** (commit `d6e6dbf`, etiqueta `v0.8.0-identidad-la-serena`): tokens en los dos temas, barra lateral heráldica, login en dos paneles con el Faro Monumental en SVG, tipografía nueva, frase del producto, y dos scripts que lo verifican (§10.7). Las tres decisiones de identidad se tomaron con el equipo el 2 de septiembre: **Libre Franklin + General Sans**, **faro y costa en SVG duotono** (había otras tres direcciones: haz abstracto, patrón de campanarios, solo color) y la frase **«Lo que se atiende, se registra; lo que se registra, avanza»**.
 
 ### 10.1 La fuente: qué exige el manual
 
@@ -316,24 +339,23 @@ Documento oficial: **«Normas Gráficas La Serena 2019 — Reglamento y Manual»
 
 **Histórica** (468 años, segunda ciudad más antigua de Chile) · **Tradicional** (condición de Ilustre) · **Patrimonial** (Casco Histórico colonial) · **Turística** (atractivos naturales y arquitectónicos) · **Calidad de vida** (paisajes, tranquilidad).
 
-### 10.2 Qué cambia en los tokens
+### 10.2 Qué cambió en los tokens — hecho
 
-| Token | Hoy | Pasa a |
+| Token | Antes | Ahora |
 |---|---|---|
-| `--acento` | `#153B50` petróleo | `#DB0032` rojo institucional |
+| `--acento` | `#153B50` petróleo | `#DB0032` rojo institucional (`#FF4D6D` en oscuro) |
 | `--acento-hover` | `#0E2A3A` | `#8A0007` heráldico |
-| `--btn-bg` | petróleo | rojo institucional |
-| `--font-titulo` | Space Grotesk | por resolver — ver 10.3 |
-| `--font-cuerpo` | General Sans | Arial en documentos; en pantalla, ver 10.3 |
+| `--btn-bg` | petróleo | rojo institucional en los dos temas |
+| `--font-titulo` | Space Grotesk | **Libre Franklin** (ADR-010) |
+| `--font-cuerpo` | General Sans | General Sans; nace `--font-documento` = Arial para lo impreso y exportado |
 | `--estado-*` | verde / naranjo / rojo | **sin cambio** |
+| nuevos | — | `--marca`, `--marca-profundo`, `--marca-oscuro`, `--seleccion(-bg)`, `--barra-*`, `--cat-1..6`, `--texto-sobre-estado`; `--tubo-*` pasa a neutros |
 
-⚠ **El conflicto real que hay que resolver**: el rojo institucional `#DB0032` y el `--estado-rojo` `#C0392B` conviven en la misma pantalla. Si el rojo es a la vez la marca y la señal de alarma, el semáforo deja de leerse. **Regla**: el rojo institucional se reserva para estructura e identidad (barra superior, títulos de sección, foco, botón primario) y **nunca aparece dentro de una zona de datos**; la alarma del semáforo conserva su `#C0392B`, que es más apagado, siempre acompañada de su marca ■ y su texto. Si aun así compiten, se baja la saturación del estado antes que tocar la marca.
+**El conflicto de los dos rojos se resolvió en ADR-011** sin tocar el semáforo: separación por rol, zona y forma (detalle en §3.3). El último recurso que esta sección preveía —bajar la saturación del estado— no hizo falta.
 
-### 10.3 La tipografía: la decisión que falta
+### 10.3 La tipografía — resuelta en ADR-010
 
-El manual exige Arial **para documentos internos**. No dice nada de aplicaciones web, y forzar Arial en pantalla nos deja un producto genérico, que es justo lo contrario del desafío.
-
-**Propuesta a resolver en la sesión de diseño**: Arial (o su equivalente métrico, Liberation Sans / Helvetica) en todo documento e informe **exportado**, donde la norma aplica literalmente; y en pantalla un palo seco de la misma familia visual —humanista, sin contraste marcado, como pide el manual para el logotipo— que sea legible en tablas densas y en móvil. La decisión y su justificación se registran como ADR.
+El manual exige Arial **para documentos internos** y no dice nada de aplicaciones web. Decisión: Arial (con Liberation Sans / Helvetica como equivalentes métricos) en todo lo que se imprime o exporta, donde la norma aplica literalmente; en pantalla, Libre Franklin para títulos y cifras y General Sans para cuerpo y tablas. Detalle y justificación en §2 y en [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md).
 
 ### 10.4 La dirección creativa
 
@@ -341,7 +363,7 @@ El punto de partida es la propuesta del equipo: **un login con la costa de La Se
 
 Ideas que están dentro de los cinco valores del manual:
 
-- **Login**: fotografía o ilustración de la Avenida del Mar con el faro, tratada en duotono sobre el rojo institucional, con el formulario en una superficie sólida que garantice el contraste. La imagen ocupa el lado, no el fondo del formulario.
+- **Login** ✅ construido (`frontend/src/pages/LoginPage.tsx`, `login.css`, `components/FaroSerena.tsx`): dos paneles. A la izquierda el heráldico con la marca, la frase del producto y el **Faro Monumental sobre la costa dibujado en SVG** —muralla almenada, torre, galería, linterna, mar en `--marca-oscuro` y espuma en blanco— en duotono de dos tintas; a la derecha el formulario sobre superficie sólida. No hay ningún asset de imagen en el repositorio: el faro es vectorial, pesa lo que pesa su archivo, no tiene licencia que pedir y no entra en la ruta crítica. **El haz del faro barre solo mientras el sistema autentica** (`activo={cargando}`): el movimiento significa estado, no decora, y se apaga con `prefers-reduced-motion`. En móvil el panel pasa arriba, compacto, y conserva el faro.
 - **Ciudad de los campanarios**: la silueta de los campanarios da un patrón discreto para estados vacíos y cabeceras, en lugar de las ilustraciones genéricas de siempre.
 - **Movimiento con sentido** (§3.6 ya lo fija): el semáforo late cuando algo está crítico, el avance se llena al validar, la tarjeta del tubo acompaña el arrastre. Nada se mueve porque sí.
 - **Amabilidad**: el cliente fue explícito — *«tenemos un montón de usuarios que no manejan planilla»*, *«mientras más fácil mejor»*. Ante la duda entre elegante y obvio, gana obvio (§8.2).
@@ -363,6 +385,8 @@ Dónde se usa, si se adopta: bajo la marca en el login, y como hilo de los micro
 
 ⚠ **Lo que no es**: un eslogan decorativo repetido en cada cabecera, ni una frase motivacional. Si no ayuda a entender qué hace el sistema, sobra.
 
+✅ **Adoptada (2 de septiembre de 2026)**: **«Lo que se atiende, se registra; lo que se registra, avanza.»** Se eligió entre tres candidatas porque nombra el trabajo real desde la primera palabra —estas personas atienden vecinos— y encadena las tres etapas del sistema. Las descartadas: «Registrar para acompañar, medir para decidir» (más cerca del ejemplo, pero habla del sistema) y «El trabajo del territorio, a la vista de quien lo hace» (la más defendible ante la Ley 19.628, pero rompe el ritmo de dos verbos). Vive en el login; los microtextos nuevos deben sonar a ella.
+
 ### 10.5 Los límites que la dirección no puede cruzar
 
 Aquí es donde un rediseño ambicioso se rompe. Ninguno de estos puntos es negociable:
@@ -375,11 +399,20 @@ Aquí es donde un rediseño ambicioso se rompe. Ninguno de estos puntos es negoc
 6. **Los dos temas se diseñan.** El tema oscuro existe y el rojo institucional necesita su variante para no vibrar sobre fondo oscuro.
 7. **Cada pantalla se prueba con los seis roles** después del rediseño, no solo con el propio.
 
-### 10.6 Alcance del rediseño
+### 10.6 Alcance del rediseño — cubierto
 
-Cinco pantallas y el login: `/login`, `/` (tubo), `/ficha`, `/verificacion`, `/metas`, `/dashboard`. Más `tokens.css`, `base.css` y los gráficos de ECharts, que leen los tokens vivos y cambiarán solos si los tokens cambian bien.
+Cinco pantallas y el login: `/login`, `/` (tubo), `/ficha`, `/verificacion`, `/metas`, `/dashboard`. Más `tokens.css`, `base.css` y los gráficos de ECharts, que leen los tokens vivos: cambiaron solos, salvo el radar, que pintaba su serie con `--acento` y pasó a un neutro (regla 11). Las cinco pantallas se miraron con las seis cuentas, en los dos temas y en móvil (62 + 48 capturas).
 
-**Por qué bloquea a los demás pendientes**: la ficha del vecino y las pantallas de administración se construirían con la identidad vieja y habría que rehacerlas. El Bloque C (dashboard sobre el motor v2) toca los mismos gráficos. Conviene cerrar el diseño primero.
+Lo que las capturas encontraron y no habría visto ninguna prueba de API: la marca ●▲■ seguía en color sobre la barra (perdía por especificidad); en la bandeja «Aprobar» sólido y «Rechazar» con relleno pálido competían (el peligro pasó a contorno); y **tres desbordes horizontales a 390px** que ya existían: el `<input type="file">` con `.sr-only` (`position: absolute`) escapaba de la envoltura con scroll de la tabla y ensanchaba la página a 663px, los selectores con la opción «Nombre — Cargo (Delegación)» y la barra móvil con el botón de colapso.
+
+### 10.7 Cómo se verifica
+
+| Comando (en `frontend/`) | Qué comprueba |
+|---|---|
+| `npm run verificar:contraste` | 83 pares texto/fondo de los dos temas contra WCAG AA (4.5:1 texto, 3:1 marcas), rampa del tubo monótona y distinguible, ΔE ≥ 15 entre `--acento` y `--estado-rojo`, fila seleccionada distinta de fila crítica, y ningún hex fuera de `tokens.css`. Lee `tokens.css`, así que cualquier cambio de token pasa por aquí |
+| `node scripts/capturas.mjs [carpeta] [--movil] [--solo=…]` | Cada pantalla con las seis cuentas, en los dos temas, con el Edge instalado (`playwright-core`, sin descarga). Requiere backend y frontend corriendo |
+
+Ambos son parte de la definición de terminado de cualquier cambio visual.
 
 ## 11. Referencias de estilo (dirección, no copia)
 

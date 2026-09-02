@@ -56,9 +56,9 @@ export function Layout() {
     <div className="layout">
       <aside className={colapsada ? "layout-sidebar layout-sidebar--colapsada" : "layout-sidebar"}>
         <div className="layout-marca">
-          <MarcaSemaforo />
+          <MarcaSemaforo mono />
           <div className="layout-marca-textos">
-            <span className="layout-marca-nombre">Matriz SGR</span>
+            <span className="layout-marca-nombre">SGR</span>
             {organizacionNombre && <span className="layout-marca-org">{organizacionNombre}</span>}
           </div>
         </div>
@@ -98,7 +98,7 @@ export function Layout() {
           <div className="layout-acciones">
             <ThemeToggle />
             <button
-              className="btn-icono"
+              className="btn-icono layout-colapso"
               onClick={alternarSidebar}
               title={colapsada ? "Expandir menú" : "Colapsar menú"}
               aria-label={colapsada ? "Expandir menú" : "Colapsar menú"}

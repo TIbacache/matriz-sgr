@@ -44,6 +44,7 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Modelo de datos (16 entidades v2) | ✅ Migrado, con garantías en la base |
 | API del modelo v2 | ✅ Períodos, cargos, ítems, metas, actividades, evidencias, validación, cumplimiento y catálogos |
 | Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, dashboard |
+| Identidad visual de La Serena (DESIGN §10) | ✅ Tokens, barra, login con el faro, tipografía; verificada por script y con capturas de los seis roles |
 | Tiempo real | ✅ Socket.io con rooms por delegación y organización |
 | Dashboard sobre el motor v2 | 🟡 Aún lee la vista materializada v1 (Bloque C) |
 | Pantallas de administración | 🟡 Falta períodos, cargos y catálogos |
@@ -169,7 +170,15 @@ Lo que Prisma no expresa, agregado por SQL en la migración:
 
 ## 6. Las pantallas
 
-Todas siguen los criterios que **DESIGN §8.2 fijó antes** de construirlas.
+Todas siguen los criterios que **DESIGN §8.2 fijó antes** de construirlas, y desde el Bloque D0 llevan la identidad de la Municipalidad de La Serena (DESIGN §10).
+
+### 6.0 Identidad (Bloque D0, 02-09-2026) — DESIGN §10, ADR-010, ADR-011
+
+- **Login** (`/login`): dos paneles. Heráldico con la marca, la frase del producto y el Faro Monumental en SVG (`components/FaroSerena.tsx`); formulario sobre superficie sólida. El haz del faro barre **solo mientras autentica**. Declara ejercicio académico sin escudo.
+- **Barra lateral** sobre el heráldico, marca ●▲■ en un solo tono, wordmark **SGR**. En móvil es la cabecera.
+- **Tipografía**: Libre Franklin + General Sans en pantalla; Arial en `@media print`.
+- **Los dos rojos** no se mezclan: `--marca`/`--acento` fuera de las zonas de datos; ahí lo seleccionado es `--seleccion` y el único rojo es el del estado.
+- **Verificación**: `npm run verificar:contraste` (83/83) y `node scripts/capturas.mjs` (seis cuentas × dos temas × escritorio y móvil).
 
 ### 6.1 Tubo de trabajo (`/`) — EP-04
 
@@ -215,7 +224,7 @@ ECharts modular con carga perezosa: gauges por delegación, heatmap semántico c
 
 ### 6.6 Piezas reutilizables
 
-`ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color) · `.tabla-sgr` · `.btn-peligro` · `.btn-tabla` · `useUnidadSocket` · `useOrgSocket` · `useArchivoEvidencia` · `useTokens`.
+`ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color) · `MarcaSemaforo` (con `mono` para zonas de identidad) · `FaroSerena` · `.tabla-sgr` · `.btn-peligro` (contorno) · `.btn-tabla` · `useUnidadSocket` · `useOrgSocket` · `useArchivoEvidencia` · `useTokens` (los gráficos leen los tokens vivos; `colorCategoria()` devuelve `var(--cat-N)`).
 
 ⚠ Deuda: `.tabla-detalle` del dashboard y `.tabla-sgr` son dos tablas con el mismo propósito. Convergen en el Bloque C.
 
@@ -237,7 +246,17 @@ ECharts modular con carga perezosa: gauges por delegación, heatmap semántico c
 7. React 18.3, no 19: `echarts-for-react` declara peers hasta 18.
 8. `fetch`, no axios: una dependencia menos.
 9. CSS3 plano con los tokens de DESIGN.md. Sin Tailwind, sin UI kits.
-10. Colores de categoría: paleta fija de 6 tonos asignados por `ordenPrioridad`.
+10. Colores de categoría: 6 tokens `--cat-1..6` asignados por `ordenPrioridad`, ninguno rojo.
+
+**Identidad (Bloque D0)**
+
+24. **Libre Franklin + General Sans en pantalla; Arial en lo impreso y exportado** (ADR-010). Si el municipio exigiera Arial en pantalla, es un token.
+25. **Los dos rojos se separan por rol, zona y forma, no por matiz** (ADR-011). El semáforo no cambió. `--marca`/`--acento` nunca dentro de una zona de datos; ahí, `--seleccion`.
+26. **El wordmark es "SGR"**, el producto. "Matriz SGR" es la planilla del cliente.
+27. **La frase del producto es una sola**: «Lo que se atiende, se registra; lo que se registra, avanza». Los microtextos nuevos deben sonar a ella.
+28. **El escudo municipal no se usa** sin visto bueno del Departamento de Comunicaciones Estratégicas (Artículo 3 del reglamento). El login lo declara.
+29. **El movimiento significa estado**: el haz del faro barre solo mientras el sistema autentica. Toda animación nueva entra con su apagado en `prefers-reduced-motion`.
+30. **Todo cambio visual pasa por `verificar:contraste` y por las capturas de los seis roles** antes de fusionarse.
 
 **Registro y validación**
 
@@ -273,12 +292,16 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | El tubo no cargaba nunca para el verificador | Esqueleto infinito y selector vacío | `cargarTareas` salía antes de apagar el indicador cuando no había delegación visible | Se resuelve el estado de carga siempre, se ocultan los controles sin sentido, y el vacío **explica su causa** |
 | Un funcionario veía las metas de sus pares | Gabriel abría `/metas` y aparecía la medición de Elena | La pantalla nueva era más permisiva que `/ficha`, que ya lo impedía | Solo la jefatura ve las de otros. Consulta abierta nº 11 por su lado legal |
 | La bitácora perdía eventos **en silencio** | Nada. Ese era el problema | `limpiar()` recorría un `Prisma.Decimal` como objeto plano y arrastraba su `constructor`; Prisma rechazaba el insert y, como la bitácora no lanza por diseño, el evento desaparecía | Decimal, Date, bigint y Buffer se convierten antes de recorrerlos. Verificación de regresión |
+| La ficha desbordaba a 663px en un teléfono de 390 | Scroll horizontal en la pantalla que más se abre en terreno | El `<input type="file">` oculto con `.sr-only` es `position: absolute` sin ancestro posicionado: su posición estática quedaba a la derecha de la tabla, **fuera de la envoltura con scroll**, y ensanchaba el documento entero. Lo encontró la captura móvil (era más ancha que el viewport) | `.btn-archivo` y `.tabla-envoltura` con `position: relative`. Los selectores con opciones largas y la barra móvil, a ancho completo |
+| Tres textos bajo 4.5:1 desde hacía semanas | Nada visible: eran legibles "a ojo" | Usaban la marca de estado (`--estado-rojo`, `--estado-amarillo`) como color de texto en vez de la variante `-texto` | Los encontró el script de contraste en su primera corrida. A ojo no se ve la diferencia entre 4.1:1 y 4.5:1 |
 
-**Tres reglas que salieron de aquí:**
+**Cinco reglas que salieron de aquí:**
 
 1. **Ningún esqueleto perpetuo, y todo vacío explica su causa** y ofrece la acción que sí corresponde a ese rol.
-2. **Probar cada pantalla con los seis roles**, no solo con el propio.
+2. **Probar cada pantalla con los seis roles**, no solo con el propio. Ahora `scripts/capturas.mjs` lo hace en un comando.
 3. **Un servicio que traga sus errores necesita una prueba que mire el resultado**, no la ausencia de excepción.
+4. **El contraste se mide, no se mira**: `verificar:contraste` antes de cada merge.
+5. **Todo lo que se posiciona en absoluto necesita un ancestro `relative`**, aunque esté "oculto": lo oculto para la vista sigue ocupando espacio para el scroll.
 
 ---
 
@@ -287,8 +310,11 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | Pendiente | Dónde | Prioridad |
 |---|---|---|
 | 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner | `scripts/cargar-plan-planner.ps1` | Bloqueante |
-| **Rediseño visual completo** con identidad de La Serena (ver DESIGN §10) | frontend | Alta — bloquea a los demás |
 | Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1** | `jobs/cumplimiento.ts`, `dashboard.ts` | Alta |
+| La ficha del rol consulta dice "usa la fila de arriba para registrar" y no hay fila (ese rol no registra): el vacío debe explicar su causa, no señalar algo que no existe | `FichaPage.tsx` | Media |
+| El rol se muestra con el nombre técnico ("Supervisor", "Gerente") en la barra; el municipio dice "Coordinador" y "Delegado". La terminología por tenant ya existe (`configuracionTerminologia`) | `Layout.tsx` `ROL_LABEL` | Media |
+| El nombre de la organización se trunca en la barra de 240px ("Municipalidad Demo (datos fi…") | `layout.css` | Baja |
+| Las evidencias del seed no tienen archivo en disco: la bandeja muestra "No se pudo abrir el archivo (410)" con datos demo | seed | Baja (solo demo) |
 | Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría | rutas heredadas | Alta |
 | Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
 | Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria` | backend y frontend | Media |

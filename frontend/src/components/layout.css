@@ -3,13 +3,15 @@
   min-height: 100vh;
 }
 
-/* Sidebar 240px ↔ 64px, colapso con la curva del sistema (CSS puro, sin JS
-   de animación: el ancho transiciona y los textos se desvanecen) */
+/* Barra lateral 240px ↔ 64px sobre el rojo heráldico (DESIGN §10, ADR-011):
+   es el campo de identidad del sistema y lo único que lleva el rojo
+   institucional como fondo. Todo lo que se dibuja encima usa --barra-*.
+   Colapso con la curva del sistema (CSS puro, sin JS de animación). */
 .layout-sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: var(--superficie);
-  border-right: 1px solid var(--borde);
+  background: var(--barra-fondo);
+  color: var(--barra-texto);
   display: flex;
   flex-direction: column;
   padding: var(--esp-4) var(--esp-3);
@@ -24,10 +26,15 @@
   width: 64px;
 }
 
+/* Sobre rojo, el anillo de foco del acento sería invisible: va en blanco */
+.layout-sidebar :focus-visible {
+  outline-color: var(--barra-texto);
+}
+
 .layout-marca {
   display: flex;
   align-items: center;
-  gap: var(--esp-2);
+  gap: var(--esp-3);
   padding: var(--esp-2) var(--esp-2) var(--esp-5);
   white-space: nowrap;
 }
@@ -42,14 +49,16 @@
 
 .layout-marca-nombre {
   font-family: var(--font-titulo);
-  font-weight: 700;
-  font-size: 1.0625rem;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--barra-texto);
 }
 
 .layout-marca-org {
   font-size: 0.6875rem;
-  color: var(--tinta-2);
+  color: var(--barra-texto-2);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -68,7 +77,7 @@
   padding: var(--esp-2) var(--esp-3);
   border-radius: var(--radio-control);
   text-decoration: none;
-  color: var(--tinta-2);
+  color: var(--barra-texto-2);
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
@@ -80,14 +89,16 @@
 }
 
 .layout-nav-item:hover {
-  background: var(--fondo);
-  color: var(--tinta);
+  background: var(--barra-hover-bg);
+  color: var(--barra-texto);
 }
 
+/* Activo: fondo + filo izquierdo, nunca solo color. Sin píldoras (DESIGN §6). */
 .layout-nav-item.active {
-  background: var(--acento-suave);
-  color: var(--acento);
+  background: var(--barra-activo-bg);
+  color: var(--barra-texto);
   font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--barra-texto);
 }
 
 .layout-nav-texto {
@@ -108,7 +119,7 @@
 }
 
 .layout-pie {
-  border-top: 1px solid var(--borde);
+  border-top: 1px solid var(--barra-borde);
   padding-top: var(--esp-3);
   display: flex;
   flex-direction: column;
@@ -119,6 +130,14 @@
   display: flex;
   gap: var(--esp-1);
   justify-content: flex-end;
+}
+
+.layout-sidebar .btn-icono {
+  color: var(--barra-texto-2);
+}
+.layout-sidebar .btn-icono:hover {
+  background: var(--barra-activo-bg);
+  color: var(--barra-texto);
 }
 
 .layout-sidebar--colapsada .layout-acciones {
@@ -139,8 +158,8 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--acento-suave);
-  color: var(--acento);
+  background: var(--barra-activo-bg);
+  color: var(--barra-texto);
   font-size: 0.6875rem;
   font-weight: 600;
   display: flex;
@@ -163,6 +182,7 @@
 .layout-usuario-nombre {
   font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--barra-texto);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -170,7 +190,7 @@
 
 .layout-usuario-rol {
   font-size: 0.6875rem;
-  color: var(--tinta-2);
+  color: var(--barra-texto-2);
 }
 
 .layout-main {
@@ -184,6 +204,7 @@
   .layout {
     flex-direction: column;
   }
+  /* En móvil la barra pasa arriba y conserva el heráldico: es la cabecera */
   .layout-sidebar,
   .layout-sidebar--colapsada {
     width: 100%;
@@ -206,6 +227,9 @@
   .layout-nav-texto {
     display: none;
   }
+  .layout-nav-item.active {
+    box-shadow: inset 0 -3px 0 var(--barra-texto);
+  }
   .layout-pie {
     border-top: none;
     padding-top: 0;
@@ -216,7 +240,11 @@
   .layout-usuario-info {
     display: none;
   }
-  /* En móvil el colapso no aplica */
+  /* En móvil el colapso no aplica: su botón tampoco (a 390px empujaba el
+     cierre de sesión fuera de la barra) */
+  .layout-colapso {
+    display: none;
+  }
   .layout-sidebar--colapsada .layout-marca-textos {
     opacity: 1;
   }

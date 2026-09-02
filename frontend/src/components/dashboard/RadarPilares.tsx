@@ -65,10 +65,12 @@ export function RadarPilares({ filas, resumen, seleccion }: Props) {
             {
               name: elegida?.nombre ?? "",
               value: serieElegida,
-              lineStyle: { color: t.acento, width: 2 },
-              itemStyle: { color: t.acento, borderColor: t.superficie, borderWidth: 2 },
+              // Neutro de datos, no el acento: el rojo institucional nunca
+              // pinta una serie (ADR-011).
+              lineStyle: { color: t.tubo3, width: 2 },
+              itemStyle: { color: t.tubo3, borderColor: t.superficie, borderWidth: 2 },
               // Lavado ~10% de opacidad según spec de área de la skill
-              areaStyle: { color: t.acento, opacity: 0.1 },
+              areaStyle: { color: t.tubo3, opacity: 0.1 },
               symbolSize: 7,
             },
           ],
