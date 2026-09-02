@@ -2,7 +2,7 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 2 de septiembre de 2026 · `main` en la etiqueta `v0.8.3-mar-completo`
+**Última actualización**: 2 de septiembre de 2026 · `main` en la etiqueta `v0.9.0-entregables-visuales`
 **Bloque que abre**: B3 — ficha del vecino (ADR-008, CA-04, RF-032).
 
 ---
@@ -40,7 +40,15 @@ Verifica el estado real con Docker arriba (docker compose up -d):
       cd frontend && npm run build && npm run verificar:contraste
 Deben dar 216 comprobaciones en verde (17 + 21 + 95 + 83). Si algo falla,
 repórtalo antes de avanzar. Si `npm run dev` no arranca, revisa si el 4000 o
-el 5173 los tiene un proceso huérfano (receta en siguiente-sesion.md §6).
+el 5173 los tiene un proceso huérfano (receta en siguiente-sesion.md §6), y
+si Prisma no conecta, lo más probable es que el contenedor de Postgres esté
+detenido: `docker compose up -d` y esperar a que responda `pg_isready`.
+
+Al terminar la pantalla, regenera los entregables visuales y verifícalos:
+      cd frontend && npm run mockups && npm run verificar:mockups
+La ficha del vecino se suma a docs/mockups/ con su .html y su .png, y se
+adjunta a la tarea de Planner (regla 19: lo que no está en Planner no se
+evalúa, y el frontend además debe verse en GitHub).
 
 TAREA — Bloque B3: la ficha del vecino.
 

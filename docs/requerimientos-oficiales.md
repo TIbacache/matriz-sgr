@@ -228,6 +228,7 @@ Dichas en clase el **1 de septiembre de 2026**, no están en el PDF ni en ningú
 | Instrucción | Qué implica | Estado |
 |---|---|---|
 | **El docente solo revisará el Planner** | Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner **no se evalúa**. Cargar el plan (58 tareas en `plan-desarrollo.csv`) deja de ser deuda técnica y pasa a ser bloqueante | ⬜ El tablero sigue vacío |
+| **El frontend también debe verse en GitHub** | No basta con que el código esté: hay que poder *ver* las pantallas navegando el repositorio. Se resolvió generando cada pantalla en dos formatos — `.html` autocontenido (se adjunta en Planner, abre con doble clic sin servidores) y `.png` (se ve en GitHub, que no ejecuta HTML) | ✅ [docs/mockups/](mockups/) con las 6 pantallas y [docs/diagramas/](diagramas/) con los 4 diagramas |
 | **Diagrama de clases** | No lo pide el PDF, que habla de "modelo de datos y principales diagramas de interacción" (§15, entregable 03). Se construye desde cero | ⬜ |
 | **Mínimo 10 casos de uso** | Tampoco está en el PDF con ese número. Se derivan de los 38 RF | ⬜ |
 | **Entrega el 15 de septiembre de 2026** | Es documentación de análisis y diseño, no código | ⬜ |

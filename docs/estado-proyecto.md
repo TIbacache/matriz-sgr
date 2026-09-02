@@ -315,6 +315,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | Pendiente | Dónde | Prioridad |
 |---|---|---|
 | 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner | `scripts/cargar-plan-planner.ps1` | Bloqueante |
+| ~~Las evidencias del seed daban 410~~ ✅ **resuelto el 02-09-2026** | El seed inventaba `archivoRuta` (`/evidencias/COD.jpg`) en un formato que `rutaRelativa()` no resuelve, y nunca escribía el archivo. Ahora usa el mismo helper que el alta real y escribe 1.126 ilustraciones sintéticas (`prisma/imagen-demo.ts`, PNG generado sin dependencias) | — |
 | Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1** | `jobs/cumplimiento.ts`, `dashboard.ts` | Alta |
 | La ficha del rol consulta dice "usa la fila de arriba para registrar" y no hay fila (ese rol no registra): el vacío debe explicar su causa, no señalar algo que no existe | `FichaPage.tsx` | Media |
 | El rol se muestra con el nombre técnico ("Supervisor", "Gerente") en la barra; el municipio dice "Coordinador" y "Delegado". La terminología por tenant ya existe (`configuracionTerminologia`) | `Layout.tsx` `ROL_LABEL` | Media |

@@ -67,6 +67,9 @@ npm run dev                   # UI en :5173 (Vite)
 npm run build                 # tsc + vite build
 npm run verificar:contraste   # 83 comprobaciones WCAG de tokens.css en los dos temas + hex fuera de tokens
 node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas con las seis cuentas (servers arriba)
+npm run mockups               # .html autocontenido + .png de las 6 pantallas → docs/mockups (servers arriba)
+npm run verificar:mockups     # abre los .html desde file:// con la red bloqueada
+npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
 ```
 
 ⚠ **Vite huérfano en 5173**: igual que el 4000, un `vite` de una sesión anterior puede seguir sirviendo. `Get-NetTCPConnection -LocalPort 5173 -State Listen` y `Stop-Process` antes de levantar el propio.
@@ -102,4 +105,4 @@ Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin
 16. **Las ambigüedades se documentan, no se inventan**: hay 11 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí, con el mismo formato: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta.
 17. Puertos: API 4000, frontend 5173, Postgres 5432. Los puertos 3000/8000/27017 los ocupa otro proyecto Docker ("talia") — no tocarlos.
 18. **Marco legal chileno**: el sistema trata datos personales de vecinos y de desempeño de funcionarios de un organismo público. Aplican la **Ley 21.663 de ciberseguridad** y las **Leyes 19.628 / 21.719 de protección de datos personales**: finalidad, proporcionalidad, mínimo privilegio y trazabilidad. Ante la duda sobre quién puede ver un dato de desempeño, rige lo restrictivo y se documenta como consulta.
-19. **El docente solo revisará el Planner** (clase del 1-09-2026). Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner, no se evalúa.
+19. **El docente solo revisará el Planner** (clase del 1-09-2026). Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner, no se evalúa. **Y dijo también que el frontend debe verse en GitHub.** Por eso todo entregable visual se produce en dos formatos: `.html` autocontenido para adjuntar en Planner y `.png` para que se vea en GitHub, donde Markdown no ejecuta HTML. Están en [docs/mockups/](docs/mockups/) y [docs/diagramas/](docs/diagramas/), y se regeneran con `npm run mockups` y `npm run diagramas`.

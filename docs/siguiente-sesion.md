@@ -164,6 +164,7 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **`scripts/capturas.mjs` usa `playwright-core` con `channel: "msedge"`**: no descarga navegador (costo cero) y necesita los dos servidores arriba. Se corre desde `frontend/` (un script en otra carpeta no resuelve el paquete). Las capturas van a una carpeta fuera del repo: **no se commitean** (pesan y podrían mostrar datos).
 - **Un elemento `position: absolute` "oculto" (`.sr-only`) sin ancestro `relative` ensancha el documento** aunque esté dentro de una envoltura con scroll. Se ve solo en móvil y solo midiendo: la captura sale más ancha que el viewport.
 - **El contraste no se juzga a ojo**: 4.1:1 y 4.5:1 se ven iguales. `npm run verificar:contraste` antes de cada merge que toque `tokens.css` o un color de texto.
+- **Un mockup .html no se da por bueno hasta abrirlo desde `file://` sin red**: ECharts pinta en `<canvas>` y esos píxeles **no** sobreviven a serializar el HTML (el tablero salía con las tarjetas vacías). Se convierte cada canvas a `<img>` **conservando su `style`**, porque ECharts apila capas absolutas y sin eso el heatmap pierde las celdas. Lo cubre `npm run verificar:mockups`.
 - **Un SVG de escena que sangra hasta los bordes necesita `meet` + `aspect-ratio` para no recortarse, y entonces el "suelo" (mar, tierra) debe extenderse fuera del viewBox** con `overflow: visible`; si no, a un ancho distinto del que se probó aparece un rectángulo. Probar el arte a 1900, 1440 y 390 px, no a uno solo.
 
 ## 7. Definición de terminado
