@@ -86,6 +86,12 @@ Dejó dos herramientas que valen para todo lo que venga: `npm run verificar:cont
 
 ⚠ **Lo que dejó abierto**: la ficha del rol consulta habla de una "fila de arriba" que ese rol no tiene; la barra muestra el rol técnico ("Supervisor", "Gerente") y no el municipal; el nombre de la organización se trunca a 240px. Están en [estado-proyecto §9](estado-proyecto.md).
 
+### ~~Bloque D1 — Vida en pantalla~~ ✅ TERMINADO (`v0.8.1-vida-en-pantalla`)
+
+El equipo pidió que la app "se mueva sin que la toquen": loops visibles con períodos que no rimen y feedback en todo lo clickeable. Se resolvió con **dos regímenes de movimiento** ([DESIGN §3.6](../DESIGN.md)): *ambiente* en login y barra (faro que gira e ilumina el mar, olas, estrellas, la ciudad de los campanarios con la camanchaca), *estado* en los datos (cifra hero que cuenta, chip crítico que late), y hover en cada botón, enlace, campo, fila y gauge. Sin Tailwind: CSS + `motion/react`. Todo con apagado por `prefers-reduced-motion`.
+
+**Regla para lo que venga**: toda pantalla nueva nace con el feedback de hover de `base.css` (le sale gratis si usa `.btn-*`, `.campo`, `.tabla-sgr`) y **no** agrega ambiente en zonas de datos.
+
 ### Bloque C — Migrar el dashboard al cálculo v2
 
 Hoy el dashboard lee la **vista materializada v1** (por delegación, con umbrales y tope fijos en SQL). Debe pasar a consumir el motor por funcionario. Al terminar, **eliminar la vista v1** para que no queden dos verdades.
@@ -100,7 +106,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
-**Orden acordado el 1 de septiembre**: primero el rediseño (Bloque D0, ✅ cerrado el 2 de septiembre), y **después** la ficha del vecino (Bloque B3), endurecer las rutas heredadas y el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
+**Orden acordado el 1 de septiembre**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), y **después** la ficha del vecino (Bloque B3), endurecer las rutas heredadas y el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|

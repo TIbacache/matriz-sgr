@@ -71,6 +71,7 @@
 }
 
 .layout-nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--esp-3);
@@ -86,19 +87,120 @@
 
 .layout-nav-item svg {
   flex-shrink: 0;
+  transition: transform var(--dur-2) var(--ease-expo);
+}
+.layout-nav-item > svg,
+.layout-nav-texto {
+  position: relative; /* por encima del marcador deslizante */
 }
 
+/* Hover: el ítem responde (fondo) y el icono se acerca */
 .layout-nav-item:hover {
   background: var(--barra-hover-bg);
   color: var(--barra-texto);
 }
+.layout-nav-item:hover svg {
+  transform: translateX(2px) scale(1.08);
+}
+.layout-nav-item:active svg {
+  transform: scale(0.94);
+}
 
-/* Activo: fondo + filo izquierdo, nunca solo color. Sin píldoras (DESIGN §6). */
+/* Activo: el marcador es un span compartido que se DESLIZA entre ítems
+   (motion layoutId). Fondo + filo izquierdo, nunca solo color. Sin píldoras. */
 .layout-nav-item.active {
-  background: var(--barra-activo-bg);
   color: var(--barra-texto);
   font-weight: 600;
+}
+.layout-nav-marcador {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radio-control);
+  background: var(--barra-activo-bg);
   box-shadow: inset 3px 0 0 var(--barra-texto);
+}
+
+/* ---- La ciudad al fondo de la barra (DESIGN §10.4, ambiente §3.6.bis) ---- */
+.layout-silueta {
+  flex: 0 1 120px; /* = alto del viewBox a 240px de ancho: sin recorte lateral */
+  min-height: 0;
+  margin: var(--esp-4) calc(-1 * var(--esp-3)) 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.silueta {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.silueta-ciudad {
+  fill: rgba(0, 0, 0, 0.26);
+}
+.silueta-hueco {
+  fill: var(--barra-fondo);
+}
+.silueta-luz {
+  fill: rgba(255, 255, 255, 0.9);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: faro-lampara-barra 3.7s ease-in-out infinite;
+}
+@keyframes faro-lampara-barra {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+.silueta-estrella {
+  fill: rgba(255, 255, 255, 0.7);
+  animation: silueta-titilar 5s ease-in-out infinite;
+}
+@keyframes silueta-titilar {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.9; }
+}
+/* El haz del faro barre el cielo de la barra: 17 s, y solo se ve un tramo */
+.silueta-giro {
+  transform-box: view-box;
+  transform-origin: 217px 44px;
+  animation: silueta-giro 17s ease-in-out infinite alternate;
+}
+.silueta-haz {
+  fill: rgba(255, 255, 255, 0.07);
+}
+@keyframes silueta-giro {
+  from { transform: rotate(-14deg); }
+  to { transform: rotate(10deg); }
+}
+/* Camanchaca: la neblina costera pasa lenta, a tres velocidades primas */
+.silueta-niebla {
+  fill: rgba(255, 255, 255, 0.06);
+  animation: silueta-niebla 29s ease-in-out infinite alternate;
+}
+.silueta-niebla--2 {
+  animation-duration: 37s;
+  animation-direction: alternate-reverse;
+}
+.silueta-niebla--3 {
+  animation-duration: 19s;
+  fill: rgba(255, 255, 255, 0.045);
+}
+@keyframes silueta-niebla {
+  from { transform: translateX(-40px); }
+  to { transform: translateX(40px); }
+}
+
+.layout-sidebar--colapsada .layout-silueta {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .silueta-luz,
+  .silueta-estrella,
+  .silueta-giro,
+  .silueta-niebla,
+  .layout-nav-item svg {
+    animation: none;
+    transition: none;
+  }
 }
 
 .layout-nav-texto {
@@ -227,8 +329,11 @@
   .layout-nav-texto {
     display: none;
   }
-  .layout-nav-item.active {
+  .layout-nav-marcador {
     box-shadow: inset 0 -3px 0 var(--barra-texto);
+  }
+  .layout-silueta {
+    display: none;
   }
   .layout-pie {
     border-top: none;

@@ -105,11 +105,14 @@
   padding: var(--esp-2) var(--esp-3);
   transition:
     background var(--dur-1) var(--ease-expo),
-    border-color var(--dur-1) var(--ease-expo);
+    border-color var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo);
 }
 
 .bandeja-item:hover {
   background: var(--fondo);
+  border-left-color: var(--borde-fuerte);
+  transform: translateX(2px);
 }
 
 /* La seleccionada se marca con fondo Y con el borde grueso: nunca solo color.

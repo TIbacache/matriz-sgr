@@ -23,7 +23,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 ## Estado del código (2 de septiembre de 2026)
 
 **Construido y verificado** (133 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
-- **Identidad visual de La Serena (Bloque D0, DESIGN §10)**: tokens en los dos temas, barra heráldica, login con el Faro Monumental en SVG, Libre Franklin + General Sans (ADR-010), los dos rojos separados por rol, zona y forma (ADR-011), frase del producto. Verificada con `npm run verificar:contraste` y con capturas de las seis cuentas (`scripts/capturas.mjs`).
+- **Identidad visual de La Serena (Bloques D0 y D1, DESIGN §10 y §3.6)**: tokens en los dos temas, barra heráldica con la ciudad de los campanarios y la camanchaca, login con el Faro Monumental en SVG que gira e ilumina el mar, Libre Franklin + General Sans (ADR-010), los dos rojos separados por rol, zona y forma (ADR-011), frase del producto, **dos regímenes de movimiento** (ambiente solo en login y barra; estado en los datos) y hover en todo lo clickeable. Verificada con `npm run verificar:contraste` y con capturas de las seis cuentas (`scripts/capturas.mjs`).
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.

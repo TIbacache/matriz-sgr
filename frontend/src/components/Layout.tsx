@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import { LayoutGroup, motion } from "motion/react";
 import {
   BadgeCheck,
   ClipboardList,
@@ -13,7 +14,30 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
 import { MarcaSemaforo } from "./Marca";
+import { SiluetaSerena } from "./SiluetaSerena";
 import "./layout.css";
+
+// Ítem del menú con el marcador de activo COMPARTIDO: al cambiar de pantalla
+// el fondo se desliza de un ítem al otro (layoutId de motion) en vez de
+// aparecer y desaparecer. MotionConfig en App lo apaga con reduced-motion.
+function ItemNav({ to, end, titulo, children }: { to: string; end?: boolean; titulo: string; children: ReactNode }) {
+  return (
+    <NavLink to={to} end={end} className="layout-nav-item" title={titulo}>
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <motion.span
+              className="layout-nav-marcador"
+              layoutId="nav-activo"
+              transition={{ type: "spring", stiffness: 520, damping: 42 }}
+            />
+          )}
+          {children}
+        </>
+      )}
+    </NavLink>
+  );
+}
 
 const ROL_LABEL: Record<string, string> = {
   admin: "Admin",
@@ -63,36 +87,43 @@ export function Layout() {
           </div>
         </div>
 
-        <nav className="layout-nav">
-          <NavLink to="/" end className="layout-nav-item" title="Tubo de trabajo">
-            <SquareKanban size={18} strokeWidth={1.5} />
-            <span className="layout-nav-texto">Tubo de trabajo</span>
-          </NavLink>
-          <NavLink to="/ficha" className="layout-nav-item" title="Ficha personal">
-            <ClipboardList size={18} strokeWidth={1.5} />
-            <span className="layout-nav-texto">Ficha personal</span>
-          </NavLink>
-          {/* La bandeja solo aparece para quien puede validar (RNF-005): un
-              menú que ofrece lo que el rol no puede hacer confunde. */}
-          {PUEDEN_VALIDAR.includes(usuario?.rol ?? "") && (
-            <NavLink to="/verificacion" className="layout-nav-item" title="Bandeja de verificación">
-              <BadgeCheck size={18} strokeWidth={1.5} />
-              <span className="layout-nav-texto">Verificación</span>
-            </NavLink>
-          )}
-          {/* Configurar metas es tarea de administración: el menú no ofrece lo
-              que este rol no puede hacer (mismo criterio que la bandeja). */}
-          {PUEDEN_CONFIGURAR.includes(usuario?.rol ?? "") && (
-            <NavLink to="/metas" className="layout-nav-item" title="Configuración de metas">
-              <Target size={18} strokeWidth={1.5} />
-              <span className="layout-nav-texto">Metas</span>
-            </NavLink>
-          )}
-          <NavLink to="/dashboard" className="layout-nav-item" title="Dashboard">
-            <LayoutDashboard size={18} strokeWidth={1.5} />
-            <span className="layout-nav-texto">Dashboard</span>
-          </NavLink>
-        </nav>
+        <LayoutGroup id="nav">
+          <nav className="layout-nav">
+            <ItemNav to="/" end titulo="Tubo de trabajo">
+              <SquareKanban size={18} strokeWidth={1.5} />
+              <span className="layout-nav-texto">Tubo de trabajo</span>
+            </ItemNav>
+            <ItemNav to="/ficha" titulo="Ficha personal">
+              <ClipboardList size={18} strokeWidth={1.5} />
+              <span className="layout-nav-texto">Ficha personal</span>
+            </ItemNav>
+            {/* La bandeja solo aparece para quien puede validar (RNF-005): un
+                menú que ofrece lo que el rol no puede hacer confunde. */}
+            {PUEDEN_VALIDAR.includes(usuario?.rol ?? "") && (
+              <ItemNav to="/verificacion" titulo="Bandeja de verificación">
+                <BadgeCheck size={18} strokeWidth={1.5} />
+                <span className="layout-nav-texto">Verificación</span>
+              </ItemNav>
+            )}
+            {/* Configurar metas es tarea de administración: el menú no ofrece lo
+                que este rol no puede hacer (mismo criterio que la bandeja). */}
+            {PUEDEN_CONFIGURAR.includes(usuario?.rol ?? "") && (
+              <ItemNav to="/metas" titulo="Configuración de metas">
+                <Target size={18} strokeWidth={1.5} />
+                <span className="layout-nav-texto">Metas</span>
+              </ItemNav>
+            )}
+            <ItemNav to="/dashboard" titulo="Dashboard">
+              <LayoutDashboard size={18} strokeWidth={1.5} />
+              <span className="layout-nav-texto">Dashboard</span>
+            </ItemNav>
+          </nav>
+        </LayoutGroup>
+
+        {/* La ciudad al fondo de la barra: nunca debajo de un texto */}
+        <div className="layout-silueta">
+          <SiluetaSerena />
+        </div>
 
         <div className="layout-pie">
           <div className="layout-acciones">

@@ -179,6 +179,7 @@ Todas siguen los criterios que **DESIGN §8.2 fijó antes** de construirlas, y d
 - **Tipografía**: Libre Franklin + General Sans en pantalla; Arial en `@media print`.
 - **Los dos rojos** no se mezclan: `--marca`/`--acento` fuera de las zonas de datos; ahí lo seleccionado es `--seleccion` y el único rojo es el del estado.
 - **Verificación**: `npm run verificar:contraste` (83/83) y `node scripts/capturas.mjs` (seis cuentas × dos temas × escritorio y móvil).
+- **Vida (Bloque D1, 02-09-2026, DESIGN §3.6)**: dos regímenes de movimiento. *Ambiente* en las zonas de identidad: el faro del login gira e ilumina el mar, olas a tres velocidades, estrellas y astro; la barra lleva la ciudad de los campanarios con la camanchaca y el haz del faro (`SiluetaSerena`); el marcador del menú se desliza (motion `layoutId`). *Estado* en las zonas de datos: la cifra hero cuenta (`useContador`), el chip hero late en rojo. Feedback de hover en todo lo clickeable. Períodos primos, solo transform/opacity, apagado global con `prefers-reduced-motion` y `MotionConfig`.
 
 ### 6.1 Tubo de trabajo (`/`) — EP-04
 
@@ -257,6 +258,9 @@ ECharts modular con carga perezosa: gauges por delegación, heatmap semántico c
 28. **El escudo municipal no se usa** sin visto bueno del Departamento de Comunicaciones Estratégicas (Artículo 3 del reglamento). El login lo declara.
 29. **El movimiento significa estado**: el haz del faro barre solo mientras el sistema autentica. Toda animación nueva entra con su apagado en `prefers-reduced-motion`.
 30. **Todo cambio visual pasa por `verificar:contraste` y por las capturas de los seis roles** antes de fusionarse.
+31. **Dos regímenes de movimiento** (DESIGN §3.6): *ambiente* solo en las zonas de identidad (login, barra), con períodos primos, nunca debajo de un texto; *estado* en las zonas de datos. La lista negra 9 se reescribió así.
+32. **Sin Tailwind, también para la animación**: todo lo de ambiente es CSS (`@keyframes`) y lo que CSS no hace lo hace `motion/react`, que ya estaba en el proyecto. La evaluación tecnología por tecnología no se reabre.
+33. **`MotionConfig reducedMotion="user"`** en la raíz y red de seguridad global en `base.css`: ninguna animación, de CSS o de la librería, sobrevive a `prefers-reduced-motion`.
 
 **Registro y validación**
 

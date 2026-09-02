@@ -61,6 +61,23 @@ select {
   color: var(--tinta);
 }
 
+select {
+  cursor: pointer;
+}
+
+/* Todo lo clickeable responde al cursor (DESIGN §3.6.ter): los enlaces
+   engrosan su subrayado en vez de cambiar de color. */
+a {
+  color: var(--acento);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: text-decoration-thickness var(--dur-1) var(--ease-expo), color var(--dur-1) var(--ease-expo);
+}
+a:hover {
+  text-decoration-thickness: 2px;
+  color: var(--acento-hover);
+}
+
 /* ---- Acabado de producto (receta portada de ebus-test, en CSS puro) ---- */
 
 /* Los números no bailan al cambiar */
@@ -158,7 +175,8 @@ td,
   animation: brillo 1.4s linear infinite;
 }
 
-/* Cierre obligatorio: respetar reduced motion */
+/* Cierre obligatorio: respetar reduced motion. La red de seguridad global
+   apaga cualquier animación o transición que un archivo olvide apagar. */
 @media (prefers-reduced-motion: reduce) {
   .pulso-critico,
   .pulso-vivo,
@@ -167,6 +185,13 @@ td,
   .card--interactiva {
     animation: none;
     transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -201,7 +226,10 @@ td,
   background: currentColor;
 }
 
-/* ---- Controles ---- */
+/* ---- Controles ----
+   Feedback de hover en todo lo clickeable (DESIGN §3.6.ter): se levanta 1px
+   con sombra al pasar, se hunde al presionar. Solo transform y sombra: nada
+   dispara layout. */
 .btn-primario {
   background: var(--btn-bg);
   color: var(--btn-texto);
@@ -209,10 +237,26 @@ td,
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-4);
   font-weight: 600;
-  transition: background var(--dur-1) var(--ease-expo);
+  transition:
+    background var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo),
+    box-shadow var(--dur-1) var(--ease-expo);
 }
-.btn-primario:hover { background: var(--btn-bg-hover); }
-.btn-primario:disabled { background: var(--tinta-3); cursor: default; }
+.btn-primario:hover {
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-2);
+}
+.btn-primario:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+.btn-primario:disabled {
+  background: var(--tinta-3);
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
 
 .btn-secundario {
   background: transparent;
@@ -221,11 +265,25 @@ td,
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-4);
   font-weight: 500;
-  transition: background var(--dur-1) var(--ease-expo);
+  transition:
+    background var(--dur-1) var(--ease-expo),
+    border-color var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo),
+    box-shadow var(--dur-1) var(--ease-expo);
 }
-.btn-secundario:hover { background: var(--superficie); }
+.btn-secundario:hover {
+  background: var(--superficie);
+  border-color: var(--tinta-2);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-1);
+}
+.btn-secundario:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
 
-/* Botón de icono (tema, colapso): funcional, nunca decorativo */
+/* Botón de icono (tema, colapso): funcional, nunca decorativo. El icono
+   responde al cursor: crece y gira apenas. */
 .btn-icono {
   display: inline-flex;
   align-items: center;
@@ -238,9 +296,18 @@ td,
   color: var(--tinta-2);
   transition: background var(--dur-1) var(--ease-expo), color var(--dur-1) var(--ease-expo);
 }
+.btn-icono svg {
+  transition: transform var(--dur-2) var(--ease-expo);
+}
 .btn-icono:hover {
   background: var(--acento-suave);
   color: var(--acento);
+}
+.btn-icono:hover svg {
+  transform: scale(1.15) rotate(-10deg);
+}
+.btn-icono:active svg {
+  transform: scale(0.9);
 }
 
 /* Peligro: SOLO acciones destructivas (DESIGN §5). Contorno del rojo de
@@ -253,10 +320,20 @@ td,
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-4);
   font-weight: 600;
-  transition: background var(--dur-1) var(--ease-expo);
+  transition:
+    background var(--dur-1) var(--ease-expo),
+    color var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo),
+    box-shadow var(--dur-1) var(--ease-expo);
 }
-.btn-peligro:hover { background: var(--estado-rojo); color: var(--superficie); }
-.btn-peligro:disabled { background: var(--fondo-2); color: var(--tinta-3); border-color: var(--borde); cursor: default; }
+.btn-peligro:hover {
+  background: var(--estado-rojo);
+  color: var(--superficie);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-1);
+}
+.btn-peligro:active { transform: translateY(0) scale(0.98); box-shadow: none; }
+.btn-peligro:disabled { background: var(--fondo-2); color: var(--tinta-3); border-color: var(--borde); cursor: default; transform: none; box-shadow: none; }
 
 /* Acción dentro de una celda: peso de texto, no de botón, para no competir
    con el dato (DESIGN §5, densidad alta). */
@@ -272,9 +349,14 @@ td,
   font-weight: 600;
   color: var(--tinta-2);
   white-space: nowrap;
-  transition: border-color var(--dur-1) var(--ease-expo), color var(--dur-1) var(--ease-expo);
+  transition:
+    border-color var(--dur-1) var(--ease-expo),
+    color var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo),
+    background var(--dur-1) var(--ease-expo);
 }
-.btn-tabla:hover { border-color: var(--borde-fuerte); color: var(--tinta); }
+.btn-tabla:hover { border-color: var(--borde-fuerte); color: var(--tinta); background: var(--superficie); transform: translateY(-1px); }
+.btn-tabla:active { transform: translateY(0) scale(0.97); }
 .btn-tabla--peligro:hover { border-color: var(--estado-rojo); color: var(--estado-rojo-texto); }
 /* El input de archivo está oculto con .sr-only pero sigue siendo tabulable:
    el foco se muestra sobre la etiqueta que lo envuelve. */
@@ -319,6 +401,7 @@ td,
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+.tabla-sgr tbody tr { transition: background var(--dur-1) var(--ease-expo); }
 .tabla-sgr tbody tr:hover { background: var(--fondo); }
 /* Fila de total: se separa con BORDE, no con color de fondo (DESIGN §8.2) */
 .tabla-sgr tfoot th,
@@ -348,6 +431,9 @@ td,
   padding: var(--esp-2) var(--esp-3);
   background: var(--superficie);
   transition: border-color var(--dur-1) var(--ease-expo), box-shadow var(--dur-1) var(--ease-expo);
+}
+.campo:hover:not(:disabled) {
+  border-color: var(--borde-fuerte);
 }
 .campo:focus {
   outline: none;
@@ -397,6 +483,11 @@ td,
 .chip-semaforo--rojo { background: var(--estado-rojo-bg); color: var(--estado-rojo-texto); }
 /* Neutro: ni bueno ni malo (sin evidencia, anulada). No usa color de estado. */
 .chip-semaforo--neutro { background: var(--fondo-2); color: var(--tinta-2); }
+/* Late: SOLO el chip hero en rojo (ChipSemaforo `pulsa`). Mismo halo que
+   pulso-critico, sin forzar el radio circular. */
+.chip-semaforo--late {
+  animation: pulso-critico 2.3s var(--ease-expo) infinite;
+}
 
 /* Visible para lectores de pantalla, no para la vista. Se usa en inputs de
    archivo: ocultarlos con [hidden] los saca del orden de tabulación y rompe
