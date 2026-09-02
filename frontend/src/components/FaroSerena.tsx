@@ -15,11 +15,17 @@
 // Tintas: blanco a distintas opacidades, negro translúcido para el ladrillo y
 // --marca-oscuro para el mar. Los colores viven en login.css (DESIGN §8.10).
 
-// Cada ola es un patrón de 80px repetido a lo ancho de DOS viewBox: así la
-// traslación de -80px cierra el ciclo sin costura.
+// El panel puede ser más ancho que el dibujo (el contenedor conserva la
+// proporción con `meet` para no recortar la linterna), así que el mar, el
+// promontorio y las olas se extienden MÁS ALLÁ del viewBox por los dos lados:
+// el SVG tiene overflow visible y así el agua llega a los bordes del panel.
+const DESBORDE = 800;
+
+// Cada ola es un patrón de 80px repetido a lo ancho de TRES viewBox: así la
+// traslación de -80px cierra el ciclo sin costura y cubre el desborde.
 function ola(y: number): string {
-  let d = `M-80 ${y}`;
-  for (let x = -80; x < 1600; x += 80) d += ` q20 -8 40 0 t40 0`;
+  let d = `M${-DESBORDE - 80} ${y}`;
+  for (let x = -DESBORDE - 80; x < 800 + DESBORDE; x += 80) d += ` q20 -8 40 0 t40 0`;
   return d;
 }
 
@@ -81,7 +87,7 @@ export function FaroSerena({ activo }: { activo: boolean }) {
       <circle className="faro-astro" cx="640" cy="92" r="34" />
 
       {/* Mar en tres capas y el reflejo del haz */}
-      <rect className="faro-mar" x="0" y="232" width="800" height="128" />
+      <rect className="faro-mar" x={-DESBORDE} y="232" width={800 + 2 * DESBORDE} height="128" />
       <ellipse className="faro-reflejo" cx="600" cy="252" rx="230" ry="16" />
       <g className="faro-olas faro-olas--1">
         <path className="faro-ola" d={ola(262)} />
@@ -102,7 +108,7 @@ export function FaroSerena({ activo }: { activo: boolean }) {
       {/* Promontorio: la explanada del faro entra en el mar */}
       <path
         className="faro-tierra"
-        d="M0 360 V 250 C 90 242 180 234 300 234 C 400 234 470 242 500 250 C 528 258 548 300 590 360 Z"
+        d={`M${-DESBORDE} 360 V 250 H 0 C 90 242 180 234 300 234 C 400 234 470 242 500 250 C 528 258 548 300 590 360 Z`}
       />
 
       {/* ---- El fuerte de la base: muralla almenada y dos torreones ---- */}
