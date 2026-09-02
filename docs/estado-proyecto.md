@@ -1,7 +1,7 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 1 de septiembre de 2026 · `main` en `v0.7.1-metas-privacidad`
-**Verificación**: 133 comprobaciones automatizadas en verde (17 smoke + 21 cálculo + 95 API)
+**Actualizado**: 2 de septiembre de 2026 · `main` en `v0.8.3-mar-completo`
+**Verificación**: 216 comprobaciones automatizadas en verde — backend 133 (17 smoke + 21 cálculo + 95 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
 Lo vigente está arriba; el registro histórico de las fases, al final.
