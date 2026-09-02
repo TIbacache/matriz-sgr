@@ -40,8 +40,9 @@
   display: flex;
   align-items: center;
   gap: var(--esp-3);
-  background: var(--acento-suave);
-  color: var(--acento);
+  background: var(--seleccion-bg);
+  color: var(--tinta);
+  border-left: 3px solid var(--seleccion);
   border-radius: var(--radio-control);
   padding: var(--esp-2) var(--esp-3);
   font-size: 0.8125rem;
@@ -111,10 +112,12 @@
   background: var(--fondo);
 }
 
-/* La seleccionada se marca con acento Y con el borde grueso: nunca solo color */
+/* La seleccionada se marca con fondo Y con el borde grueso: nunca solo color.
+   Tokens de selección, no el acento: dentro de la cola el único rojo que
+   puede aparecer es el de una evidencia rechazada (ADR-011). */
 .bandeja-item--activa {
-  background: var(--acento-suave);
-  border-left-color: var(--acento);
+  background: var(--seleccion-bg);
+  border-left-color: var(--seleccion);
 }
 
 .bandeja-item-codigo {

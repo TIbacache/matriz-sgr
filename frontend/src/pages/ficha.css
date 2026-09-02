@@ -78,7 +78,7 @@
   color: var(--tinta-2);
 }
 
-/* Cifra display: Space Grotesk con figuras proporcionales (tabular queda para
+/* Cifra display: Libre Franklin con figuras proporcionales (tabular queda para
    las tablas, donde los números se comparan en columna). */
 .ficha-hero-cifra {
   font-family: var(--font-titulo);
@@ -324,5 +324,15 @@
   }
   .ficha-campo--ancho {
     grid-column: span 1;
+  }
+  /* Los selectores a todo el ancho: con "Nombre — Cargo (Delegación)" como
+     opción, su ancho intrínseco desbordaba la pantalla del teléfono. */
+  .ficha-filtros,
+  .ficha-filtro {
+    width: 100%;
+  }
+  .ficha-filtro .campo {
+    width: 100%;
+    min-width: 0;
   }
 }

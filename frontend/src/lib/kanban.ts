@@ -7,12 +7,13 @@ export const COLUMNAS: { estado: string; titulo: string }[] = [
   { estado: "realizado", titulo: "Realizado" },
 ];
 
-// Colores de identidad por categoría (franja izquierda de la tarjeta, DESIGN §5).
-// Tonos apagados que no compiten con el semáforo. Se asignan por ordenPrioridad.
-const COLORES_CATEGORIA = ["#153b50", "#5b7a1f", "#8f4a2b", "#3b6b8f", "#6b4a2b", "#1f7a3d"];
+// Color de identidad por categoría (franja izquierda de la tarjeta, DESIGN §5).
+// Son los tokens --cat-1..6 de tokens.css, así cambian con el tema y ningún
+// hex vive fuera de los tokens (DESIGN §8.10). Se asignan por ordenPrioridad.
+const CANTIDAD_CATEGORIAS = 6;
 
 export function colorCategoria(indice: number): string {
-  return COLORES_CATEGORIA[indice % COLORES_CATEGORIA.length]!;
+  return `var(--cat-${(indice % CANTIDAD_CATEGORIAS) + 1})`;
 }
 
 // Espejo del alcance del backend (tareas.routes.ts::puedeEditar). El backend

@@ -61,8 +61,8 @@
 }
 
 .metas-aviso--vivo {
-  background: var(--acento-suave);
-  border-left-color: var(--acento);
+  background: var(--seleccion-bg);
+  border-left-color: var(--seleccion);
   color: var(--tinta);
 }
 
@@ -318,5 +318,15 @@
   }
   .metas-total {
     flex: 1 1 auto;
+  }
+  /* Selectores a todo el ancho: la opción "Nombre — Cargo (Delegación)"
+     desbordaba la pantalla del teléfono. */
+  .metas-filtros,
+  .metas-filtro {
+    width: 100%;
+  }
+  .metas-filtro .campo {
+    width: 100%;
+    min-width: 0;
   }
 }

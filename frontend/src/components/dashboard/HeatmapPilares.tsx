@@ -79,7 +79,7 @@ export function HeatmapPilares({ filas, onSeleccionar }: Props) {
             fontSize: 11,
             fontWeight: 600,
             // Blanco sobre fondos saturados del semáforo: los tres superan 3:1
-            color: "#ffffff",
+            color: t.textoSobreEstado,
           },
           itemStyle: {
             // El espaciador de la skill: gap de 2px en color de superficie
