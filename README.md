@@ -82,7 +82,7 @@ Todas con contraseña `matriz123`, una por cada rol del PDF §3. Los datos son *
 | `delegado.centro@sgr.demo` | `gerente` | Delegado | Libro y tubo de su delegación |
 | `territorial.centro@sgr.demo` | `usuario` | Funcionario | Ficha personal y registro diario |
 
-La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-proyecto.md §Cuentas de demostración y roles](docs/estado-proyecto.md), que es la **fuente única**. Las cuentas `@demo.cl` de las Fases 2 y 3 ya no existen.
+La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-proyecto.md §1](docs/estado-proyecto.md), que es la **fuente única**. Las cuentas `@demo.cl` de las Fases 2 y 3 ya no existen.
 
 ## Puertos
 

@@ -1,13 +1,18 @@
-# Estado del proyecto — Matriz SGR
+# Estado del proyecto — SGR
 
-**Actualizado**: 1 de septiembre de 2026 (Bloque A2 — API de metas por funcionario)
-Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fase.
+**Actualizado**: 1 de septiembre de 2026 · `main` en `v0.7.1-metas-privacidad`
+**Verificación**: 133 comprobaciones automatizadas en verde (17 smoke + 21 cálculo + 95 API)
 
-## Cuentas de demostración y roles — FUENTE ÚNICA
+Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
+Lo vigente está arriba; el registro histórico de las fases, al final.
 
-⚠ **Las únicas cuentas válidas son las `@sgr.demo` del seed v2.** Las `@demo.cl` que aparecen más abajo en la historia de las Fases 2 y 3 **ya no existen**: se borraron al reescribir el seed con datos 100% ficticios. Si un documento, un script o una captura las menciona, está desactualizado. Contraseña de todas: `matriz123`.
+---
 
-**Roles**: el enum de la base tiene seis (`admin`, `supervisor`, `gerente`, `usuario`, `verificador`, `consulta`), que son los seis actores del PDF §3. El nombre del rol técnico **no siempre coincide con el nombre del cargo municipal**: lo que el cliente llama "coordinador" es el rol `supervisor`, y lo que llama "delegado" es `gerente`. Al escribir código se usa el nombre del enum; al escribir texto de pantalla, el del municipio.
+## 1. Cuentas de demostración y roles — FUENTE ÚNICA
+
+⚠ **Las únicas cuentas válidas son las `@sgr.demo` del seed v2.** Las `@demo.cl` de las Fases 2 y 3 se borraron al reescribir el seed con datos ficticios; si un documento, script o captura las menciona, está desactualizado. Contraseña de todas: `matriz123`.
+
+**Roles**: el enum tiene seis, que son los seis actores del PDF §3. El nombre técnico **no coincide con el cargo municipal**: lo que el cliente llama "coordinador" es el rol `supervisor`, y "delegado" es `gerente`. En código va el enum; en pantalla, la palabra del municipio.
 
 | Correo (`@sgr.demo`) | Nombre ficticio | Rol (enum) | Se le dice | Cargo | Delegación |
 |---|---|---|---|---|---|
@@ -25,388 +30,309 @@ Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada fa
 | `territorial.rural` | Ignacio Bustos Farías | `usuario` | Funcionario | Territorial OO.CC. 1 | Rural |
 | `social.rural` | Marcela Rojas Leiva | `usuario` | Funcionario | Gestor Social 1 | Rural |
 
-Las **siete personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición. Los nombres son ficticios y deben seguir siéndolo (§Condiciones del caso del PDF).
+Las **siete personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición.
 
-**Para probar con los seis roles** (regla que ya detectó dos errores reales): `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`.
+**Para probar con los seis roles** (regla que ya detectó tres errores reales): `admin@` · `coordinador@` · `verificador@` · `consulta@` · `delegado.centro@` · `territorial.centro@`.
 
-## Resumen por fases
+---
 
-| Fase | Estado | Contenido |
-|---|---|---|
-| 1. Documentación y diseño | ✅ Completa | DESIGN.md, diagramas, historias, backlog Planner |
-| 2. Backend y configuración | ✅ Completa | API + Socket.io + Prisma + Postgres Docker |
-| 3. Frontend | ✅ Completa | Vite + React + TS, auth, kanban dnd-kit, presencia, formulario Nueva tarea |
-| 4. BI y Dashboards | ✅ Completa | ECharts modular: gauges, heatmap semántico, dumbbell de proyección, radar énfasis, tubo apilado, tabla WCAG + KPI tiles con counter-up |
-| 5. Despliegue | ⬜ Pendiente | CI/CD GitHub Actions, VPS, Caddy, backups + tests formales (Jest/RTL) |
+## 2. Estado en una página
 
-## Fase 2 — qué quedó funcionando (verificado)
+| Capa | Estado |
+|---|---|
+| Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
+| Modelo de datos (16 entidades v2) | ✅ Migrado, con garantías en la base |
+| API del modelo v2 | ✅ Períodos, cargos, ítems, metas, actividades, evidencias, validación, cumplimiento y catálogos |
+| Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, dashboard |
+| Tiempo real | ✅ Socket.io con rooms por delegación y organización |
+| Dashboard sobre el motor v2 | 🟡 Aún lee la vista materializada v1 (Bloque C) |
+| Pantallas de administración | 🟡 Falta períodos, cargos y catálogos |
+| Ficha del vecino | ⬜ Necesita endpoint de búsqueda de `PersonaUsuaria` |
+| Informes, exportación y alertas | ⬜ |
+| Pruebas formales (Jest/RTL) y CI | ⬜ |
+| Despliegue | ⬜ |
 
-- **Repo privado**: https://github.com/TIbacache/matriz-sgr (rama `main`).
-- **Postgres 16** en Docker (`docker compose up -d` en la raíz, contenedor `matriz-sgr-db`, puerto 5432, volumen persistente `matriz_sgr_pgdata`).
-- **2 migraciones Prisma** aplicadas: `init` (tablas) y `vista_cumplimiento` (vista materializada con índice único para `REFRESH ... CONCURRENTLY`).
-- **Seed demo de esta fase** (histórico): Municipalidad Demo, 3 delegaciones, 4 pilares, 18 tareas, metas 2026-Q3 con ponderadores 0.25. ⚠ **Sus usuarios `@demo.cl` ya no existen**: el seed se reescribió con datos 100% ficticios y las cuentas vigentes son las de [§Cuentas de demostración y roles](#cuentas-de-demostración-y-roles--fuente-única).
-- **Smoke test de integración**: `npm run smoke` en `/backend` (servidor corriendo) → 7/7 PASS. Cubre: rechazo de handshake sin token, 403 tarea ajena, join a room, presencia, rechazo unidad ajena, PATCH propio, evento en room.
-- **Build limpio**: `npm run build` (tsc estricto) sin errores.
+**Contra los 38 RF oficiales: 16 ✅ · 13 🟡 · 9 ⬜** (al recibir la especificación: 5 · 13 · 20).
 
-### Contrato de la API (puerto 4000)
+El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
-Auth: header `Authorization: Bearer <JWT>`. El JWT lleva `{userId, organizationId, rol, nombre}`. Todo endpoint filtra por el `organizationId` del token; recursos de otro tenant → **404**.
+---
+
+## 3. Contrato de la API (puerto 4000)
+
+Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizationId, rol, nombre}`. **Toda consulta filtra por el `organizationId` del token; un recurso de otro tenant responde 404, nunca 403.**
+
+### 3.1 Núcleo del modelo v2
 
 | Endpoint | Roles | Notas |
 |---|---|---|
-| `GET /` y `GET /health` | público | Índice y healthcheck |
-| `POST /auth/login` | público | `{email, password, organizationId?}`. Multi-org sin elegir → 409 con lista. 401 genérico |
-| `GET /auth/me` | todos | Incluye organización y `configuracionTerminologia` |
-| `GET /unidades` | todos | — |
-| `POST/PATCH/DELETE /unidades[/:id]` | admin, supervisor | — |
-| `GET /categorias` | todos | Orden por `ordenPrioridad` |
-| `POST/PATCH/DELETE /categorias[/:id]` | admin, supervisor | DELETE con tareas/metas → 409 |
-| `GET /tareas?unidad=<id>` | todos | También es la recuperación post-reconexión (HU-3.4) |
-| `POST /tareas` | admin, supervisor, gerente | Gerente solo en su delegación (unidad.responsableId) |
-| `PATCH /tareas/:id` | según alcance | usuario: solo `responsableId` propio; gerente: su unidad; lo dispara el drag & drop |
-| `DELETE /tareas/:id` | admin, supervisor, gerente | — |
-| `GET /metas[?trimestre=2026-Q3]` | todos | — |
-| `PUT /metas` | admin, supervisor | Upsert por (unidad, categoría, trimestre). Suma ponderadores > 1 → 422; respuesta incluye `sumaPonderadores` |
-| `PATCH /metas/:id/avance` | admin, supervisor, gerente (su unidad) | — |
-| `GET /kpis/cumplimiento[?trimestre=]` | todos | Lee la vista materializada. Campos: `unidad_nombre, categoria_nombre, trimestre, cumplimiento_categoria, ponderador, cumplimiento_total, semaforo_color` |
-| `POST /kpis/recalcular` | admin, supervisor | Refresca la vista a demanda (además del cron, cada 10 min por defecto) |
+| `GET /periodos[?estado=abierto]` · `GET /periodos/:id` | todos | Devuelve `diasTotales`, `diasTranscurridos` y `porcentajeTranscurrido` **calculados desde las fechas** (prohibido fijar 90/91) |
+| `POST /periodos` | admin, supervisor | Rechaza solapamiento (422) y nombre duplicado (422) |
+| `PATCH /periodos/:id` | admin, supervisor | Exige `version`; período cerrado → 422 |
+| `POST /periodos/:id/cierre` | admin, supervisor | `{version}`. Congela el período (RN-013) |
+| `POST /periodos/:id/reapertura` | **solo admin** | `{version, motivo}` — el motivo queda en la bitácora (RN-013, CA-10) |
+| `GET /cargos[?incluirInactivos=1]` · `GET /items[?cargo=]` | todos | El funcionario necesita ver qué se le mide (RF-008) |
+| `POST/PATCH /cargos` · `POST/PATCH /items` | admin, supervisor | No hay DELETE: se desactiva. `PATCH` exige `version`. El `cargoId` de un ítem no se mueve |
+| `GET /metas-item?periodo=&funcionario=&item=` | todos, **acotado por delegación** | `{total, metas, resumen}`. El resumen trae `sumaPonderadores`, `cumpleRN001` y `faltante` |
+| `POST /metas-item` | admin, supervisor | Rechaza **superar** el 100% (422 con `disponible`). Valida meta > 0, ítem del cargo, ítem activo, duplicado y período abierto |
+| `PATCH /metas-item/:id` | admin, supervisor | Solo meta y ponderador. Exige `version` → 409 |
+| `DELETE /metas-item/:id` | admin, supervisor | Protegido si el ítem ya acumuló avance aprobado → 422 (RN-009) |
+| `PUT /metas-item` | admin, supervisor | Conjunto completo de una persona, en transacción, **exigiendo el 100% exacto**. Cada meta existente debe traer su `version` → 409 |
+| `GET /actividades?periodo=&funcionario=&item=&unidad=&fechaDesde=&fechaHasta=&limite=&desde=` | todos, acotado por delegación | Paginado. Delegación ajena → 404 |
+| `POST /actividades` | usuario, gerente, supervisor, admin | La delegación se deriva de la membresía. Valida período abierto, fecha dentro del período, ítem del cargo, RUT y teléfono. Devuelve `alertaTrazabilidad` si esa persona ya fue atendida en otra delegación |
+| `PATCH /actividades/:id` | autor, jefatura, nivel central | Exige `version`. Con evidencia **aprobada** → 422 con `accionSugerida` |
+| `POST /actividades/:id/anulacion` | ídem | `{version, motivo}` — baja lógica, deja de sumar |
+| `POST /actividades/:id/evidencias?nombre=` | ídem | **Cuerpo = archivo crudo**, `Content-Type` = su MIME. Formato → catálogo (415); tamaño → parámetro (413) |
+| `GET /evidencias?estado=&periodo=&unidad=&orden=&limite=&desde=` | todos; el verificador ve todas | Cola paginada, con "N de TOTAL" |
+| `GET /evidencias/:id` · `GET /evidencias/:id/archivo` | ídem | El archivo pasa por autorización, no es estático |
+| `POST /evidencias/:id/validacion` | verificador, supervisor, admin | `{decision, observacion}`. Tres decisiones; observación obligatoria si no aprueba; **nadie valida lo propio**; una aprobación no se re-decide |
+| `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
+| `GET /catalogos?catalogo=` | todos | Solo lectura. El CRUD de HU-27 está pendiente |
+| `GET /usuarios[?unidad=]` | todos | Directorio con `cargo` y **`cargoId`** — es lo que dice qué ítems se le miden |
 
-### Contrato de Socket.io (mismo puerto 4000)
+### 3.2 Rutas heredadas del modelo v1
 
-- Conexión: `io(url, { auth: { token: <JWT> } })` — sin token válido el handshake se **rechaza**.
-- Al conectar, el servidor mete al socket en `org:<organizationId>` automáticamente.
-- Cliente emite `unidad:join` con `unidadId` (ack `boolean`) → entra a `unidad:<id>`. **Ojo**: el servidor emite `presencia:actualizada` ANTES de responder el ack; registrar el listener antes del join.
-- Eventos que emite el servidor:
-  - room unidad: `tarea:creada`, `tarea:actualizada`, `tarea:eliminada` ({id}), `presencia:actualizada` ({unidadId, conectados: [{userId, nombre, rol}]})
-  - room org: `unidad:creada/actualizada/eliminada`, `categoria:creada/actualizada/eliminada`, `meta:actualizada/eliminada`, `cumplimiento:recalculado`
-- Límites: 10 msg/s por socket (exceso se descarta; reincidencia desconecta), payload máx 100KB.
-- Todo write pasa por `emitEvent()` de `src/services/broadcast.ts` (regla HU-8.2: endpoint nuevo de escritura debe emitir o justificar).
+⚠ **No todas son obsoletas.** Tres sostienen requisitos oficiales vigentes y hay que **endurecerlas**; dos están muertas y hay que **borrarlas**.
 
-### Decisiones de Fase 2 (no re-discutir sin motivo)
-
-1. Backend en **TypeScript estricto** (`npm run build` debe pasar siempre).
-2. `tareas.estado` es **string libre**, no enum: columnas del kanban configurables por tenant (hoy: `pendiente`, `en_proceso`, `realizado`).
-3. No hay columna de **orden intra-columna** en tareas: el kanban ordena por `fechaCompromiso`. Si se pide orden manual, agregar columna `orden` + migración.
-4. Ponderadores: se rechaza solo si la suma **supera** 1 (se cargan de a uno); la UI debe advertir mientras sea < 1 usando `sumaPonderadores` de la respuesta.
-5. IDs son `String @default(uuid())` → columna **text** en Postgres, no tipo `uuid` (no castear `::uuid` en SQL crudo).
-6. `req.params.id` se normaliza con `String()` (Express 5 lo tipa `string | string[]` con middleware intercalado).
-7. Token en el frontend: `localStorage` (decisión de Fase 3; refresh token queda para más adelante si el profesor lo exige).
-
-## Fase 3 — qué quedó funcionando
-
-- **Stack**: Vite 7 + React 18 + TS estricto, CSS3 plano con tokens de DESIGN.md (`src/styles/tokens.css` es la traducción literal). Fuentes por Google Fonts (Space Grotesk + Public Sans). Sin Tailwind, sin UI kits, sin Inter.
-- **Auth**: `AuthContext` con login, JWT en `localStorage` (clave `matriz.auth`), logout automático ante cualquier 401 (`api.setOnUnauthorized`). Carga terminología del tenant desde `/auth/me` (HU-1.3 parcial: los textos de unidad usan el término configurado).
-- **Rutas**: `/login`, `/` (tubo), `/dashboard` (placeholder Fase 4). Sin token → redirect a login.
-- **Kanban (HU-3.1)**: dnd-kit con `useDraggable`/`useDroppable` (NO sortable: no hay orden intra-columna, decisión Fase 2 nº3; columnas ordenan por fechaCompromiso). PointerSensor + TouchSensor (móvil OK). Actualización optimista con revert + toast de 5s si el PATCH falla. DragOverlay con rotación 2° y sombra-2 según DESIGN.
-- **Tiempo real**: hook `useUnidadSocket` — join al room en cada `connect` (el servidor no recuerda rooms de sockets caídos), **recarga completa de tareas al reconectar** (HU-3.4), handlers idempotentes por id (el PATCH y el evento pueden llegar en cualquier orden).
-- **Permisos en UI (HU-3.3)**: `puedeMoverTarea` espejo del backend (que sigue siendo la autoridad); gerente en unidad ajena ve banner "Solo lectura" y tarjetas no arrastrables.
-- **Presencia (HU-6.1)**: barra con avatares de conectados, actualizada por `presencia:actualizada`.
-- Build verificado: `npm run build` limpio, 0 vulnerabilidades npm, bundle ~90KB gzip.
-
-### Decisiones de Fase 3
-
-8. **React 18.3 (no 19)**: `echarts-for-react` aún declara peers hasta 18; evita `--legacy-peer-deps` en Fase 4.
-9. **fetch, no axios**: el spec permitía ambos; una dependencia menos.
-10. **echarts/echarts-for-react NO instalados aún**: se agregan en Fase 4 para resolver sus peers de una vez.
-11. Colores de categoría: paleta fija de 6 tonos apagados en `src/lib/kanban.ts`, asignados por `ordenPrioridad`.
-
-### Rediseño visual v1.1 (post-Fase 3, referencia ebus-test)
-
-El usuario aportó su app https://ebus-test.vercel.app como referencia de diseño. Evaluación tecnología por tecnología (decisión persistente — no re-evaluar sin motivo):
-
-| Tecnología de ebus | ¿Se adopta? | Cómo/por qué |
+| Endpoint | Veredicto | Por qué |
 |---|---|---|
-| Sistema de tokens en 2 capas + dark mode | ✅ | Portado a CSS puro en `tokens.css` (`:root` claro + `[data-theme="oscuro"]`). Es la pieza clave y no necesita Tailwind. |
-| Receta de acabado (tabular-nums, ::selection, scrollbars, focus-visible) | ✅ | En `base.css`, global. |
-| 4 keyframes + curva única `cubic-bezier(0.16,1,0.3,1)` | ✅ | Adaptados: pulso-crítico (vencidas/rojo), pulso-vivo (presencia), entrada en cascada, brillo skeleton. |
-| Primitiva única `.card` + hover lift | ✅ | En `base.css`; kanban con su propio radio 6px. |
-| Anti-parpadeo de tema (script inline + localStorage) | ✅ | En `index.html`, clave `matriz.tema`, sync entre pestañas. |
-| lucide-react | ✅ | Instalado; DESIGN.md ya nombraba Lucide. |
-| General Sans (Fontshare, gratis) | ✅ | Nuevo cuerpo; Space Grotesk se queda en títulos (par propio = menos genérico que la referencia). |
-| motion (lib) | ⏳ Fase 4 | Solo para counter-up de KPIs y overlays, como en la receta original ("Motion solo 6 archivos"). |
-| Tailwind v4 | ❌ | Documento Maestro manda CSS3 + DESIGN.md. Se adoptó su ARQUITECTURA de tokens, no la herramienta. |
-| Next.js / Vercel | ❌ | El profesor exige backend Express+Socket.io propio y despliegue VPS+Docker. Vite se queda. |
-| Recharts | ❌ | ECharts es mandatorio (heatmap matrix, gauges y radar nativos). |
+| `GET/POST/PATCH/DELETE /tareas` | **Se queda — endurecer** | Es el tubo de trabajo: EP-04, RF-016 a RF-021, HU-12 a HU-15. `Tarea` tiene campos v2 y su `TareaHistorial` (RF-018). Le falta `version` → 409 y auditoría |
+| `GET/POST/PATCH/DELETE /unidades` | **Se queda — endurecer** | Delegaciones, RF-001. La usan cuatro pantallas. Le falta `version` y auditoría |
+| `GET/POST/PATCH/DELETE /categorias` | **Se queda — endurecer** | Clasificación del tubo. Podría converger a `CatalogoItem` más adelante |
+| `GET/PUT/PATCH /metas` (unidad × categoría × trimestre) | **Muere — borrar** | Reemplazada por `/metas-item`. **El frontend ya no la llama.** No se puede borrar todavía porque la vista materializada v1 depende de la tabla `Meta` |
+| `GET /kpis/cumplimiento` · `POST /kpis/recalcular` | **Muere con el Bloque C** | Lee la vista materializada v1, por delegación y con umbrales fijos en SQL |
+| `GET /kpis/tubo` | **Se queda** | Conteos agregados del tubo; es independiente del cálculo v1 |
 
-Además: metáfora central propia (ebus tiene el electrocardiograma; nosotros el **semáforo**, con marca ●▲■), sidebar colapsable 240↔64px (CSS width transition, sin JS de animación), tema oscuro completo, login rediseñado. DESIGN.md subido a v1.1 con todo esto como norma.
+## 4. Contrato de Socket.io (mismo puerto)
 
-### Pendiente dentro de Fase 3 (detectado al cerrar)
+- Conexión: `io(url, { auth: { token } })` — sin token válido el handshake se **rechaza**.
+- Al conectar, el socket entra automáticamente a `org:<organizationId>`.
+- El cliente emite `unidad:join` con `unidadId` (ack booleano) → entra a `unidad:<id>`. **Ojo**: el servidor emite `presencia:actualizada` ANTES del ack; registrar el listener antes del join.
+- Límites: 10 mensajes/s por socket, payload máximo 100 KB.
 
-- **Formulario "Nueva tarea" en la UI** (parte de HU-3.2; el endpoint POST /tareas ya existe y está probado). Requiere además un `GET /usuarios` en el backend para elegir responsable (hoy no existe ese endpoint). → Primera tarea al retomar (antes o durante Fase 4).
-- Editar/eliminar tarea desde la UI (modal de detalle) — mismo bloque de trabajo que el punto anterior.
+| Room | Eventos |
+|---|---|
+| `unidad:<id>` | `tarea:creada/actualizada/eliminada`, `presencia:actualizada`, `actividad:creada/actualizada/anulada`, `evidencia:creada`, `validacion:registrada`, `meta_item:creada/actualizada/eliminada` |
+| `org:<id>` | `unidad:*`, `categoria:*`, `meta:actualizada/eliminada`, `periodo:creado/actualizado/cerrado/reabierto`, `cargo:*`, `item:*`, `evidencia:pendiente`, `cumplimiento:cambiado`, `cumplimiento:recalculado` |
 
-## Fase 4 — qué quedó funcionando (26-08-2026)
+Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` **en la raíz**: es lo único que el oyente necesita para saber si le toca releer.
 
-**Dashboard BI interactivo** en `/dashboard`, construido con el método de la skill dataviz (cada forma elegida por el trabajo que hace, colores validados por script, nunca a ojo):
+**Regla**: todo write pasa por `emitEvent()` de `services/broadcast.ts`. Endpoint mudo = bug.
 
-- **Fila única de filtros** (trimestre + delegación + recalcular para admin/supervisor) que alcanza todo lo de abajo; el refetch conserva el marco a opacidad reducida (sin parpadeo de skeleton).
-- **Cross-filtering**: click en un gauge, celda del heatmap, barra del tubo o fila de la tabla selecciona la delegación y filtra/resalta todo el tablero.
-- **KPI row** (4 stat tiles con counter-up de `motion`, en cascada, apagado con `prefers-reduced-motion`): avance relativo, delegaciones en verde, proyección al cierre, tareas vencidas. Cifras display en proporcionales (tabular-nums solo en la tabla).
-- **Gauges por delegación** (mandato del doc maestro): avance relativo sobre bandas fijas del semáforo.
-- **Heatmap delegación × pilar** con escala semántica DISCRETA del semáforo (visualMap piecewise = el modelo mental del cliente), valor rotulado en celda, gap de 2px de superficie.
-- **Dumbbell de proyección** "hoy → cierre a ritmo actual" (un tono, dos intensidades, rampa `--tubo-*` validada `--ordinal` en ambos temas) con referencias en Meta 100% y Ojo 80%.
-- **Radar en énfasis**: delegación seleccionada (acento) vs promedio org (gris) — nunca 6 series.
-- **Tubo apilado** por delegación con rampa ordinal (estados = etapas ordenadas, no categorías) y vencidas en tooltip.
-- **Tabla detalle ordenable** = la "table view" WCAG: todo valor legible sin hover, chips ●▲■ + texto con tokens `--estado-*-texto` (4.5:1 validado). Nota visible: columnas de asistencia pendientes de la definición del cliente.
-- ECharts **modular** + `DashboardPage` con carga perezosa: app base 94KB gzip, chunk del dashboard 251KB solo al entrar. Todos los gráficos leen los tokens vivos (`useTokens` + MutationObserver): cambian con el tema sin recargar.
+---
 
-**Formulario "Nueva tarea"** (cierra HU-3.2): modal desde el tubo (admin/supervisor/gerente en su delegación), responsable elegido del directorio `GET /usuarios?unidad=` (nuevo endpoint con cargo), sincronizado por socket. **Deliberadamente NO se construyó la ficha completa de solicitud de vecino** (RUT, categoría/subcategoría, canal): espera la parametrización de columnas del cliente — regla de no inventar contenedores.
+## 5. Modelo de datos
 
-Backend nuevo: `GET /usuarios` (directorio con cargos), `GET /kpis/tubo` (conteos agregados por estado + vencidas; público como el semáforo, sin detalle del libro). Smoke test ampliado a **17 checks, 17/17 PASS**.
-
-Tokens nuevos en `tokens.css`: `--estado-*-texto` (contraste 4.5:1 para texto pequeño) y rampa `--tubo-1/2/3` (ordinal petróleo, validada en claro y oscuro).
-
-## Cabos sueltos conocidos (no bloqueantes)
-
-- `npm audit`: 3 vulnerabilidades high en `deepmerge-ts` vía el **CLI de Prisma** (devDependency, no llega a producción). Se resuelve solo cuando Prisma actualice; no forzar `audit fix --force` (haría downgrade).
-- Warning de Prisma: `package.json#prisma` deprecado → migrar a `prisma.config.ts` cuando se toque Prisma de nuevo.
-- Seed: los 3 totales de cumplimiento dan 73% (amarillo) porque rota los mismos avances; los colores por categoría sí varían. Si se quiere demo más vistosa, variar avances en `prisma/seed.ts`.
-- El servidor dev suele quedar corriendo en background de la sesión de Claude (`tsx watch`); si el puerto 4000 está ocupado al levantar, ya hay una instancia viva.
-
-## ⚠ CAMBIO DE LÍNEA BASE — 31 de agosto de 2026
-
-Los profesores entregaron la **especificación formal** (`Guia_Proyecto_Software_SGR_Alumnos.pdf`, 30 páginas) y la **presentación del cliente** (20 diapositivas con capturas de la planilla real). Esto **redefine el alcance**:
-
-- **[docs/requerimientos-oficiales.md](requerimientos-oficiales.md) pasa a ser LA especificación**: 38 RF, 18 RNF, 13 reglas de negocio, 10 criterios de aceptación y **31 historias oficiales** (nuestras 20 quedan subordinadas). Cumplimiento actual: **5 ✅ · 13 🟡 · 20 ⬜** de los RF.
-- **[docs/estructura-planilla-real.md](estructura-planilla-real.md)**: las capturas del PPT contenían la **parametrización de columnas** que llevábamos semanas esperando. Ya no hay que pedírsela al cliente.
-- **La unidad de medición es el FUNCIONARIO**, no la delegación: cargo → ítems → metas por persona. Nuestro modelo mide por unidad × categoría → **falta todo el nivel funcionario**.
-- **RN-008 confirmado con datos reales**: verde ≥ objetivo al día · ámbar ≥ 60% del objetivo · rojo < 60%. Nuestra implementación es correcta ✔
-- **Brecha mayor**: el eje **actividad → código → evidencia → validación → puntaje** (EP-01 y EP-03 completas) no existe todavía, y es el corazón del sistema.
-- **[docs/decisiones-tecnicas.md](decisiones-tecnicas.md)**: 9 ADR nuevos (RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad de personas, tipo/dirección de ítems).
-- **[docs/matriz-trazabilidad.md](matriz-trazabilidad.md)**: exigida por el PDF. *"Una historia no se considera terminada si no puede demostrarse su trazabilidad."*
-
-## Modelo de datos v2 — implementado (1 de septiembre de 2026)
-
-Migración `20260901120000_modelo_v2_especificacion_oficial`: **16 entidades nuevas** que cubren la brecha estructural de la especificación oficial.
+Migración `20260901120000_modelo_v2_especificacion_oficial`: **16 entidades** que cubren la especificación oficial.
 
 | Entidad | Cubre |
 |---|---|
 | `Periodo` | RF-005 · fechas configurables, días calculados, cierre auditado |
-| `Parametro` | RF-038 · RNF-015 · ADR-007 · valores de negocio fuera del código, con vigencia por período |
-| `Cargo` + `ItemMedicion` | RF-003 · la abstracción cargo → ítems → metas, con `tipo` y `direccion` (ADR-009) |
+| `Parametro` | RF-038 · RNF-015 · valores de negocio fuera del código, con vigencia por período |
+| `Cargo` + `ItemMedicion` | RF-003 · la abstracción cargo → ítems, con `tipo` y `direccion` |
 | `MetaItem` | RF-007 · meta y ponderador por **funcionario**, ítem y período |
 | `Actividad` | RF-009 · RF-011 · el registro diario, con código único e inmutable |
-| `Evidencia` + `Validacion` | RF-012 · RF-013 · RF-014 · RN-009 · solo lo aprobado suma |
-| `PersonaUsuaria` | ADR-008 · RUT único por organización → trazabilidad entre delegaciones |
+| `Evidencia` + `Validacion` | RF-012 a RF-014 · RN-009 · solo lo aprobado suma |
+| `PersonaUsuaria` | RUT único **por organización** → trazabilidad entre delegaciones |
 | `AtencionSocial` | RF-015 · RN-012 · las tres gestiones del área social |
 | `Ausencia` | días descontados del objetivo al día, por persona |
-| `Ajuste` | RF-025 · felicitaciones y reclamos, con valores parametrizados |
+| `Ajuste` | RF-025 · felicitaciones y reclamos, parametrizados |
 | `CatalogoItem` | RF-004 · catálogos que se desactivan sin borrar historia |
-| `TareaHistorial` | RF-018 · historial de transiciones con autor y observación |
+| `Tarea` + `TareaHistorial` | RF-016 a RF-021 · la agenda colectiva y su historial |
 | `Comentario` | RF-035 · observaciones contextuales |
 | `Auditoria` | RNF-008 · RF-036 · **solo-inserción, garantizado por triggers** |
 
-Además: `version` para bloqueo optimista (ADR-005) en toda tabla editable, roles `verificador` y `consulta` (PDF §3), y campos v2 en `Tarea` (INT/EXT, solicitante, territorio, área de apoyo, fuera de plazo).
+Además: `version` para bloqueo optimista en toda tabla editable, y los roles `verificador` y `consulta`.
 
-**Garantías en la base, no solo en el código** (lo que Prisma no expresa, agregado por SQL en la migración):
-- Triggers que rechazan `UPDATE` y `DELETE` sobre `auditoria` — verificado: la operación falla con el mensaje de RNF-008.
-- Trigger que impide cambiar `actividades.codigo` (RF-011).
-- `CHECK` de formato canónico de RUT en `users` y `personas_usuarias` — verificado: rechaza `17.721.947-9` con puntos.
-- `CHECK` de fechas coherentes en `periodos` y de meta > 0 y ponderador en rango (RN-002).
+### 5.1 Garantías en la base, no solo en el código
 
-**Utilidades nuevas**: `lib/rut.ts` (normalizar, validar módulo 11, formatear), `lib/fechas.ts` ("hoy" en zona de Chile, días del período), `lib/persona.ts` (ADR-003), `services/parametros.ts`, `services/auditoria.ts`, `services/codigos.ts`, `services/cumplimiento.ts` (motor de cálculo **por funcionario**).
+Lo que Prisma no expresa, agregado por SQL en la migración:
 
-**Seed reescrito con datos 100% ficticios** (cumple la prohibición del PDF): 6 delegaciones, 5 cargos con sus ítems reales y ponderadores que suman 100%, 8 catálogos, 13 personas, 3 vecinos, 16 tareas con historial y **1.126 actividades con evidencia y validación**. Se regenera lo transaccional en cada corrida; los datos maestros van con upsert.
+- Triggers que **rechazan `UPDATE` y `DELETE` sobre `auditoria`**. Verificado: la operación falla.
+- Trigger que **impide cambiar `actividades.codigo`** (RF-011).
+- `CHECK` de formato canónico de RUT en `users` y `personas_usuarias`. Verificado: rechaza `17.721.947-9` con puntos.
+- `CHECK` de fechas coherentes en `periodos`, y de meta > 0 y ponderador en rango.
+- Índice único `(periodo, ítem, funcionario)` en `metas_item`, que sostiene RN-001.
 
-**Verificación: 38 comprobaciones automatizadas, todas en verde.**
-- `npm run smoke` → 17/17 (tiempo real, permisos, visibilidad)
-- `npm run verificar:calculo` → 21/21 (fórmulas RN-004/005/008, ítem inverso, tope, parámetros, RN-001, RN-009, códigos únicos, trazabilidad del vecino)
-- `npm run verificar:rut` → 16 RUT ficticios válidos + casos de normalización
+### 5.2 Utilidades y servicios
 
-Dos de esas comprobaciones detectaron errores reales durante el desarrollo (ponderadores que sumaban 0,95 y un vecino sin trazabilidad por datos obsoletos), que quedaron corregidos.
+`lib/rut.ts` · `lib/fechas.ts` · `lib/persona.ts` · `lib/telefono.ts`
+`services/`: `parametros`, `auditoria`, `codigos`, `cumplimiento` (motor por funcionario), `concurrencia`, `alcance`, `almacenamiento`, `broadcast`.
 
-### Deuda técnica que abre este cambio
+### 5.3 Seed
 
-| Deuda | Origen | Prioridad |
-|---|---|---|
-| ~~Umbrales y tope fijos en SQL~~ → el **motor nuevo** (`services/cumplimiento.ts`) los lee de `parametro`. Falta migrar la vista materializada v1, que aún los tiene fijos y sigue alimentando el dashboard actual | RNF-015, RF-038 | Alta |
-| ~~El período se deriva del string `2026-Q3`~~ → existe la tabla `Periodo`; falta que la **vista materializada y el dashboard** la usen en vez del string | RF-005, §13.1 | Alta |
-| ~~Falta bloqueo optimista~~ → **resuelto en el Bloque A**: todo PATCH del modelo v2 compara `version` y responde 409. Falta aplicarlo en las rutas v1 (`/tareas`, `/metas`, `/unidades`, `/categorias`) | RF-034, CA-08 | Media |
-| ~~Falta tabla `auditoria`~~ → **resuelto en el Bloque A** para el modelo v2; las rutas v1 aún no auditan | RNF-008, RF-036 | Media |
-| ~~El seed usa nombres reales~~ → **resuelto**: seed 100% ficticio | §Condiciones del caso | ✅ |
-| ~~Faltan roles Verificador y Usuario de consulta~~ → **resuelto**: en el enum, en el seed y ahora **en las rutas** (`requireRol("verificador"…)` en validación) | §3 Actores | ✅ |
-| ~~Faltan las rutas API del modelo v2~~ → **resuelto en el Bloque A** para períodos, cargos, ítems, actividades, evidencias, validación y cumplimiento; **y en el A2** para las metas por funcionario (`de68901`). **Faltan** ajustes, atención social, comentarios, ausencias y el CRUD de catálogos y parámetros | EP-01, EP-03 | Alta |
-| **Faltan las pantallas del modelo v2** (ficha personal, formulario de actividad, bandeja del verificador) | RF-008, HU-06, HU-11 | Alta |
-| Sin pruebas unitarias (Jest) ni de componentes (RTL) | §14.3 | Alta |
-| Falta alternativa por teclado en el drag & drop | RNF-012, DESIGN §8.1 | Media |
+100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, 13 personas, 3 vecinos, 16 tareas con historial y **1.129 actividades con evidencia y validación**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert.
 
-## API del modelo v2 — Bloque A (1 de septiembre de 2026)
+⚠ Al agregar un parámetro nuevo a `services/parametros.ts` hay que **volver a sembrar**, o el endpoint que lo lee falla con "parámetro no configurado".
 
-El eje **actividad → código → evidencia → validación → puntaje** ya funciona de extremo a extremo por API. Verificado con `npm run verificar:api` → **57/57**.
+---
 
-### Contrato (puerto 4000, mismo JWT)
+## 6. Las pantallas
 
-| Endpoint | Roles | Notas |
-|---|---|---|
-| `GET /periodos[?estado=abierto]` · `GET /periodos/:id` | todos | Devuelve `diasTotales`, `diasTranscurridos` y `porcentajeTranscurrido` **calculados desde las fechas** (§13.1: prohibido fijar 90/91) |
-| `POST /periodos` | admin, supervisor | Rechaza solapamiento con otro período (422) y nombre duplicado (422) |
-| `PATCH /periodos/:id` | admin, supervisor | Exige `version`; período cerrado → 422 |
-| `POST /periodos/:id/cierre` | admin, supervisor | `{version}`. Congela el período (RN-013) |
-| `POST /periodos/:id/reapertura` | **solo admin** | `{version, motivo}` — el motivo queda en la bitácora inmutable (RN-013, CA-10) |
-| `GET /cargos[?incluirInactivos=1]` · `GET /items[?cargo=]` | todos | El funcionario necesita ver qué se le mide (RF-008) |
-| `POST/PATCH /cargos` · `POST/PATCH /items` | admin, supervisor | No hay DELETE: se desactiva (`activo:false`). `PATCH` exige `version`. `cargoId` de un ítem no se puede mover |
-| `GET /actividades?periodo=&funcionario=&item=&unidad=&fechaDesde=&fechaHasta=&limite=&desde=` | todos, **acotado por delegación** | Paginado (`{total, limite, desde, actividades}`); delegación ajena → 404 |
-| `POST /actividades` | usuario, gerente, supervisor, admin | La delegación se deriva de la membresía, no del cliente. Valida período abierto, fecha dentro del período, ítem del cargo, RUT y teléfono. Devuelve `alertaTrazabilidad` si esa persona ya fue atendida en otra delegación (ADR-008) |
-| `PATCH /actividades/:id` | autor, jefatura, nivel central | Exige `version`. Con evidencia **aprobada** → 422 con `accionSugerida` |
-| `POST /actividades/:id/anulacion` | ídem | `{version, motivo}` — baja lógica, deja de sumar (ADR-006) |
-| `POST /actividades/:id/evidencias?nombre=` | ídem | **Cuerpo = archivo crudo**, `Content-Type` = su MIME. Formato → catálogo `formato_evidencia` (415); tamaño → parámetro `evidencia_tamano_max_mb` (413) |
-| `GET /evidencias?estado=pendiente\|aprobada\|rechazada\|correccion_solicitada&periodo=&unidad=` | todos; el **verificador ve todas** | Bandeja ordenada por antigüedad |
-| `GET /evidencias/:id` · `GET /evidencias/:id/archivo` | ídem | El archivo no se sirve como estático: pasa por autorización |
-| `POST /evidencias/:id/validacion` | verificador, supervisor, admin | `{decision, observacion}`. Tres decisiones (RF-013); observación obligatoria si no se aprueba; **nadie valida lo propio** (RNF-005); una aprobación no se re-decide (CA-01) |
-| `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
+Todas siguen los criterios que **DESIGN §8.2 fijó antes** de construirlas.
 
-## Metas por funcionario — Bloque A2 (1 de septiembre de 2026, `de68901`)
+### 6.1 Tubo de trabajo (`/`) — EP-04
 
-`MetaItem` existía en el modelo v2 pero solo se poblaba por seed: no había forma de configurar **cuánto se le mide a una persona y con qué peso**. `/metas-item` cierra RF-006 y RF-007, y hace verificable RN-001. Verificado con `npm run verificar:api` → **88/88** (18 comprobaciones nuevas).
+Kanban con dnd-kit, tiempo real y presencia. Actualización optimista con reversión y aviso si el PATCH falla. Permisos espejo del backend (que sigue siendo la autoridad). El libro es **privado por delegación**; el verificador no tiene libro y ve un vacío que lo explica.
 
-⚠ **`/metas` y `/metas-item` no son lo mismo**: `/metas` es el modelo v1 (unidad × categoría × trimestre) y `/metas-item` el v2 (funcionario × ítem × período). Mezclarlos dejaría dos verdades sobre la misma palabra; convergen cuando el Bloque C retire la vista v1.
+⚠ Pendiente de accesibilidad: falta la alternativa por teclado del arrastrar y soltar (`KeyboardSensor` de dnd-kit).
 
-| Endpoint | Roles | Notas |
-|---|---|---|
-| `GET /metas-item?periodo=&funcionario=&item=` | todos, **acotado por delegación** | Devuelve `{total, metas, resumen}`. El `resumen` por (período, funcionario) trae `sumaPonderadores`, `cumpleRN001` y `faltante`: la pantalla debe poder decir "falta 15%" **antes** de guardar. Funcionario de delegación ajena → 404 |
-| `POST /metas-item` | admin, supervisor | Rechaza **superar** el 100% (422 con `disponible`); quedarse corto se informa, porque se cargan de a una (decisión 4 de Fase 2). Valida meta > 0 (RN-002), ítem del cargo del funcionario (RF-003), ítem activo, duplicado (422) y período abierto (RN-013) |
-| `PATCH /metas-item/:id` | admin, supervisor | Solo meta y ponderador: período, ítem y funcionario **identifican** la fila. Exige `version` → 409 |
-| `DELETE /metas-item/:id` | admin, supervisor | Una meta **sí se borra**: es configuración del período, no historia, y si no pudiera quitarse el ponderador quedaría ocupado y RN-001 sería inalcanzable. Protegido si el ítem ya acumuló avance aprobado → 422 (RN-009, CA-01) |
-| `PUT /metas-item` | admin, supervisor | `{periodoId, funcionarioId, metas[]}` — configuración **completa** de una persona, en transacción, **exigiendo el 100% exacto**. Es la única operación que puede garantizar RN-001, porque recibe el conjunto entero. Cada meta que **ya existe** debe traer su `version`: si falta o no coincide → 409 con el conjunto vigente (CA-08) |
-| `GET /usuarios` | todos | Ahora expone `cargoId`, el vínculo real al cargo del modelo v2 — es lo que dice **qué ítems se le miden** a cada persona (RF-003). Sin él la pantalla de metas tendría que emparejar cargos por nombre |
+### 6.2 Ficha personal (`/ficha`) — RF-008, HU-06
 
-Eventos nuevos: `meta_item:creada/actualizada/eliminada` en la room de la delegación del funcionario, y `cumplimiento:cambiado` en la de la organización — cambiar una meta mueve el puntaje, igual que aprobar una evidencia.
+La pantalla más importante: la "pestaña personal" de la planilla. Tres bloques: cabecera con semáforo y una cifra hero, tabla de ítems medidos, y registro de actividades con la fila de alta **siempre visible arriba** (registrar es lo que estas personas hacen varias veces al día).
 
-### Decisiones del Bloque A2 (no re-discutir sin motivo)
+- **Ningún dato se calcula en el cliente**: todo viene de `GET /cumplimiento/:periodoId`. Incluso "hoy" se deriva del período que devuelve el servidor.
+- Formatos aceptados y tamaño máximo se anuncian **antes** de elegir el archivo.
+- La evidencia no se enlaza con un `src` directo: el endpoint exige JWT, así que se descarga por fetch y se muestra desde un object URL que se revoca al cerrar.
+- Al llegar `validacion:registrada` recarga cumplimiento y actividades **juntos**, para que la cifra de arriba y el estado de la fila nunca cuenten cosas distintas.
 
-18. **Dos exigencias distintas para la misma regla**: el alta unitaria rechaza *superar* el 100% y el `PUT` en lote exige el 100% *exacto*. No es incoherencia: cargando de a una es imposible pasar por el 100% sin estar antes por debajo, mientras que un conjunto completo que no cuadra sí es un error. Ambas respuestas informan siempre la suma y lo que falta.
-19. **La tolerancia de RN-001 es `0.0001`**, el ULP de `ponderador Decimal(5,4)`. **No es un valor de negocio** (el 100% lo fija la regla, no el cliente, así que no va a `parametro`): existe para que un reparto entre tres ítems a 33,33% no quede bloqueado por el último dígito que la base puede representar.
-20. **Una meta con avance aprobado no se quita**, ni por `DELETE` ni dejándola fuera de un `PUT`: borraría puntaje ya validado sin dejar rastro visible (RN-009, CA-01). Para corregirla se ajusta su meta o su ponderador.
-21. **El versionado que pide RF-007 es el período**: la meta cuelga de `periodoId`, así que reconfigurar el trimestre siguiente nunca toca el cerrado. No hace falta una tabla de versiones de meta.
-22. **Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` en la raíz.** Es lo único que el oyente necesita para saber si le toca releer; tenerlo en unas sí y en otras no obligaría a inspeccionar el tipo de evento antes de poder leerlo.
-23. **Un selector no ofrece lo que el servidor va a rechazar.** Vale para toda lista de elección, no solo para esta pantalla: se filtra por el mismo alcance que aplica el backend, y si queda vacía se explica por qué.
+### 6.3 Bandeja del verificador (`/verificacion`) — RF-013, HU-11
 
-### Bug encontrado por esta prueba (preexistente)
+Aquí el punto se otorga o se niega. Es una **lista de trabajo, no un tablero**: cola a la izquierda, foto grande a la derecha, tres acciones equidistantes.
 
-`services/auditoria.ts` perdía **en silencio** todo evento cuyo valor incluyera un `Prisma.Decimal`: `limpiar()` lo recorría como objeto plano, arrastraba su `constructor` al Json y Prisma rechazaba el insert — y como la bitácora nunca lanza (para no tumbar la operación de negocio), el evento desaparecía sin aviso. `MetaItem` es la primera entidad auditada con columnas `Decimal`, por eso nadie lo había visto; con la API de parámetros (RF-038, también `Decimal`) habría vuelto a pasar. Ahora `Decimal`, `Date`, `bigint` y `Buffer` se convierten **antes** de recorrerlos, y hay una comprobación de regresión que exige ver el número en la bitácora.
+- Tres decisiones: aprobar · solicitar corrección · rechazar. Las dos últimas exigen observación.
+- **Teclado completo** con las teclas visibles en pantalla: `J` siguiente, `K` anterior, `Enter` aprobar.
+- Orden según el estado: lo pendiente de más antiguo a más nuevo (es una cola); lo decidido al revés (es un historial). Selector para invertirlo.
+- Paginación explícita con "N de TOTAL" y "Cargar más".
+- `evidencia:pendiente` muestra un aviso, **no recarga sola**: mover la cola bajo el cursor de quien decide es la forma más rápida de provocar un error.
 
-**Lección**: un servicio que traga sus errores necesita una prueba que mire el resultado, no la ausencia de excepción.
+### 6.4 Configuración de metas (`/metas`) — RF-006, RF-007, HU-05
 
-### Eventos Socket.io nuevos
+Donde se decide qué se le mide a cada persona y con qué peso.
 
-- room unidad: `actividad:creada`, `actividad:actualizada`, `actividad:anulada`, `evidencia:creada`, `validacion:registrada`
-- room org: `periodo:creado/actualizado/cerrado/reabierto`, `cargo:creado/actualizado`, `item:creado/actualizado`, `evidencia:pendiente` (avisa a la bandeja), `cumplimiento:cambiado` (solo al aprobar: es lo único que mueve el puntaje)
+- **La suma es el protagonista**: totalizador con cifra, barra y texto que dice en todo momento `cuadrado en 100%` · `falta 15%` · `se pasa por 8%`.
+- **Todos los ítems del cargo se muestran**, tengan meta o no: uno oculto es uno que nadie recuerda repartir.
+- Se guarda el conjunto con un `PUT`, no fila por fila.
+- **Repartir 100% en partes iguales** a un clic, con el redondeo en el último ítem.
+- Lo que ya sumó puntaje no se puede quitar: casilla desactivada con su razón. El dato sale de `GET /cumplimiento`, sin endpoint nuevo.
+- Solo la jefatura ve las metas de otros (ver consulta abierta nº 11).
 
-### Decisiones del Bloque A (no re-discutir sin motivo)
+### 6.5 Dashboard (`/dashboard`) — EP-05
 
-12. **Subida de evidencia sin multipart**: el cuerpo es el archivo crudo. Evita una dependencia (costo cero) y el nombre del cliente nunca llega al disco — la ruta se deriva del código inmutable de la actividad (`<org>/<CODIGO>-NN.<ext>`). El nombre enviado se guarda saneado, solo como metadato.
-13. **El tope de subida tiene dos capas**: `LIMITE_SUBIDA_HTTP` (env, guarda de infraestructura, 25 MB) y `evidencia_tamano_max_mb` (parámetro de negocio, 10 MB). Los formatos viven en el catálogo `formato_evidencia`, no en el código.
-14. **Una aprobación es final**: cambiarla alteraría un puntaje ya contabilizado (CA-01). Para corregir se anula la actividad y se registra otra.
-15. **El verificador ve todas las delegaciones** (`unidadesParaVerificacion`), pero **solo para evidencias**: no se amplió su acceso al libro ni al tubo. Es una función transversal del PDF §3, no un permiso general.
-16. **Los períodos no se solapan**: si lo hicieran, una actividad podría caer en dos y el avance se contaría dos veces.
-17. **La anulación se audita como `eliminar`** (baja lógica): la fila permanece, deja de sumar y conserva su motivo.
+ECharts modular con carga perezosa: gauges por delegación, heatmap semántico con escala discreta del semáforo, dumbbell de proyección, radar en énfasis, tubo apilado y tabla ordenable. Filtros cruzados: al hacer clic en cualquier gráfico se filtra todo. Todos los gráficos leen los tokens vivos y cambian con el tema sin recargar.
 
-### Limitación declarada
+⚠ **Aún lee la vista materializada v1** (por delegación, con umbrales fijos en SQL). Migrarlo al motor v2 es el Bloque C.
 
-RNF-017 pide además **antivirus** sobre las evidencias. Queda fuera de alcance por la restricción de costo cero; está declarado, no oculto.
+### 6.6 Piezas reutilizables
 
-## Ficha personal — Bloque B, primera pantalla (1 de septiembre de 2026)
+`ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color) · `.tabla-sgr` · `.btn-peligro` · `.btn-tabla` · `useUnidadSocket` · `useOrgSocket` · `useArchivoEvidencia` · `useTokens`.
 
-`/ficha` (`frontend/src/pages/FichaPage.tsx`) es la "pestaña personal" de la planilla y la pantalla más importante del sistema (RF-008, HU-06). Sigue los tres bloques que DESIGN §8.2 fijó **antes** de construirla:
+⚠ Deuda: `.tabla-detalle` del dashboard y `.tabla-sgr` son dos tablas con el mismo propósito. Convergen en el Bloque C.
 
-1. **Cabecera**: identidad, período y **una** cifra hero (cumplimiento) junto al chip ●▲■. El semáforo se explica al lado, porque la cifra sola engaña sin el objetivo al día (RN-008). Debajo, objetivo al día, avance relativo y actividad reciente (RF-030).
-2. **Ítems medidos**: ponderador, meta, avance, % y ponderado, con `tabular-nums` y total separado por **borde** de 2px. Los ítems inversos llevan la marca textual "menor es mejor" (ADR-009) — nunca se distinguen solo por comportamiento.
-3. **Registro de actividades**: la fila de alta está **siempre visible arriba**, sin modal, porque registrar es lo que estas personas hacen varias veces al día. Cada actividad muestra su código, su estado del ciclo evidencia→validación y sus acciones: subir evidencia (un toque, con cámara en móvil), verla y anular con motivo.
+---
 
-Detalles que importan:
+## 7. Decisiones tomadas (no re-discutir sin motivo)
 
-- **Ningún dato se calcula en el cliente**: todo viene de `GET /cumplimiento/:periodoId`. Incluso **"hoy" se deriva del período que devuelve el servidor**, no del reloj del navegador (ADR-002).
-- Los **formatos aceptados** llegan de `GET /catalogos?catalogo=formato_evidencia` y el **tamaño máximo** del parámetro; ambos se anuncian **antes** de elegir el archivo (RNF-017, DESIGN §8.2). Endpoint nuevo: `GET /catalogos` (solo lectura; el CRUD de HU-27 sigue pendiente).
-- La **evidencia no se enlaza con un `src` directo**: el endpoint exige el JWT, así que se descarga por fetch y se muestra desde un object URL que se revoca al cerrar. El `alt` describe código y actividad (RNF-012).
-- **Tiempo real**: la ficha escucha el room de su delegación. Al llegar `validacion:registrada` recarga cumplimiento y actividades juntos, para que la cifra de arriba y el estado de la fila nunca cuenten cosas distintas (CA-06).
-- **Visibilidad**: el selector de funcionario solo ofrece personas de delegaciones cuyo libro este rol puede abrir (`puedeVerLibro`), más uno mismo. El detalle sigue privado por delegación; el consolidado público vive en el dashboard.
-- **Accesibilidad** (RNF-012): etiqueta visible en cada campo, obligatorios marcados con texto, el teléfono se valida **al salir del campo** con `role="alert"` junto al campo, y el input de archivo se oculta con `.sr-only` (no con `hidden`) para no sacarlo del orden de tabulación.
+**Arquitectura y datos**
 
-Piezas reutilizables que salieron de aquí: `ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color), `.tabla-sgr`, `.btn-peligro` y `.btn-tabla` en `base.css`, y `useUnidadSocket` generalizado con handlers opcionales para que el tubo y la ficha compartan un solo hook.
+1. Backend en TypeScript estricto: `npm run build` debe pasar siempre.
+2. `tareas.estado` es string libre, no enum: las columnas del kanban son configurables por tenant.
+3. No hay orden intra-columna en el kanban: se ordena por `fechaCompromiso`.
+4. IDs `uuid` en columna **text**, no tipo `uuid` de Postgres (no castear `::uuid` en SQL crudo).
+5. `req.params.id` se normaliza con `String()` (Express 5 lo tipa `string | string[]`).
+6. Token en `localStorage` (clave `matriz.auth`); refresh token queda para más adelante.
 
-⚠ **Deuda que abre**: `.tabla-detalle` del dashboard y `.tabla-sgr` son dos tablas con el mismo propósito. Converge en el Bloque C, cuando el dashboard migre al cálculo v2.
+**Frontend**
 
-## Bandeja del verificador — Bloque B, segunda pantalla (1 de septiembre de 2026)
+7. React 18.3, no 19: `echarts-for-react` declara peers hasta 18.
+8. `fetch`, no axios: una dependencia menos.
+9. CSS3 plano con los tokens de DESIGN.md. Sin Tailwind, sin UI kits.
+10. Colores de categoría: paleta fija de 6 tonos asignados por `ordenPrioridad`.
 
-`/verificacion` (`frontend/src/pages/BandejaPage.tsx`) cierra el ciclo: aquí el punto se otorga o se niega (RF-013, RF-014, HU-11). Es una **lista de trabajo, no un tablero** (DESIGN §8.2): cola a la izquierda, **foto grande** a la derecha —la decisión se toma mirando la imagen— y tres acciones equidistantes.
+**Registro y validación**
 
-- **Tres decisiones, no dos**: Aprobar · Solicitar corrección · Rechazar. Las dos últimas exigen observación de al menos 5 caracteres, avisada en el cliente antes de gastar un viaje al servidor y exigida igual por el backend (CA-02).
-- **Teclado completo** (RNF-012, DESIGN §8.2): `J` siguiente, `K` anterior, `Enter` aprobar, **con las teclas visibles en pantalla** — un atajo que nadie descubre no existe. Los atajos se desactivan mientras se escribe en un campo.
-- Al decidir, la evidencia **sale de la cola y avanza sola** a la siguiente: lo decidido ya no es trabajo.
-- **Historial de revisiones previas** a la vista, porque el ciclo real es "solicitar corrección → sube otra foto → revisar de nuevo" y sin ver qué se pidió antes no se puede juzgar si se corrigió.
-- **Orden según el estado**: lo pendiente se ordena de más antiguo a más nuevo, porque es una cola; lo ya decidido, de más nuevo a más antiguo, porque es un historial. El selector **Orden** permite invertirlo (`?orden=antiguas|recientes`).
-- **Paginación explícita**: la cola carga de a 50 y el encabezado dice siempre "N de TOTAL", con botón "Cargar más". El aviso de trabajo nuevo lleva a **"Ver las más recientes"**, no a recargar la misma página.
+11. **Subida de evidencia sin multipart**: el cuerpo es el archivo crudo. Evita una dependencia y el nombre del cliente nunca llega al disco — la ruta se deriva del código inmutable.
+12. **El tope de subida tiene dos capas**: `LIMITE_SUBIDA_HTTP` (env, infraestructura) y `evidencia_tamano_max_mb` (parámetro de negocio).
+13. **Una aprobación es final**: cambiarla alteraría un puntaje ya contabilizado. Para corregir se anula la actividad y se registra otra.
+14. **El verificador ve todas las delegaciones**, pero **solo para evidencias**: no se amplió su acceso al libro ni al tubo.
+15. **Los períodos no se solapan**: si lo hicieran, una actividad caería en dos y se contaría dos veces.
+16. **La anulación se audita como `eliminar`**: la fila permanece, deja de sumar y conserva su motivo.
 
-  ⚠ **Por qué existe todo lo anterior**: la primera versión cargaba 50 evidencias ordenadas solo por antigüedad y no decía cuántas quedaban fuera. Con las 88 pendientes del seed, una evidencia recién subida caía en la **posición 87** y era invisible en pantalla — parecía que el ciclo no funcionaba. Lo detectó el equipo probando el flujo completo, no una prueba. Ahora hay dos verificaciones que cubren exactamente ese caso ("lo recién subido es alcanzable en la primera página con orden=recientes" y "la cola pagina sin repetir").
-- **Tiempo real sin sobresaltos**: `evidencia:pendiente` (room de la organización, vía `useOrgSocket`) muestra un aviso "llegaron evidencias nuevas" con botón para actualizar. **La lista no se recarga sola**: mover la cola bajo el cursor de quien está decidiendo es la forma más rápida de provocar un error.
-- **El menú solo muestra la bandeja a quien puede validar** (verificador, coordinador, admin). Si alguien más entra por URL, ve la bandeja en lectura con el aviso de por qué no puede decidir (RNF-005).
+**Metas**
 
-Piezas reutilizables nuevas: `useArchivoEvidencia` (descarga con JWT y revoca el object URL; lo usan la bandeja y la ficha) y `useOrgSocket`.
+17. **Dos exigencias para RN-001**: el alta unitaria rechaza *superar* el 100%; el `PUT` del conjunto exige el 100% *exacto*. Cargando de a una es imposible pasar por el 100% sin estar antes por debajo; un conjunto completo que no cuadra sí es un error.
+18. **La tolerancia de RN-001 es `0.0001`**, el ULP de `Decimal(5,4)`. No es valor de negocio (el 100% lo fija la regla), así que no va a `parametro`.
+19. **Una meta con avance aprobado no se quita**, ni por `DELETE` ni dejándola fuera de un `PUT`.
+20. **El versionado que pide RF-007 es el período**: la meta cuelga de `periodoId`, así que reconfigurar el trimestre siguiente nunca toca el cerrado.
 
-### Correcciones encontradas probando el flujo real (no las vio ninguna prueba)
+**Contratos e interfaz**
 
-Las dos aparecieron recorriendo el ciclo completo con cuentas distintas, y las dos eran de pantalla, no de datos. Quedan aquí porque el patrón se repite:
+21. **Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` en la raíz.**
+22. **Un selector no ofrece lo que el servidor va a rechazar.** Vale para toda lista de elección: se filtra por el mismo alcance que aplica el backend, y si queda vacía se explica por qué.
+23. **Multi-tenant**: un recurso ajeno o inexistente responde 404. Un identificador mal formado responde 400 (es sintaxis, no alcance).
+
+---
+
+## 8. Lo que aprendimos probando (errores reales, no hipotéticos)
+
+Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el flujo o mirando la pantalla con cuentas distintas. El patrón se repite lo suficiente como para dejarlo escrito.
 
 | Error | Qué se veía | Causa | Corrección |
 |---|---|---|---|
-| Lo recién subido no aparecía en la bandeja | Se subía evidencia y la cola no la mostraba: parecía que el registro se había perdido | La cola cargaba 50 ordenadas por antigüedad y **no decía cuántas quedaban fuera**; con 88 pendientes del seed, lo nuevo caía en la posición 87 | `?orden=antiguas\|recientes`, contador "N de TOTAL", botón "Cargar más" y el aviso en vivo lleva a "Ver las más recientes". Dos verificaciones de regresión |
-| El tubo no cargaba nunca para el verificador | Esqueleto de carga infinito y un selector de delegación vacío | `cargarTareas` salía antes de apagar el indicador cuando **no había delegación visible**, y el rol verificador no tiene libro (regla 9) | Se resuelve el estado de carga siempre, se ocultan los controles sin sentido y aparece un vacío que **explica el porqué** y enlaza a la bandeja. Verificación: "el verificador no tiene libro pero sí ve la bandeja" |
+| Lo recién subido no aparecía en la bandeja | Parecía que el registro se había perdido | La cola cargaba 50 ordenadas por antigüedad y **no decía cuántas quedaban fuera**; con 88 pendientes, lo nuevo caía en la posición 87 | Orden configurable, contador "N de TOTAL", "Cargar más" y aviso que lleva a lo reciente. Dos verificaciones de regresión |
+| El tubo no cargaba nunca para el verificador | Esqueleto infinito y selector vacío | `cargarTareas` salía antes de apagar el indicador cuando no había delegación visible | Se resuelve el estado de carga siempre, se ocultan los controles sin sentido, y el vacío **explica su causa** |
+| Un funcionario veía las metas de sus pares | Gabriel abría `/metas` y aparecía la medición de Elena | La pantalla nueva era más permisiva que `/ficha`, que ya lo impedía | Solo la jefatura ve las de otros. Consulta abierta nº 11 por su lado legal |
+| La bitácora perdía eventos **en silencio** | Nada. Ese era el problema | `limpiar()` recorría un `Prisma.Decimal` como objeto plano y arrastraba su `constructor`; Prisma rechazaba el insert y, como la bitácora no lanza por diseño, el evento desaparecía | Decimal, Date, bigint y Buffer se convierten antes de recorrerlos. Verificación de regresión |
 
-**Lección incorporada a DESIGN §7**: ningún esqueleto perpetuo, y todo vacío explica su causa y ofrece la acción que sí corresponde a ese rol. **Y a `siguiente-sesion.md`**: probar cada pantalla con los seis roles, no solo con el propio.
+**Tres reglas que salieron de aquí:**
 
-## Configuración de metas — Bloque B2, tercera pantalla (1 de septiembre de 2026)
+1. **Ningún esqueleto perpetuo, y todo vacío explica su causa** y ofrece la acción que sí corresponde a ese rol.
+2. **Probar cada pantalla con los seis roles**, no solo con el propio.
+3. **Un servicio que traga sus errores necesita una prueba que mire el resultado**, no la ausencia de excepción.
 
-`/metas` (`frontend/src/pages/MetasPage.tsx`) es donde se decide **qué se le mide a una persona y con qué peso** (RF-006, RF-007, HU-05). Todo lo que se calcula después cuelga de aquí, así que la pantalla está construida alrededor de una idea: que sea imposible guardar un reparto que no cuadre.
+---
 
-- **La suma es el protagonista, no un mensaje de error**: un totalizador con cifra, barra y texto acompaña la edición y dice en todo momento `cuadrado en 100%` · `falta 15%` · `se pasa por 8%`. Descubrir el desajuste al guardar es el fallo de la planilla que venimos a reemplazar.
-- **Todos los ítems del cargo se muestran**, tengan meta o no: uno oculto es uno que nadie recuerda repartir. Los que no se miden van desmarcados y se ven en gris.
-- **Se guarda el conjunto con un `PUT`**, no fila por fila: es lo único que puede garantizar RN-001 y evita dejar estados intermedios inválidos en la base.
-- **Repartir 100% en partes iguales** a un clic, con el redondeo acumulado en el último ítem para que dé exactamente 100 y no 99,99.
-- **Lo que ya sumó puntaje no se puede quitar** (RN-009): la casilla se desactiva con su razón escrita al lado. Un botón que siempre falla es peor que un botón ausente. El dato sale de `GET /cumplimiento`, que ya cuenta solo lo aprobado — no hizo falta endpoint nuevo.
-- **Período cerrado y rol sin permiso** ven la pantalla completa en lectura, con el motivo y el camino que sí corresponde (RN-013, RNF-005).
-- **Conflicto en vivo**: `meta_item:*` en el room de la delegación muestra "otra persona cambió esto" con botón para releer. **No recarga sola**: mover los campos bajo el cursor de quien escribe provoca errores.
-- La conversión porcentaje ↔ fracción vive **solo** en `lib/metas.ts`; repartirla por los componentes es la forma segura de que un día 25 se guarde como 25 en vez de 0,25.
+## 9. Deuda técnica y pendientes
 
-### Dos huecos que aparecieron construyéndola
-
-| Hueco | Por qué importaba | Corrección |
+| Pendiente | Dónde | Prioridad |
 |---|---|---|
-| **`PUT /metas-item` no comparaba `version`**: reemplazaba el conjunto entero a ciegas | Dos personas configurando al mismo funcionario se pisaban en silencio, contra CA-08 | Cada meta existente debe llegar con su `version`; si falta o no coincide, 409 con lo vigente. La comparación va **dentro** de la transacción, no solo en la validación previa |
-| **El selector ofrecía a todo el directorio** | El libro es privado por delegación: elegir a alguien de otra delegación daba 404 y un error que la persona no provocó. Es el mismo fallo que dejó el tubo cargando para el verificador | El selector ofrece solo lo que ese rol puede consultar; cuando eso es nada (verificador, consulta), la pantalla lo explica y enlaza a lo suyo |
+| 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner | `scripts/cargar-plan-planner.ps1` | Bloqueante |
+| **Rediseño visual completo** con identidad de La Serena (ver DESIGN §10) | frontend | Alta — bloquea a los demás |
+| Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1** | `jobs/cumplimiento.ts`, `dashboard.ts` | Alta |
+| Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría | rutas heredadas | Alta |
+| Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
+| Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria` | backend y frontend | Media |
+| API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia` y CRUD de catálogos y parámetros | backend | Media |
+| Pantallas de administración: períodos, cargos, catálogos | frontend | Media |
+| Alternativa por teclado en el arrastrar y soltar (RNF-012) | `KanbanBoard.tsx` | Media |
+| `.tabla-detalle` y `.tabla-sgr`: dos tablas con el mismo propósito | `dashboard.css` vs `base.css` | Media |
+| El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `lib/dashboard.ts` | Media |
+| Alertas (RF-037) y exportación de informes (RF-033) | — | Media |
+| Pruebas en marco formal (Jest/RTL) y CI | — | Media |
+| Despliegue: Docker de producción, VPS, Caddy, respaldos | — | Baja hasta la entrega |
+| `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
+| Warning de Prisma: `package.json#prisma` deprecado → migrar a `prisma.config.ts` | — | Baja |
 
-El segundo lo encontró **la verificación por roles**, no la vista: `verificador=0, consulta=0` personas configurables. Es la primera vez que la regla de los seis roles se ejecuta automatizada en vez de a mano.
+---
 
-### Lo que encontró la revisión visual con las seis cuentas
+## 10. Bloqueos externos y consultas abiertas
 
-Hecha con un navegador real, entrando con cada cuenta y mirando la pantalla. Ninguna de las tres cosas la podía ver una prueba de API — y la primera no es estética:
+- **11 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1 y 3 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código.
+- **Instrucciones verbales sin rúbrica** en [§9.bis](requerimientos-oficiales.md): diagrama de clases, 10 casos de uso, y que solo se revisará el Planner. Se contrastan cuando se publique la rúbrica.
+- **Columnas de asistencia** (licencia, vacaciones, compensatorios): sin definición. **No inventar el cálculo.**
+- **Matriz de roles definitiva**: hoy rige la del Documento Maestro §4; los ajustes solo tocan `middleware/roles.ts` y los checks de alcance.
+- **RNF-017 pide antivirus** sobre las evidencias. Fuera de alcance por la restricción de costo cero; está declarado, no oculto.
 
-| Hallazgo | Qué se veía | Corrección |
+## 11. Restricciones permanentes
+
+- **Costo cero**: solo herramientas gratuitas. Único gasto autorizado al final: una VPS si es imprescindible.
+- **Datos ficticios obligatorios**: prohibido cargar datos reales de ciudadanos o funcionarios en repo, base o capturas.
+- **Marco legal chileno**: Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719 de datos personales. El sistema trata datos de vecinos y de desempeño de funcionarios de un organismo público.
+
+---
+
+## 12. Registro histórico de fases
+
+Se conserva para trazabilidad; **lo vigente está arriba**.
+
+| Fase | Cerrada | Qué dejó |
 |---|---|---|
-| **Un funcionario veía las metas de sus pares** | Gabriel (rol `usuario`) abría la pantalla y aparecían las metas y el avance de Elena, su compañera de delegación | Solo la jefatura ve las de otros. Es coherente con `/ficha`, donde `puedeElegirPersona` ya excluía al rol `usuario`: **la pantalla de metas era, sin querer, más permisiva que el resto del sistema**. Queda como [consulta abierta nº 11](requerimientos-oficiales.md) por su lado legal |
-| La nota de RN-009 se repetía en **cada fila** | Dos líneas de texto idéntico por ítem —doce líneas con seis ítems— empujaban el dato fuera de la vista, y en modo lectura decían "puedes ajustar" a quien no puede | Un chip corto `fijo` por fila y la explicación **una sola vez** sobre la tabla, redactada según se pueda editar o no |
-| Controles vacíos y un mensaje de más | Al verificador le aparecía un selector de funcionario **vacío pero activo**, y dos avisos seguidos diciendo cosas parecidas | Sin nadie que configurar, los filtros no se muestran; con una sola persona, tampoco el selector. El aviso de lectura no se repite sobre el vacío explicado |
+| 1. Documentación y diseño | ✅ | DESIGN.md, diagramas, historias, backlog |
+| 2. Backend y configuración | ✅ | Express + Socket.io + Prisma + Postgres en Docker, auth multi-tenant, smoke test |
+| 3. Frontend | ✅ | Vite + React + TS, auth, kanban dnd-kit, presencia, tokens de DESIGN |
+| 4. BI y dashboards | ✅ | ECharts modular, filtros cruzados, KPI tiles |
+| 5. Despliegue | ⬜ | CI/CD, VPS, Caddy, respaldos |
 
-También salió un defecto tipográfico con causa de fondo: el aviso era un contenedor `flex`, así que cada `<strong>` se volvía un ítem con su `gap` y el texto quedaba con huecos delante de la puntuación ("Ficha personal ."). **Un bloque de texto corrido no debe ser flex.**
+**Rediseño visual v1.1** (post-Fase 3): el usuario aportó [ebus-test.vercel.app](https://ebus-test.vercel.app) como referencia. Se adoptó su **arquitectura de tokens en dos capas**, la receta de acabado (tabular-nums, `::selection`, scrollbars, `focus-visible`), cuatro keyframes con una curva única, la primitiva `.card`, el anti-parpadeo de tema y lucide-react. Se rechazaron Tailwind, Next.js y Recharts, por mandato del Documento Maestro y del PDF. Metáfora propia: el **semáforo** con marca ●▲■.
 
-**Cómo se hizo**: Playwright instalado **fuera del repo** (en el scratchpad de la sesión), recorriendo las seis cuentas y dejando una captura por rol. No agrega dependencias al proyecto. El guion comprueba lo que ninguna prueba de API alcanza: esqueletos perpetuos, toasts de error, errores de consola, y qué ve realmente cada rol.
-
-## Requerimientos reales de la reunión con el cliente
-
-**[anotaciones-clase.md](anotaciones-clase.md)** es la **biblia de requerimientos**: procesa apuntes + la transcripción completa (1h41m) de la reunión con etiquetas [CONFIRMADO]/[HIPÓTESIS]/[AMBIGUO]. **Leerlo antes de tocar el modelo o el cálculo.** Lo esencial:
-- 🔓 **El "Objetivo al día" YA NO ESTÁ BLOQUEADO**: `dias_efectivos = 90 − licencia − vacaciones − compensatorios − emergencia`; `objetivo_al_dia = dias_transcurridos / dias_efectivos × 100`. La meta se prorratea por días trabajados.
-- ✅ **Correcciones del 26-08-2026 (aplicadas y con smoke test 13/13)**: vista `cumplimiento_v2` con umbrales del cliente (verde ≥100 / naranjo 60-99 / rojo <60 sobre el avance relativo al objetivo del día, tope 150% por ítem); libros privados por delegación (`services/alcance.ts`, `puedeVerLibro`) con semáforo consolidado visible por todos; seed con las 6 delegaciones y pilares reales; membresía con `unidadTerritorialId` y `cargo`. ⚠ **Las cuentas que listaba esta línea eran las `@demo.cl` de entonces y ya no existen** (`territorial1.centro@demo.cl` es hoy `territorial.centro@sgr.demo`); las vigentes están en [§Cuentas de demostración y roles](#cuentas-de-demostración-y-roles--fuente-única).
-- 🆕 **La medición es por persona** (cargo → funciones → metas), y **nada suma hasta que el supervisor valida** poniendo el punto tras revisar la foto verificadora.
-- Cifras confirmadas: reclamo −20%, felicitación +10% (máx. 1/mes), emergencia = meta con ponderador 5%, mínimo esperado 80%.
-- Product Owners = los profesores; los requerimientos se canalizan por ellos.
-
-## Pendientes bloqueados por terceros
-
-(Detalle en [restricciones-y-pendientes.md](restricciones-y-pendientes.md))
-
-1. ~~**Planner**: sin acceso~~ **RESUELTO 26-08-2026**: plan `DesarrolloSW-MuniLS-OrigamiSpA` disponible con la plantilla del profesor. Plan de 58 tareas del ciclo de vida completo en [plan-desarrollo.md](plan-desarrollo.md), cargable con `scripts/cargar-plan-planner.ps1`.
-2. **Columnas de asistencia** (licencia, vacaciones, compensatorios, días totales, "objetivo al día"): sin definición de profesores. **CRÍTICO: no inventar el cálculo**; la tabla del semáforo mostrará esas columnas como "pendiente de definición".
-3. **Matriz de roles definitiva**: hoy rige la del Documento Maestro §4; ajustes solo tocarán `src/middleware/roles.ts` y los checks de alcance en controladores.
-
-## Restricción permanente
-
-**Costo cero**: solo herramientas gratuitas (Google Fonts, GitHub free, ghcr.io). Único gasto autorizado al final: una VPS (AWS/Hostinger) si es imprescindible para la entrega.
+**⚠ Cambio de línea base — 31 de agosto de 2026**: los profesores entregaron la especificación formal (38 RF, 18 RNF, 13 RN, 10 CA, 31 historias) y la presentación del cliente con las capturas de la planilla real. Eso redefinió el alcance: **la unidad de medición es el funcionario**, no la delegación, y el eje actividad → evidencia → validación → puntaje pasó a ser el corazón del sistema. El modelo v2 y todo lo construido desde entonces responden a ese cambio.

@@ -58,7 +58,7 @@ export interface Conectado {
 }
 
 // ---------------------------------------------------------------------------
-// Modelo v2 — espejo del contrato de docs/estado-proyecto.md §API del modelo v2
+// Modelo v2 — espejo del contrato de docs/estado-proyecto.md §3
 // ---------------------------------------------------------------------------
 
 export type Semaforo = "verde" | "naranjo" | "rojo";

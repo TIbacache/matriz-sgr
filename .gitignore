@@ -23,6 +23,10 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Archivos de bloqueo de Office: Word y Excel los crean al abrir un documento
+# y desaparecen al cerrarlo. Se colaron una vez en un commit.
+~$*
+
 # IDE
 .vscode/*
 !.vscode/extensions.json
