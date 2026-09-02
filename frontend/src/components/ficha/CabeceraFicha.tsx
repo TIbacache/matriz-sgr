@@ -1,6 +1,7 @@
 import type { CumplimientoFuncionario, CumplimientoRespuesta } from "../../lib/types";
 import { ChipSemaforo } from "../ChipSemaforo";
 import { fechaCl } from "../../lib/ficha";
+import { useContador } from "../../lib/useContador";
 
 interface Props {
   ficha: CumplimientoFuncionario;
@@ -16,6 +17,9 @@ interface Props {
 // se debería llevar hoy.
 export function CabeceraFicha({ ficha, periodo, delegacion, aviso }: Props) {
   const num = (n: number) => n.toFixed(1).replace(".", ",");
+  // La cifra hero llega contando (DESIGN §3.6); el resto de las métricas se
+  // escriben directo para no convertir la cabecera en un tablero de slots.
+  const refCifra = useContador(ficha.cumplimientoFinal);
 
   return (
     <section className="card ficha-cabecera entrada" aria-label="Resumen del período">
@@ -35,9 +39,14 @@ export function CabeceraFicha({ ficha, periodo, delegacion, aviso }: Props) {
 
       <div className="ficha-hero">
         <span className="ficha-hero-etiqueta">Cumplimiento del período</span>
-        <strong className="ficha-hero-cifra">{num(ficha.cumplimientoFinal)}%</strong>
+        <strong className="ficha-hero-cifra">
+          <span ref={refCifra}>{num(ficha.cumplimientoFinal)}</span>%
+        </strong>
+        {/* El chip hero late solo en rojo: es el único estado crítico real de
+            la pantalla (DESIGN §3.6.1), y late aquí, no en cada fila. */}
         <ChipSemaforo
           semaforo={ficha.semaforo}
+          pulsa={ficha.semaforo === "rojo"}
           ayuda={`Avance relativo al objetivo del día: ${num(ficha.avanceRelativo)}%`}
         />
       </div>

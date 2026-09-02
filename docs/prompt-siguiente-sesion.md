@@ -2,7 +2,7 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 2 de septiembre de 2026 · `main` en la etiqueta `v0.8.0-identidad-la-serena`
+**Última actualización**: 2 de septiembre de 2026 · `main` en la etiqueta `v0.8.1-vida-en-pantalla`
 **Bloque que abre**: B3 — ficha del vecino (ADR-008, CA-04, RF-032).
 
 ---
@@ -90,9 +90,12 @@ se olvidan):
 - Nada de atribución de herramientas de IA en etiquetas, PR ni entregables.
 
 Contexto que NO hay que volver a derivar:
-- La identidad visual está cerrada (Bloque D0): Libre Franklin + General
-  Sans, los dos rojos separados por rol/zona/forma, faro en SVG, frase
-  «Lo que se atiende, se registra; lo que se registra, avanza». No reabrir.
+- La identidad visual está cerrada (Bloques D0 y D1): Libre Franklin +
+  General Sans, los dos rojos separados por rol/zona/forma, faro en SVG que
+  gira e ilumina el mar, la ciudad de los campanarios en la barra, frase
+  «Lo que se atiende, se registra; lo que se registra, avanza», y dos
+  regímenes de movimiento (DESIGN §3.6): ambiente solo en login y barra,
+  estado en los datos, hover en todo lo clickeable. No reabrir. Sin Tailwind.
 - "v1" no significa obsoleto. /tareas (el tubo, EP-04), /unidades (RF-001) y
   /categorias sostienen requisitos vigentes y hay que endurecerlas. Las que
   mueren son /metas v1 y /kpis/cumplimiento (con el Bloque C).

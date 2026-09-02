@@ -139,6 +139,15 @@
     opacity var(--dur-1) var(--ease-expo);
 }
 
+.gauge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-2);
+  border-color: var(--borde-fuerte);
+}
+.gauge-card:active {
+  transform: translateY(0);
+}
+
 /* Gauge filtrado: selección en zona de datos, sin rojo (ADR-011) */
 .gauge-card--activa {
   border-color: var(--seleccion);

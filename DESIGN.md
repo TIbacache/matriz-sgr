@@ -1,7 +1,8 @@
 # DESIGN.md — Especificación visual SGR
 
-**Versión**: 1.4 · **Fecha**: 2 de septiembre de 2026
+**Versión**: 1.5 · **Fecha**: 2 de septiembre de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.5**: §3.6 pasa a tener dos regímenes de movimiento —**estado** en las zonas de datos y **ambiente** en las zonas de identidad— y una regla de feedback para todo lo clickeable. Decisión del equipo del 2 de septiembre: "la app se mueve sin que la toquen". §8.9 se reescribe en consecuencia.
 **v1.4**: §10 ejecutado — identidad de la Municipalidad de La Serena en tokens, barra y login (ADR-010 tipografía, ADR-011 los dos rojos). §2 y §3 actualizadas a lo implementado; §8 suma la regla 11; nace §10.7 con la verificación por script.
 **v1.2**: §8.1 Accesibilidad como norma obligatoria (RNF-012 y RNF-013 del PDF).
 **v1.3**: §8.2 con los criterios de las pantallas pendientes (ficha personal, formularios, evidencias, bandeja del verificador, ficha del vecino, parámetros), fijados antes de construirlas.
@@ -107,18 +108,53 @@ De menor a mayor gravedad: `#E3F2E8 → #FCF0D4 → #F5C16C → #E67E4E → #C03
 - Valores exactos en `frontend/src/styles/tokens.css` (fuente de verdad). Ideas clave: fondos carbón (no negro puro); el rojo luminoso vibra sobre carbón y como texto no llega a 4.5:1, así que `--acento` y `--marca` se elevan a `#FF4D6D` mientras el botón conserva `#DB0032` de fondo (por eso tiene tokens propios `--btn-*`); la barra pasa al heráldico profundo `#6B0006`; los estados suben luminosidad y sus fondos pálidos pasan a transparencias del color. El script encontró que `--estado-rojo-texto` en oscuro quedaba en 4.44:1 sobre su fondo pálido: se elevó a `#EA7C70`.
 - **Sin parpadeo**: script inline en `index.html` aplica `data-theme` desde `localStorage` (clave `matriz.tema`) o `prefers-color-scheme` ANTES del primer paint. El toggle sincroniza entre pestañas vía evento `storage`.
 
-## 3.6 Movimiento (el movimiento significa estado, no decora)
+## 3.6 Movimiento: dos regímenes
 
-- **Una sola curva** para todo el sistema: `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-expo`). Duraciones: 150ms micro-hovers, 240ms entradas, 420ms paneles.
-- **CSS primero**: la sensación de vida sale de keyframes CSS, no de JavaScript. Los cuatro del sistema (en `base.css`):
-  1. `pulso-critico` — halo rojo expansivo (box-shadow, no dispara layout). **Solo** para estado crítico real: tareas vencidas, semáforo en rojo.
-  2. `pulso-vivo` — halo verde del indicador de presencia (la señal de "sistema vivo").
-  3. `entrada` — opacity + translateY(8px), en cascada con `animation-delay: i*50ms` inline.
-  4. `brillo` — skeleton shimmer para estados de carga.
-- Micro-interacciones: `.card--interactiva` y tarjetas kanban levantan 2px con sombra-2 al hover.
-- La librería **Motion** se reserva para Fase 4 y solo para: counter-up de KPIs, colapsos de alto/ancho complejos y overlays con AnimatePresence. Todo lo demás, CSS.
-- **Obligatorio**: bloque `@media (prefers-reduced-motion: reduce)` apagando todas las animaciones.
-- Acabados incluidos siempre: `tabular-nums` en `th/td/.tnum`, `::selection` teñida con el acento, scrollbars tematizadas, `:focus-visible` con anillo del acento.
+**Decisión del equipo (2 de septiembre de 2026)**: una interfaz que solo se mueve cuando la tocan se lee como quieta. La app tiene que **vivir sola** —loops visibles, períodos que no rimen, feedback en todo lo clickeable— sin que el movimiento le quite claridad al dato. Para que las dos cosas convivan, el movimiento tiene **dos regímenes con reglas distintas**, y la zona de la pantalla decide cuál aplica.
+
+Común a los dos:
+- **Una sola curva** para lo interactivo: `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-expo`). Duraciones: 150ms micro-hovers, 240ms entradas, 420ms paneles. Los loops de ambiente usan `ease-in-out` o `linear`, porque no terminan.
+- **Solo `transform` y `opacity`** (y `box-shadow` para halos): nada que dispare layout.
+- **`prefers-reduced-motion` apaga todo**: cada archivo apaga lo suyo y `base.css` tiene además la red de seguridad global (`animation-duration: 0.01ms !important`). `MotionConfig reducedMotion="user"` en `App.tsx` hace lo mismo con la librería.
+- **CSS primero**; la librería **Motion** (`motion/react`) se usa para lo que CSS no hace: counter-up (`KpiTile`, `useContador`), el marcador de activo compartido del menú (`layoutId`) y, cuando llegue, overlays con `AnimatePresence`.
+
+### 3.6.1 Régimen de ESTADO — zonas de datos
+
+En tablas, chips, gráficos, tarjetas del tubo, formularios: **el movimiento significa estado, no decora**. Los cuatro keyframes del sistema (en `base.css`):
+1. `pulso-critico` — halo rojo expansivo. **Solo** para estado crítico real: tareas vencidas, y el chip hero del semáforo en rojo (`ChipSemaforo pulsa`) — **una vez por pantalla**, no en cada fila.
+2. `pulso-vivo` — halo verde del indicador de presencia (la señal de "sistema vivo").
+3. `entrada` — opacity + translateY(8px), en cascada con `animation-delay: i*50ms` inline.
+4. `brillo` — skeleton shimmer para estados de carga.
+
+Y las cifras **llegan, no aparecen**: `useContador` cuenta desde el valor anterior al nuevo en la cifra hero de la ficha y en los KPI.
+
+### 3.6.2 Régimen de AMBIENTE — zonas de identidad
+
+En el panel del login y en la barra lateral —las dos superficies heráldicas, donde no hay dato que leer— el movimiento **es vida** y no necesita justificar un estado. Sus reglas:
+- **Períodos primos que no riman**: 3.1 · 3.7 · 4.3 · 5.3 · 7 · 11 · 13 · 17 · 19 · 23 · 29 · 37 s. Dos loops nunca coinciden en fase, así que el conjunto no se siente mecánico.
+- **Lento y de baja amplitud**: nada se mueve más de unos píxeles por segundo; el ojo lo nota de reojo, no de frente.
+- **Nunca debajo de un texto**: la silueta de la barra vive entre el menú y el pie; el arte del login está en flujo bajo la frase, no detrás. El contraste del texto no depende de dónde esté el loop.
+- **Cuando hay un estado real, el ambiente lo muestra**: mientras el sistema autentica, el faro se apura.
+
+Lo que hay hoy:
+- **Login** (`FaroSerena`): el haz gira del horizonte al mar (11 s) y al llegar al agua enciende su reflejo; tres capas de olas a 7, 11 y 13 s (una en sentido contrario); ocho estrellas que titilan cada una a su ritmo; el astro deriva en 23 s; la lámpara respira en 3.7 s.
+- **Barra lateral** (`SiluetaSerena`): la *ciudad de los campanarios* con el Faro Monumental al fondo, la **camanchaca** —la neblina costera de la región— pasando a 19, 29 y 37 s, el haz del faro barriendo el cielo cada 17 s, estrellas y la lámpara. Es lo que hace que la barra sea de La Serena y no de cualquier municipio.
+- **Menú**: el marcador de activo es un solo elemento que **se desliza** de un ítem al otro (motion `layoutId`, resorte 520/42).
+
+### 3.6.3 Feedback en todo lo clickeable
+
+Regla: **si se puede hacer clic, responde al cursor antes del clic**. En `base.css`:
+- Botones (`.btn-primario`, `.btn-secundario`, `.btn-peligro`, `.btn-tabla`): se levantan 1px con sombra al pasar y se hunden (`scale(.98)`) al presionar. Deshabilitados: nada.
+- Botones de icono: el icono crece y gira apenas (`scale(1.15) rotate(-10deg)`).
+- Ítems del menú: fondo + el icono se acerca 2px.
+- Enlaces: engrosan el subrayado (no cambian de color de golpe).
+- Campos: el borde sube de tono al pasar; al enfocar, anillo del acento.
+- Filas de tabla, ítems de la cola, gauges y tarjetas del tubo: fondo o elevación con transición.
+- `cursor: pointer` en selects y en todo lo que actúe.
+
+### 3.6.4 Acabados incluidos siempre
+
+`tabular-nums` en `th/td/.tnum`, `::selection` teñida con el acento, scrollbars tematizadas, `:focus-visible` con anillo del acento (blanco sobre la barra).
 
 ## 3.7 Marca
 
@@ -221,7 +257,7 @@ Un PR **se rechaza** si aparece cualquiera de estos:
 6. Sombras de color, glassmorphism, blur decorativo.
 7. Estado comunicado solo con color, sin texto ni símbolo.
 8. Valores de espaciado/radio fuera de las escalas definidas aquí.
-9. Animación decorativa sin significado de estado (pulsos en cosas no críticas, parallax, entrada aparatosa de páginas), o cualquier animación sin su apagado en `prefers-reduced-motion`.
+9. Animación **en una zona de datos** sin significado de estado (pulsos en cosas no críticas, parallax, entrada aparatosa de páginas); ambiente que ocupe el fondo de un texto o de una tabla; loops con períodos iguales o múltiplos entre sí; o cualquier animación sin su apagado en `prefers-reduced-motion` (§3.6). El ambiente vive en las zonas de identidad y solo ahí.
 10. Colores fuera de tokens (hex sueltos en componentes) o una regla de tema oscuro escrita a mano en un componente. **Lo comprueba `npm run verificar:contraste`**: un hex fuera de `tokens.css` hace fallar la verificación.
 11. **Rojo institucional dentro de una zona de datos** (ADR-011): `--marca` o `--acento` pintando una fila, un chip, una serie de gráfico, una celda del heatmap o una tarjeta del tubo. Ahí lo seleccionado es `--seleccion` y el único rojo es `--estado-rojo`.
 
@@ -364,8 +400,8 @@ El punto de partida es la propuesta del equipo: **un login con la costa de La Se
 Ideas que están dentro de los cinco valores del manual:
 
 - **Login** ✅ construido (`frontend/src/pages/LoginPage.tsx`, `login.css`, `components/FaroSerena.tsx`): dos paneles. A la izquierda el heráldico con la marca, la frase del producto y el **Faro Monumental sobre la costa dibujado en SVG** —muralla almenada, torre, galería, linterna, mar en `--marca-oscuro` y espuma en blanco— en duotono de dos tintas; a la derecha el formulario sobre superficie sólida. No hay ningún asset de imagen en el repositorio: el faro es vectorial, pesa lo que pesa su archivo, no tiene licencia que pedir y no entra en la ruta crítica. **El haz del faro barre solo mientras el sistema autentica** (`activo={cargando}`): el movimiento significa estado, no decora, y se apaga con `prefers-reduced-motion`. En móvil el panel pasa arriba, compacto, y conserva el faro.
-- **Ciudad de los campanarios**: la silueta de los campanarios da un patrón discreto para estados vacíos y cabeceras, en lugar de las ilustraciones genéricas de siempre.
-- **Movimiento con sentido** (§3.6 ya lo fija): el semáforo late cuando algo está crítico, el avance se llena al validar, la tarjeta del tubo acompaña el arrastre. Nada se mueve porque sí.
+- **Ciudad de los campanarios** ✅ en la barra lateral (`components/SiluetaSerena.tsx`): la silueta de los campanarios y el faro al fondo de la barra, con la camanchaca pasando. Queda disponible como patrón para estados vacíos y cabeceras.
+- **Movimiento con sentido en los datos, vida en la identidad** (§3.6): el semáforo late cuando algo está crítico, la cifra hero llega contando, la tarjeta del tubo acompaña el arrastre; y en el login y la barra el faro gira, las olas avanzan y la camanchaca pasa, a ritmos que no riman.
 - **Amabilidad**: el cliente fue explícito — *«tenemos un montón de usuarios que no manejan planilla»*, *«mientras más fácil mejor»*. Ante la duda entre elegante y obvio, gana obvio (§8.2).
 
 ### 10.4.bis La voz del producto: una frase que ordene el relato

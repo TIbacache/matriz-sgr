@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { MotionConfig } from "motion/react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
@@ -22,6 +23,9 @@ function RutasProtegidas() {
 
 export function App() {
   return (
+    // reducedMotion="user": toda animación de motion respeta la preferencia
+    // del sistema, igual que las de CSS (DESIGN §8.1.7).
+    <MotionConfig reducedMotion="user">
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -47,5 +51,6 @@ export function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </MotionConfig>
   );
 }

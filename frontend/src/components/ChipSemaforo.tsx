@@ -19,12 +19,22 @@ interface Props {
   texto?: string;
   /** Explicación al pasar el cursor y para el atributo title */
   ayuda?: string;
+  /** Halo pulsante: SOLO para el estado crítico real y una vez por pantalla
+      (DESIGN §3.6.1). Se ignora si el semáforo no es rojo. */
+  pulsa?: boolean;
 }
 
-export function ChipSemaforo({ semaforo, texto, ayuda }: Props) {
+export function ChipSemaforo({ semaforo, texto, ayuda, pulsa = false }: Props) {
   const etiqueta = texto ?? (semaforo ? TEXTO_POR_DEFECTO[semaforo] : "—");
+  const clases = [
+    "chip-semaforo",
+    `chip-semaforo--${semaforo ?? "neutro"}`,
+    pulsa && semaforo === "rojo" ? "chip-semaforo--late" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <span className={`chip-semaforo chip-semaforo--${semaforo ?? "neutro"}`} title={ayuda}>
+    <span className={clases} title={ayuda}>
       {semaforo && <span aria-hidden="true">{SIMBOLO_SEMAFORO[semaforo]} </span>}
       {etiqueta}
     </span>

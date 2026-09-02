@@ -44,7 +44,10 @@
   color: var(--barra-texto-2);
 }
 
+/* La frase entra en dos tiempos, una línea tras otra */
 .login-panel-frase {
+  animation: entrada var(--dur-3) var(--ease-expo) both;
+  animation-delay: 120ms;
   margin-top: auto;
   padding-top: var(--esp-7);
   font-family: var(--font-titulo);
@@ -71,37 +74,106 @@
   max-width: 64ch;
 }
 
-/* ---- Faro: dos tintas (blanco a distintas opacidades + rojo oscuro) ---- */
+/* ---- Faro: dos tintas (blanco a distintas opacidades + rojo oscuro) ----
+   Régimen de AMBIENTE (DESIGN §3.6.bis): vive solo, con períodos primos que
+   no riman entre sí, solo transform/opacity, y todo se apaga abajo con
+   prefers-reduced-motion. */
 
 .faro {
   display: block;
   width: 100%;
   height: 100%;
+  color: var(--barra-texto); /* lo lee currentColor en los gradientes del SVG */
 }
 
+/* Estrellas: cada una titila a su ritmo (duración inline, prima) */
+.faro-estrella {
+  fill: rgba(255, 255, 255, 0.8);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: faro-titilar 5s ease-in-out infinite;
+}
+@keyframes faro-titilar {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 0.95; transform: scale(1.15); }
+}
+
+/* Astro: deriva apenas, 23s ida y vuelta */
 .faro-astro {
   fill: rgba(255, 255, 255, 0.16);
+  animation: faro-deriva 23s ease-in-out infinite alternate;
+}
+@keyframes faro-deriva {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-14px, 6px); }
 }
 
-.faro-haz {
-  fill: rgba(255, 255, 255, 0.12);
+/* Haz: gira alrededor de la linterna y se desvanece hacia el mar */
+.faro-giro {
   transform-box: view-box;
   transform-origin: 340px 74px;
+  animation: faro-giro 11s ease-in-out infinite alternate;
+}
+/* Del horizonte (−4°) al agua (+30°): el haz nunca sale del cuadro y al final
+   del recorrido cae sobre el mar, donde se enciende el reflejo */
+@keyframes faro-giro {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(30deg); }
+}
+.faro-haz {
+  fill: url(#faro-haz-grad);
+}
+.faro-haz--tenue {
+  opacity: 0.35;
 }
 
-.faro-haz--tenue {
-  fill: rgba(255, 255, 255, 0.05);
+/* Reflejo sobre el agua: se enciende cuando el haz baja hacia el mar (mismo
+   período que el giro, para que coincidan) */
+.faro-reflejo {
+  fill: url(#faro-reflejo-grad);
+  animation: faro-reflejo 11s ease-in-out infinite alternate;
+}
+@keyframes faro-reflejo {
+  from { opacity: 0.05; transform: scaleX(0.7); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+.faro-reflejo {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .faro-mar {
   fill: var(--marca-oscuro);
 }
 
+/* Olas: tres capas, tres velocidades primas (7, 11, 13 s), sin costura porque
+   el patrón mide 80px y la traslación es exactamente 80px */
+.faro-olas {
+  animation: faro-ola 7s linear infinite;
+}
+.faro-olas--2 {
+  animation-duration: 11s;
+  animation-direction: reverse;
+}
+.faro-olas--3 {
+  animation-duration: 13s;
+}
+@keyframes faro-ola {
+  from { transform: translateX(0); }
+  to { transform: translateX(-80px); }
+}
+
 .faro-ola {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.22);
+  stroke: rgba(255, 255, 255, 0.26);
   stroke-width: 2;
   stroke-linecap: round;
+}
+.faro-ola--media {
+  stroke: rgba(255, 255, 255, 0.18);
+}
+.faro-ola--lejos {
+  stroke: rgba(255, 255, 255, 0.12);
 }
 
 .faro-tierra {
@@ -131,26 +203,22 @@
 
 .faro-luz {
   fill: rgba(255, 255, 255, 0.98);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: faro-lampara 3.7s ease-in-out infinite;
+}
+@keyframes faro-lampara {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.25); opacity: 1; }
 }
 
-/* El haz barre SOLO mientras el sistema autentica (estado, no decoración) */
-@keyframes faro-barrido {
-  from {
-    transform: rotate(-7deg);
-    opacity: 0.4;
-  }
-  to {
-    transform: rotate(7deg);
-    opacity: 1;
-  }
+/* Mientras el sistema autentica el faro se apura: el estado se ve */
+.faro--activo .faro-giro,
+.faro--activo .faro-reflejo {
+  animation-duration: 2.4s;
 }
-
-.faro--activo .faro-haz {
-  animation: faro-barrido 1.4s ease-in-out infinite alternate;
-}
-
 .faro--activo .faro-luz {
-  animation: pulso-vivo 1.4s var(--ease-expo) infinite;
+  animation-duration: 0.8s;
 }
 
 /* ---- Formulario ---- */
@@ -240,9 +308,17 @@
   }
 }
 
+/* Apagado obligatorio: todo el ambiente del faro se queda quieto */
 @media (prefers-reduced-motion: reduce) {
-  .faro--activo .faro-haz,
-  .faro--activo .faro-luz {
+  .faro-estrella,
+  .faro-astro,
+  .faro-giro,
+  .faro-reflejo,
+  .faro-olas,
+  .faro-luz {
     animation: none;
+  }
+  .faro-reflejo {
+    opacity: 0.5;
   }
 }
