@@ -86,7 +86,13 @@
   display: block;
   width: 100%;
   height: 100%;
+  overflow: visible; /* el mar y el promontorio se extienden fuera del viewBox */
   color: var(--barra-texto); /* lo lee currentColor en los gradientes del SVG */
+}
+
+/* El panel recorta lo que el SVG desborda por los lados */
+.login-panel-arte {
+  overflow: hidden;
 }
 
 /* Estrellas: cada una titila a su ritmo (duración inline, prima) */
