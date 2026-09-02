@@ -11,7 +11,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 
 | Documento | Contenido |
 |---|---|
-| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 10 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
+| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 11 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
 | [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md) | Columnas, catálogos, códigos y fórmulas extraídos de la planilla en producción |
 | [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) | HU ↔ requisito ↔ commit ↔ prueba (exigida por los profesores) |
 | [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | 11 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, ítems, tipografía y los dos rojos |

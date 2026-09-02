@@ -70,22 +70,22 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 
 ---
 
-## 2.1 Modelo v2 — base implementada (commit `91f1917`, 01-09-2026)
+## 2.1 Modelo v2 — cimientos y lo que falta sobre ellos
 
-El modelo de datos de las historias pendientes ya existe y está verificado; falta la capa de API y las pantallas. Estado de los cimientos:
+El modelo de datos (16 entidades, commit `91f1917`) está migrado y verificado. Esta tabla dice, para cada requisito, qué capa existe ya y qué falta encima. **Se actualiza cuando una capa se cierra.**
 
-| Requisito | Base implementada | Verificación | Falta |
+| Requisito | Implementado | Verificación | Falta |
 |---|---|---|---|
-| RF-003 Cargos e ítems | `Cargo`, `ItemMedicion` con `tipo` y `direccion` + **API `b1f3e75`** | calculo-3, calculo-4; api (5 checks) | pantalla |
-| RF-005 Períodos | `Periodo` con fechas y días calculados + **API con cierre y reapertura `b1f3e75`** | calculo-13; api (8 checks) | pantalla |
-| RF-007 Metas por funcionario | `MetaItem` | calculo-15 (RN-001: ponderadores suman 100%) | **API y pantalla** |
-| RF-009/011 Actividades y código | `Actividad` + `services/codigos.ts` + **API `b1f3e75`** | calculo-19, calculo-20; api (11 checks) | pantalla |
-| RF-012/013/014 Evidencias y validación | `Evidencia`, `Validacion` + **API `b1f3e75`** | calculo-17; api (11 checks) | bandeja en pantalla; antivirus fuera de alcance (declarado) |
-| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` + **`GET /cumplimiento/:periodoId`** | calculo-1 a 10, 16; api (4 checks) | migrar el dashboard del cálculo v1 al v2 (Bloque C) |
+| RF-003 Cargos e ítems | `Cargo`, `ItemMedicion` con `tipo` y `direccion` + API (`b1f3e75`) | calculo-3, calculo-4; api (6) | pantalla de administración |
+| RF-005 Períodos | `Periodo` con días calculados + API con cierre y reapertura (`b1f3e75`) | calculo-13; api (12) | pantalla de administración |
+| RF-007 Metas por funcionario | `MetaItem` + API `/metas-item` (`de68901`) + pantalla `/metas` (Bloque B2) | calculo-15; api (25) | — ✅ |
+| RF-009/011 Actividades y código | `Actividad` + `services/codigos.ts` + API (`b1f3e75`) + registro en la ficha | calculo-19, calculo-20; api (16) | — ✅ |
+| RF-012/013/014 Evidencias y validación | `Evidencia`, `Validacion` + API (`b1f3e75`) + bandeja `/verificacion` | calculo-17; api (5 + 13 + 8 de la cola) | antivirus fuera de alcance (declarado, consulta nº 10) |
+| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` + `GET /cumplimiento/:periodoId` | calculo-1 a 10, 16; api (5) | migrar el dashboard del cálculo v1 al v2 (Bloque C) |
 | RF-025 Ajustes | `Ajuste` + parámetros | calculo-11, calculo-12 | API y pantalla |
-| RF-036 / RNF-008 Auditoría | `Auditoria` + triggers + **`auditarDesde()` en los controladores v2** | api (2 checks: ciclo del período y validación) | auditar las rutas v1; pantalla de consulta |
-| RF-038 Parámetros | `Parametro` con vigencia | calculo-11; api ("devuelve los parámetros y marca los no confirmados") | pantalla de configuración |
-| ADR-008 Trazabilidad del vecino | `PersonaUsuaria` con RUT único + **alerta al registrar** | calculo-21; api ("se detecta a la misma persona en otra delegación", "no se duplicó la ficha") | ficha con historial cruzado |
+| RF-036 / RNF-008 Auditoría | `Auditoria` + triggers + `auditarDesde()` en los controladores v2 | api (períodos, validación, metas y la regresión de `Decimal`) | auditar las rutas v1; pantalla de consulta |
+| RF-038 Parámetros | `Parametro` con vigencia | calculo-11; api (1) | pantalla de configuración |
+| ADR-008 Trazabilidad del vecino | `PersonaUsuaria` con RUT único + alerta al registrar | calculo-21; api (2) | **ficha del vecino con historial cruzado (Bloque B3) y su endpoint de búsqueda** |
 
 ## 2.2 Requisitos no funcionales demostrables (Bloque D0, commit `d6e6dbf`)
 
@@ -99,7 +99,7 @@ Los RNF de usabilidad y accesibilidad no cuelgan de una historia, pero el PDF lo
 
 ## 3. Verificaciones automatizadas vigentes
 
-**216 comprobaciones, todas en verde** al 02-09-2026: 133 del backend (17 smoke + 21 cálculo + 95 API) y **83 de contraste del frontend** (Bloque D0), más las 16 de RUT.
+**216 comprobaciones, todas en verde** al 02-09-2026: **133 del backend** (17 smoke + 21 cálculo + 95 API) y **83 de contraste del frontend**. Aparte corre `npm run verificar:rut` (16 RUT del seed más los casos de normalización), que no entra en el total porque depende de que la base esté sembrada.
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -146,7 +146,7 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 16-17 | Crear tarea y su evento | RF-016, HU-02 |
 
-### `npm run verificar:api` — 70/70 (Bloques A y B)
+### `npm run verificar:api` — 95/95 (Bloques A, A2, B y B2)
 
 Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
 
@@ -156,12 +156,13 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 | Cargos e ítems (6) | cargos con sus ítems, alta, duplicado rechazado, ítem con `tipo`+`direccion`, desactivación con incremento de versión, funcionario sin permiso | RF-003, RF-006, ADR-009, RNF-005 |
 | Actividades (16) | alta, código no ambiguo, delegación derivada de la membresía, correlativo, ítem de otro cargo rechazado, fecha fuera del período, RUT sucio (`216944`) y teléfono inválidos, RUT normalizado, **alerta de la misma persona en otra delegación**, ficha no duplicada, 409 por versión, corrección previa a validar, verificador y consulta sin permiso de registro, libro ajeno → 404 | RF-009, RF-010, RF-011, RN-010, ADR-001, ADR-008, CA-04, CA-07, CA-08 |
 | Evidencias (5) | formato fuera del catálogo → 415, tamaño sobre el parámetro → 413, ruta derivada del código, nombre `../../etc/passwd.jpg` saneado, descarga por endpoint controlado | RF-012, RNF-017 |
-| Validación (11) | nadie valida lo propio, consulta no valida, rechazo sin observación → 400, corrección solicitada, aprobación, **el punto suma solo al aprobar y una sola vez**, aprobada no se re-decide, validada no se edita, anulación con motivo, lo anulado deja de sumar, validación auditada | RF-013, RF-014, RN-003, RN-009, CA-01, CA-02, CA-09, RNF-005, ADR-006 |
+| Validación (13) | nadie valida lo propio, consulta no valida, rechazo sin observación → 400, corrección solicitada, aprobación, **el punto suma solo al aprobar y una sola vez**, aprobada no se re-decide, validada no se edita, anular exige motivo, anulación con motivo, lo anulado deja de sumar, validación auditada | RF-013, RF-014, RN-003, RN-009, CA-01, CA-02, CA-09, RNF-005, ADR-006 |
 | Cumplimiento (5) | cálculo por funcionario expuesto, días del período, parámetros con marca `confirmado`, semáforo visible por el rol consulta, tenant ajeno → 404 | RF-022…RF-027, RF-038, ADR-007 |
 | Contrato de la ficha personal (5) | los formatos salen del catálogo y coinciden con lo que aplica el 415, registro paginado por período y funcionario, las anuladas solo si se piden, la ficha de una persona trae ítems, metas y semáforo | RF-004, RF-008, HU-06 |
-| Contrato de la bandeja (7) | la cola entrega código, funcionario y delegación en cada fila; **lo recién subido es alcanzable en la primera página con `orden=recientes`**; **la cola pagina sin repetir**; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
+| Contrato de la bandeja (8) | la cola entrega código, funcionario y delegación en cada fila; **lo recién subido es alcanzable en la primera página con `orden=recientes`**; **la cola pagina sin repetir**; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; el verificador no tiene libro pero sí bandeja; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
+| Metas por funcionario (25) | RN-001 en sus dos formas (el alta no supera el 100%, el lote exige el 100% exacto), meta 0 rechazada, ítem ajeno al cargo, sin duplicados, 409 por versión en el alta y en el lote, período cerrado sin cambios, lo que ya sumó puntaje no se quita, el funcionario ve lo suyo con la suma y el faltante, delegación ajena → 404, auditoría de crear/actualizar/eliminar, la regresión de `Decimal`, **los seis roles cargan la pantalla**, **el selector ofrece exactamente lo que cada rol puede consultar**, y lo configurado es lo que el motor mide | RF-003, RF-007, RF-008, RN-001, RN-002, RN-009, RN-013, CA-01, CA-08, RNF-005, RNF-008 |
 
-Las dos comprobaciones en negrita son **regresiones**: nacieron de un error real encontrado probando el ciclo completo (una evidencia recién subida caía en la posición 87 de la cola y no se veía en pantalla).
+Las comprobaciones en negrita son **regresiones o hallazgos de revisión**: nacieron de errores reales encontrados probando el ciclo completo (una evidencia recién subida caía en la posición 87 de la cola y no se veía; el selector de metas ofrecía personas que el servidor rechaza con 404).
 
 ### `npm run verificar:contraste` (frontend) — 83/83
 
