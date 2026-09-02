@@ -58,10 +58,13 @@
   max-width: 32ch;
 }
 
-/* El arte sangra hasta los bordes del panel; el texto nunca se le superpone */
+/* El arte sangra hasta los bordes del panel y conserva la proporción del
+   viewBox (800×360): así nunca se recorta la linterna por arriba, que es de
+   donde sale la luz. El texto va en flujo, encima, sin superponerse. */
 .login-panel-arte {
   margin: var(--esp-5) calc(-1 * var(--esp-7)) 0;
-  height: clamp(180px, 34vh, 360px);
+  aspect-ratio: 800 / 360;
+  max-height: 42vh;
 }
 
 .login-panel-pie {
@@ -111,7 +114,7 @@
 /* Haz: gira alrededor de la linterna y se desvanece hacia el mar */
 .faro-giro {
   transform-box: view-box;
-  transform-origin: 340px 74px;
+  transform-origin: 340px 50px;
   animation: faro-giro 11s ease-in-out infinite alternate;
 }
 /* Del horizonte (−4°) al agua (+30°): el haz nunca sale del cuadro y al final
@@ -180,6 +183,7 @@
   fill: rgba(0, 0, 0, 0.28);
 }
 
+/* Piedra clara del faro real */
 .faro-piedra {
   fill: rgba(255, 255, 255, 0.92);
 }
@@ -189,12 +193,28 @@
   fill: rgba(0, 0, 0, 0.14);
 }
 
-.faro-puerta {
+/* El ladrillo de las cornisas, almenas y techos: un rojo más profundo que la
+   piedra, como en el faro real */
+.faro-ladrillo {
+  fill: rgba(0, 0, 0, 0.32);
+}
+
+/* Puerta y arcos: se vacían con el color del panel */
+.faro-hueco {
   fill: var(--marca-profundo);
 }
 
-.faro-baranda {
-  fill: rgba(255, 255, 255, 0.55);
+/* Ventanas: marco oscuro y luz adentro, cada una con su ritmo (inline) */
+.faro-marco {
+  fill: rgba(0, 0, 0, 0.36);
+}
+.faro-ventana {
+  fill: rgba(255, 255, 255, 0.95);
+  animation: faro-ventana 5s ease-in-out infinite;
+}
+@keyframes faro-ventana {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
 }
 
 .faro-vidrio {
@@ -294,7 +314,7 @@
   }
   .login-panel-arte {
     margin: var(--esp-4) calc(-1 * var(--esp-4)) 0;
-    height: 150px;
+    max-height: 200px;
   }
   .login-panel-pie {
     display: none;
@@ -315,6 +335,7 @@
   .faro-giro,
   .faro-reflejo,
   .faro-olas,
+  .faro-ventana,
   .faro-luz {
     animation: none;
   }

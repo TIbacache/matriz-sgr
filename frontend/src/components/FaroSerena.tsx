@@ -1,17 +1,19 @@
 // El Faro Monumental de La Serena sobre la Avenida del Mar, en duotono sobre
-// el rojo heráldico (DESIGN §10.4). Es la imagen que la ciudad reconoce al
-// instante, y un faro orienta: lo mismo que hace el sistema con el trabajo de
-// las delegaciones. Vectorial a propósito: pesa lo que pesa este archivo, no
-// tiene licencia que pedir y no entra en la ruta crítica de la ficha.
+// el rojo heráldico (DESIGN §10.4). Dibujado a partir del faro real: torre
+// cuadrada de piedra clara con las ventanas en hilera y luz adentro, galería
+// con almenas de ladrillo, linterna de vidrio con mástil, y el fuerte de la
+// base con sus dos torreones redondos y la puerta en arco. Es la imagen que la
+// ciudad reconoce al instante, y un faro orienta: lo mismo que hace el sistema.
+// Vectorial a propósito: pesa lo que pesa este archivo, sin licencia que pedir.
 //
-// Vive solo (DESIGN §3.6, régimen de ambiente): el haz gira e ilumina el mar,
-// las olas avanzan a tres velocidades que no riman, las estrellas titilan cada
-// una a su ritmo y el astro deriva. `activo` (autenticando) acelera el haz.
-// Todo con transform/opacity —nada dispara layout— y se apaga con
+// Vive solo (DESIGN §3.6.2, régimen de ambiente): el haz gira e ilumina el
+// mar, las ventanas se encienden cada una a su ritmo, las olas avanzan a tres
+// velocidades que no riman, las estrellas titilan y el astro deriva. `activo`
+// (autenticando) acelera el haz. Todo con transform/opacity y se apaga con
 // prefers-reduced-motion en login.css.
 //
-// Solo dos tintas: blanco a distintas opacidades y --marca-oscuro para el mar.
-// Los colores viven en login.css (clases), no aquí (DESIGN §8.10).
+// Tintas: blanco a distintas opacidades, negro translúcido para el ladrillo y
+// --marca-oscuro para el mar. Los colores viven en login.css (DESIGN §8.10).
 
 // Cada ola es un patrón de 80px repetido a lo ancho de DOS viewBox: así la
 // traslación de -80px cierra el ciclo sin costura.
@@ -21,9 +23,8 @@ function ola(y: number): string {
   return d;
 }
 
-// Duraciones primas: nunca coinciden dos titilares (DESIGN §3.6.bis).
+// Duraciones primas: nunca coinciden dos titilares (DESIGN §3.6.2).
 const ESTRELLAS: [number, number, number, number][] = [
-  // cx, cy, r, duración
   [70, 40, 1.6, 3.1],
   [150, 22, 1.2, 4.3],
   [230, 58, 1.4, 5.3],
@@ -34,29 +35,39 @@ const ESTRELLAS: [number, number, number, number][] = [
   [420, 96, 1.0, 5.9],
 ];
 
+// Ventanas de la torre, de abajo hacia arriba, cada una con su ritmo
+const VENTANAS: [number, number][] = [
+  [176, 4.1],
+  [154, 5.3],
+  [132, 3.7],
+  [110, 6.1],
+  [88, 4.7],
+];
+
+const LINTERNA = { x: 340, y: 50 };
+
 export function FaroSerena({ activo }: { activo: boolean }) {
   return (
     <svg
       className={activo ? "faro faro--activo" : "faro"}
       viewBox="0 0 800 360"
-      preserveAspectRatio="xMidYMax slice"
+      preserveAspectRatio="xMidYMax meet"
       role="img"
       aria-labelledby="faro-titulo"
     >
       <title id="faro-titulo">Faro Monumental de La Serena sobre la costa, de noche, con el haz girando</title>
       <defs>
-        {/* El haz se desvanece hacia el mar; el color lo pone la clase .faro */}
         <linearGradient id="faro-haz-grad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="currentColor" stopOpacity="0.34" />
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.36" />
           <stop offset="1" stopColor="currentColor" stopOpacity="0" />
         </linearGradient>
         <radialGradient id="faro-reflejo-grad" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="currentColor" stopOpacity="0.28" />
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.3" />
           <stop offset="1" stopColor="currentColor" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      {/* Cielo: estrellas que titilan cada una a su ritmo */}
+      {/* Cielo */}
       {ESTRELLAS.map(([cx, cy, r, dur], i) => (
         <circle
           key={i}
@@ -67,14 +78,11 @@ export function FaroSerena({ activo }: { activo: boolean }) {
           style={{ animationDuration: `${dur}s`, animationDelay: `${-(i * 0.7)}s` }}
         />
       ))}
-
-      {/* Astro: deriva apenas */}
       <circle className="faro-astro" cx="640" cy="92" r="34" />
 
-      {/* Mar en tres capas que avanzan a velocidades primas */}
+      {/* Mar en tres capas y el reflejo del haz */}
       <rect className="faro-mar" x="0" y="232" width="800" height="128" />
-      {/* Reflejo del haz sobre el agua: se enciende cuando el haz apunta al mar */}
-      <ellipse className="faro-reflejo" cx="600" cy="250" rx="230" ry="16" />
+      <ellipse className="faro-reflejo" cx="600" cy="252" rx="230" ry="16" />
       <g className="faro-olas faro-olas--1">
         <path className="faro-ola" d={ola(262)} />
       </g>
@@ -85,41 +93,75 @@ export function FaroSerena({ activo }: { activo: boolean }) {
         <path className="faro-ola faro-ola--lejos" d={ola(322)} />
       </g>
 
-      {/* Haz: gira alrededor de la linterna; uno fuerte hacia el mar y uno tenue opuesto */}
+      {/* Haz: gira alrededor de la linterna */}
       <g className="faro-giro">
-        <polygon className="faro-haz" points="340,74 800,30 800,118" />
-        <polygon className="faro-haz faro-haz--tenue" points="340,74 0,58 0,90" />
+        <polygon className="faro-haz" points={`${LINTERNA.x},${LINTERNA.y} 800,6 800,94`} />
+        <polygon className="faro-haz faro-haz--tenue" points={`${LINTERNA.x},${LINTERNA.y} 0,34 0,66`} />
       </g>
 
       {/* Promontorio: la explanada del faro entra en el mar */}
       <path
         className="faro-tierra"
-        d="M0 360 V 244 C 90 236 180 226 300 226 C 400 226 470 236 500 246 C 528 256 548 300 590 360 Z"
+        d="M0 360 V 250 C 90 242 180 234 300 234 C 400 234 470 242 500 250 C 528 258 548 300 590 360 Z"
       />
 
-      {/* Muralla almenada de la base (el faro es un pequeño fuerte) */}
+      {/* ---- El fuerte de la base: muralla almenada y dos torreones ---- */}
       <g className="faro-piedra">
-        <rect x="236" y="196" width="208" height="34" />
-        {[236, 264, 292, 320, 348, 376, 404, 432].map((x) => (
-          <rect key={x} x={x} y="186" width="12" height="10" />
+        <rect x="236" y="204" width="208" height="40" />
+        {[240, 262, 284, 306, 328, 350, 372, 394, 416].map((x) => (
+          <rect key={x} x={x} y="196" width="12" height="9" />
+        ))}
+        <rect x="214" y="190" width="30" height="54" rx="4" />
+        <rect x="436" y="190" width="30" height="54" rx="4" />
+      </g>
+      {/* Ladrillo: la línea de la cornisa, los techos cónicos y el arco de la puerta */}
+      <g className="faro-ladrillo">
+        <rect x="236" y="212" width="208" height="3" />
+        <polygon points="212,190 229,170 246,190" />
+        <polygon points="434,190 451,170 468,190" />
+        <rect x="216" y="196" width="26" height="3" />
+        <rect x="438" y="196" width="26" height="3" />
+      </g>
+      <rect className="faro-piedra--sombra" x="340" y="204" width="104" height="40" />
+      <rect className="faro-hueco" x="330" y="216" width="20" height="28" rx="10" />
+      <rect className="faro-hueco" x="330" y="230" width="20" height="14" />
+
+      {/* ---- La torre: cuadrada, con las ventanas en hilera ---- */}
+      <rect className="faro-piedra" x="320" y="72" width="40" height="134" />
+      <rect className="faro-piedra--sombra" x="342" y="72" width="18" height="134" />
+      {VENTANAS.map(([y, dur], i) => (
+        <g key={y}>
+          <rect className="faro-marco" x="333" y={y - 2} width="14" height="18" rx="7" />
+          <rect
+            className="faro-ventana"
+            x="336"
+            y={y + 1}
+            width="8"
+            height="12"
+            rx="4"
+            style={{ animationDuration: `${dur}s`, animationDelay: `${-(i * 1.3)}s` }}
+          />
+        </g>
+      ))}
+
+      {/* ---- Galería con almenas de ladrillo, linterna, cúpula y mástil ---- */}
+      <rect className="faro-piedra" x="310" y="64" width="60" height="10" />
+      <g className="faro-ladrillo">
+        <rect x="310" y="61" width="60" height="3" />
+        {[310, 320, 330, 340, 350, 360].map((x) => (
+          <rect key={x} x={x} y="56" width="5" height="5" />
         ))}
       </g>
-      <rect className="faro-piedra--sombra" x="340" y="196" width="104" height="34" />
-      <rect className="faro-puerta" x="332" y="208" width="16" height="22" />
-
-      {/* Torre troncocónica */}
-      <polygon className="faro-piedra" points="314,196 366,196 354,92 326,92" />
-      <polygon className="faro-piedra--sombra" points="340,196 366,196 354,92 340,92" />
-      <rect className="faro-puerta" x="336" y="122" width="8" height="12" />
-      <rect className="faro-puerta" x="336" y="150" width="8" height="12" />
-
-      {/* Galería, linterna y cúpula */}
-      <rect className="faro-piedra" x="318" y="86" width="44" height="8" />
-      <rect className="faro-baranda" x="318" y="78" width="44" height="8" />
-      <rect className="faro-vidrio" x="326" y="56" width="28" height="24" />
-      <path className="faro-piedra" d="M322 56 Q340 36 358 56 Z" />
-      <rect className="faro-piedra" x="338" y="26" width="4" height="12" />
-      <circle className="faro-luz" cx="340" cy="68" r="7" />
+      <rect className="faro-vidrio" x="328" y="36" width="24" height="28" />
+      <g className="faro-ladrillo">
+        <rect x="327" y="36" width="2" height="28" />
+        <rect x="339" y="36" width="2" height="28" />
+        <rect x="351" y="36" width="2" height="28" />
+      </g>
+      <path className="faro-piedra" d="M324 36 Q340 16 356 36 Z" />
+      <rect className="faro-piedra" x="339" y="4" width="2" height="14" />
+      <circle className="faro-piedra" cx="340" cy="4" r="2.5" />
+      <circle className="faro-luz" cx={LINTERNA.x} cy={LINTERNA.y} r="7" />
     </svg>
   );
 }
