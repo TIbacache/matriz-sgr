@@ -69,6 +69,11 @@ TAREA — Bloque D0: rediseño visual, siguiendo DESIGN §10.
       Los gráficos leen los tokens vivos y deberían seguir el cambio solos.
    5. Probar CADA pantalla con las SEIS cuentas y mirar las capturas.
 
+  Además, dentro del diseño: proponer LA FRASE del producto (DESIGN §10.4.bis).
+  Una sola, corta, que nombre el trabajo real y no el software. El equipo dio
+  como ejemplo de registro "ordenar para avanzar, medir para decidir" — el
+  tono, no la frase literal.
+
 Reglas no negociables (están en CLAUDE.md, se repiten porque son las que más
 se olvidan):
 - Contraste antes que atmósfera: ninguna imagen de fondo baja el texto de
@@ -85,6 +90,10 @@ se olvidan):
   proyecto, declarando que es un ejercicio académico con datos ficticios.
 - Ningún valor de negocio en el código: todo sale de `parametro` o de
   `CatalogoItem`. Prohibido fijar 90/91 días.
+- Marco legal chileno: Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719
+  de datos personales. El sistema trata datos de vecinos y de desempeño de
+  funcionarios de un organismo público. Ante la duda sobre quién puede ver un
+  dato de desempeño, rige lo restrictivo y se documenta como consulta.
 - Todo PATCH aplica bloqueo optimista con `version` y responde 409; todo
   write crítico audita; todo write emite su evento. Endpoint mudo = bug.
 - Multi-tenant: toda query filtra por organizationId del JWT; recurso ajeno
@@ -115,6 +124,16 @@ Contexto que NO hay que volver a derivar:
   docente publique la rúbrica escrita.
 - Ficha del vecino, endurecer rutas y Bloque C quedan DESPUÉS del rediseño,
   por decisión del equipo: construirlas antes obligaría a rehacerlas.
+- Precisiones del docente en clase, en requerimientos-oficiales §9.ter:
+  (a) admin y coordinador deben ver quién ingresó, quién NO ingresó y quién
+      está trabajando ahora (RF-030, HU-19). Las piezas existen; falta el
+      panel. Ojo: "ingresar" es ambiguo entre iniciar sesión e ingresar
+      trabajo, y un panel de conexión es monitoreo de personas — finalidad y
+      proporcionalidad, no vigilancia.
+  (b) la mayoría de las fórmulas de ponderación son REGLA DE TRES SIMPLE, y
+      eso confirma el cálculo actual. Si algo no se puede explicar como una
+      regla de tres, sospechar del enunciado antes que del código. Las dos
+      excepciones legítimas son el ítem inverso y el tope configurable.
 
 Trabaja por bloques y al cerrar cada uno dame un informe breve (qué se hizo,
 qué falta, decisiones, riesgos) y espera aprobación.

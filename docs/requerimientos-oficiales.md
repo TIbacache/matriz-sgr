@@ -85,7 +85,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-027 | Semáforo verde/ámbar/rojo con **umbrales configurables** | 🟡 | Regla correcta; umbrales fijos en SQL |
 | RF-028 | Tablero **personal** con metas, avance, evidencias y compromisos | ⬜ | |
 | RF-029 | Tablero de delegación consolidado | ✅ | Dashboard actual |
-| RF-030 | Actividad reciente: último ingreso, días sin ingreso, cantidad, promedio diario | ⬜ | Diapositiva 18 |
+| RF-030 | Actividad reciente: último ingreso, días sin ingreso, cantidad, promedio diario | 🟡 | El motor ya calcula y expone los cuatro (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario`) y la ficha personal los muestra. **Falta el panel de control de actividad para admin y coordinador** — ver §9.ter |
 | RF-031 | Vista global por cargos | ⬜ | Diapositiva 19 |
 
 ### 3.5 Consulta, colaboración y administración
@@ -235,6 +235,36 @@ Dichas en clase el **1 de septiembre de 2026**, no están en el PDF ni en ningú
 La guía paso a paso para producir todo esto está en **[Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx)**, que marca cada exigencia con su origen (ESCRITO / VERBAL / EQUIPO) para no confundir lo que está documentado con lo que se dijo.
 
 **Cuando salga la rúbrica**: contrastar esta tabla con ella y corregir aquí lo que cambie.
+
+## 9.ter Precisiones del docente en clase (1 de septiembre de 2026)
+
+Dichas verbalmente, igual que §9.bis. **Aún sin rúbrica**, pero acotan cosas que ya estaban en la especificación y por eso se registran aparte.
+
+### Control de actividad de usuarios (RF-030, HU-19)
+
+El docente precisó que **el administrador y el coordinador deben saber tres cosas**:
+
+1. **Quiénes han ingresado** — quién registró trabajo en el período.
+2. **Quiénes no han ingresado** — el complemento, que es el dato que sirve para actuar. Hoy no se ve: alguien sin actividades sencillamente no aparece en el cálculo, y ese silencio es justo lo que hay que hacer visible.
+3. **Quiénes están trabajando ahora mismo** en la plataforma.
+
+**Qué existe ya**: el motor de cumplimiento devuelve `ultimoIngreso`, `diasSinIngreso`, `totalIngresos` y `promedioDiario` por funcionario, y hay presencia en vivo por Socket.io (`presencia:actualizada`), hoy limitada al room de cada delegación y usada solo en el tubo.
+
+**Qué falta**: un panel para nivel central que cruce las tres cosas. Las piezas están; lo que no existe es la vista que las junta ni una presencia consolidada a nivel de organización.
+
+⚠ **Ambigüedad a resolver — "ingresar" tiene dos sentidos** en el vocabulario de este proyecto: *iniciar sesión* y *ingresar datos* (el motor llama `totalIngresos` a las actividades registradas). Son métricas distintas y llevan a paneles distintos. Mientras no se aclare, se asume **ingreso de trabajo registrado**, que es el sentido que usa la planilla del cliente, y se muestra la conexión en vivo como dato aparte.
+
+⚠ **Implicancia legal, no menor**: un panel de "quién está conectado ahora" es monitoreo de personas trabajadoras. Bajo las Leyes 19.628 y 21.719 debe tener finalidad declarada y proporcionalidad — sirve para acompañar a quien se está quedando atrás, no para vigilar. La forma de cumplirlo es que el panel muestre **actividad de gestión** (registró, hace cuánto, cuánto lleva) y no minutos de conexión, y que las personas sepan que existe. Va junto a la consulta abierta nº 11.
+
+### Las fórmulas de ponderación son regla de tres simple
+
+Dato que dio el docente y que **confirma el cálculo implementado**: la mayoría de las fórmulas del sistema son una regla de tres, no algo más complejo.
+
+- `% cumplimiento = avance / meta × 100` (RN-004) es exactamente eso.
+- `ponderado = ponderador × % cumplimiento` (RN-005) también.
+- `objetivo al día = días transcurridos / días computables × 100` (RN-007) también.
+
+**Para qué sirve saberlo**: es una señal de *no sobre-complicar*. Si alguna vez el cálculo necesita algo que no se pueda explicar como una regla de tres, conviene sospechar del enunciado antes que del código. Las dos excepciones legítimas que ya tenemos y que **sí** hay que poder justificar son el **ítem de dirección inversa** (`meta / avance`, ADR-009) y el **tope configurable** por ítem.
 
 ## 10. Consultas para el docente
 

@@ -114,6 +114,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | Sin endpoint de búsqueda de `PersonaUsuaria`: la ficha del vecino no se puede construir todavía | backend | Media |
 | El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `frontend/src/lib/dashboard.ts` | Media |
 | `Comentario`, `AtencionSocial` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
+| **Panel de control de actividad de usuarios** (RF-030, HU-19): quién ingresó, **quién no** y quién está trabajando ahora, para admin y coordinador. Precisado por el docente en clase; detalle y la ambigüedad de "ingresar" en [requerimientos-oficiales §9.ter](requerimientos-oficiales.md). Las piezas existen (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario` y presencia por socket): falta la vista que las junta y una presencia a nivel de organización | frontend y backend | Alta |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
 | ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |

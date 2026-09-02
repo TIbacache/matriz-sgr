@@ -346,6 +346,23 @@ Ideas que están dentro de los cinco valores del manual:
 - **Movimiento con sentido** (§3.6 ya lo fija): el semáforo late cuando algo está crítico, el avance se llena al validar, la tarjeta del tubo acompaña el arrastre. Nada se mueve porque sí.
 - **Amabilidad**: el cliente fue explícito — *«tenemos un montón de usuarios que no manejan planilla»*, *«mientras más fácil mejor»*. Ante la duda entre elegante y obvio, gana obvio (§8.2).
 
+### 10.4.bis La voz del producto: una frase que ordene el relato
+
+Las palabras son material de diseño. El sistema necesita **una frase corta y propia** que explique de qué se trata antes que cualquier pantalla, y que sirva de hilo en el login, en los estados vacíos y en la presentación al docente.
+
+El equipo propuso el ejemplo *"ordenar para avanzar, medir para decidir"* — **no para usarla literal**, sino para fijar el registro: dos verbos, ritmo binario, y el beneficio al final. Ese es el tono a buscar.
+
+Qué hace que una frase funcione aquí:
+
+- **Nombra el trabajo real, no el software.** Estas personas atienden vecinos; el sistema solo deja constancia de eso. Una frase sobre "gestión integral de indicadores" habla del producto y no de ellos.
+- **Sale del vocabulario del caso**: registrar, validar, avanzar, acompañar, decidir. El cliente habló de *acompañar* a los equipos, no de controlarlos, y esa diferencia debería oírse.
+- **Cabe en el login sin explicación** y no envejece cuando cambie el alcance.
+- **Una sola.** Dos frases compitiendo no son identidad, son ruido.
+
+Dónde se usa, si se adopta: bajo la marca en el login, y como hilo de los microtextos ya existentes —los vacíos que explican su causa, los avisos de rol— para que suenen a un mismo producto y no a mensajes sueltos escritos en momentos distintos.
+
+⚠ **Lo que no es**: un eslogan decorativo repetido en cada cabecera, ni una frase motivacional. Si no ayuda a entender qué hace el sistema, sobra.
+
 ### 10.5 Los límites que la dirección no puede cruzar
 
 Aquí es donde un rediseño ambicioso se rompe. Ninguno de estos puntos es negociable:
