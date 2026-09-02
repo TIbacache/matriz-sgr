@@ -122,7 +122,7 @@
 
 /* ---- La ciudad al fondo de la barra (DESIGN §10.4, ambiente §3.6.bis) ---- */
 .layout-silueta {
-  flex: 0 1 120px; /* = alto del viewBox a 240px de ancho: sin recorte lateral */
+  flex: 0 1 140px; /* = alto del viewBox a 240px de ancho: sin recorte */
   min-height: 0;
   margin: var(--esp-4) calc(-1 * var(--esp-3)) 0;
   overflow: hidden;
@@ -134,10 +134,76 @@
   height: 100%;
 }
 .silueta-ciudad {
-  fill: rgba(0, 0, 0, 0.26);
+  fill: rgba(0, 0, 0, 0.28);
+}
+.silueta-trazo {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.28);
+  stroke-linecap: round;
+}
+.silueta-cerro {
+  fill: rgba(0, 0, 0, 0.1);
+}
+.silueta-cerro--lejos {
+  fill: rgba(0, 0, 0, 0.06);
 }
 .silueta-hueco {
   fill: var(--barra-fondo);
+}
+.silueta-vidrio {
+  fill: rgba(255, 255, 255, 0.3);
+}
+.silueta-ventana {
+  fill: rgba(255, 255, 255, 0.9);
+  animation: faro-ventana-barra 5s ease-in-out infinite;
+}
+@keyframes faro-ventana-barra {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+/* Las papayas se distinguen de la silueta: son lo único claro del primer plano */
+.silueta-fruta {
+  fill: rgba(255, 255, 255, 0.5);
+}
+/* El papayo se mece apenas, 6.1 s ida y vuelta, desde la base del tronco */
+.silueta-vaiven {
+  transform-box: view-box;
+  transform-origin: 175px 124px;
+  animation: silueta-vaiven 6.1s ease-in-out infinite alternate;
+}
+@keyframes silueta-vaiven {
+  from { transform: rotate(-2.5deg); }
+  to { transform: rotate(2.5deg); }
+}
+.silueta-greca-jarro {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1.2;
+}
+/* Greca diaguita en el borde: un módulo de 24px, traslación de 24px = sin costura */
+.silueta-suelo {
+  fill: rgba(0, 0, 0, 0.18);
+}
+.silueta-greca {
+  animation: silueta-greca 13s linear infinite;
+}
+.silueta-greca--2 {
+  animation-duration: 23s;
+  animation-direction: reverse;
+}
+@keyframes silueta-greca {
+  from { transform: translateX(0); }
+  to { transform: translateX(-24px); }
+}
+.silueta-greca-trazo {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.5;
+  stroke-linejoin: miter;
+}
+.silueta-greca-trazo--fino {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
 }
 .silueta-luz {
   fill: rgba(255, 255, 255, 0.9);
@@ -157,18 +223,18 @@
   0%, 100% { opacity: 0.2; }
   50% { opacity: 0.9; }
 }
-/* El haz del faro barre el cielo de la barra: 17 s, y solo se ve un tramo */
+/* El haz del faro barre el cielo de la barra hacia la ciudad, 17 s */
 .silueta-giro {
   transform-box: view-box;
-  transform-origin: 217px 44px;
+  transform-origin: 217px 43px;
   animation: silueta-giro 17s ease-in-out infinite alternate;
 }
 .silueta-haz {
   fill: rgba(255, 255, 255, 0.07);
 }
 @keyframes silueta-giro {
-  from { transform: rotate(-14deg); }
-  to { transform: rotate(10deg); }
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(8deg); }
 }
 /* Camanchaca: la neblina costera pasa lenta, a tres velocidades primas */
 .silueta-niebla {
@@ -197,6 +263,9 @@
   .silueta-estrella,
   .silueta-giro,
   .silueta-niebla,
+  .silueta-ventana,
+  .silueta-vaiven,
+  .silueta-greca,
   .layout-nav-item svg {
     animation: none;
     transition: none;

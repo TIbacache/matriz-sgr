@@ -149,4 +149,5 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.7.0-pantalla-metas` | Pantalla de configuración de metas (HU-05), bloqueo optimista en el guardado del conjunto y alcance del selector por rol |
 | `v0.7.1-metas-privacidad` | Corrección: solo la jefatura ve las metas de otros (consulta abierta nº 11) |
 | `v0.8.0-identidad-la-serena` | Identidad visual de la Municipalidad de La Serena (DESIGN §10): tokens, barra heráldica, login con el faro, Libre Franklin, ADR-010 y ADR-011, verificación de contraste y capturas por rol |
-| `v0.8.1-vida-en-pantalla` | Dos regímenes de movimiento (DESIGN §3.6): el faro gira e ilumina el mar, la ciudad de los campanarios en la barra, marcador del menú deslizante, cifras que cuentan y hover en todo lo clickeable |
+| `v0.8.1-vida-en-pantalla` | Dos regímenes de movimiento (DESIGN §3.6): el faro gira e ilumina el mar, marcador del menú deslizante, cifras que cuentan y hover en todo lo clickeable |
+| `v0.8.2-faro-y-escena` | El faro redibujado a partir del real (ventanas encendidas, galería, linterna, torreones) sin recorte, y la escena de La Serena en la barra: San Francisco, jarro pato, La Recova, El Miliciano, papayo, faro, camanchaca y greca diaguita |

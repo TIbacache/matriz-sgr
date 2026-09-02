@@ -2,7 +2,7 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 2 de septiembre de 2026 · `main` en la etiqueta `v0.8.1-vida-en-pantalla`
+**Última actualización**: 2 de septiembre de 2026 · `main` en la etiqueta `v0.8.2-faro-y-escena`
 **Bloque que abre**: B3 — ficha del vecino (ADR-008, CA-04, RF-032).
 
 ---
@@ -92,7 +92,9 @@ se olvidan):
 Contexto que NO hay que volver a derivar:
 - La identidad visual está cerrada (Bloques D0 y D1): Libre Franklin +
   General Sans, los dos rojos separados por rol/zona/forma, faro en SVG que
-  gira e ilumina el mar, la ciudad de los campanarios en la barra, frase
+  gira e ilumina el mar (dibujado a partir del real), la escena de La Serena
+  en la barra (San Francisco, jarro pato, La Recova, El Miliciano, papayo,
+  faro, camanchaca y greca diaguita), frase
   «Lo que se atiende, se registra; lo que se registra, avanza», y dos
   regímenes de movimiento (DESIGN §3.6): ambiente solo en login y barra,
   estado en los datos, hover en todo lo clickeable. No reabrir. Sin Tailwind.
