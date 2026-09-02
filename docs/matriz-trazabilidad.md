@@ -2,7 +2,7 @@
 
 **Exigida por el PDF (§15.1)**: *"Cada equipo deberá mantener una matriz con: HU, requisito relacionado, tarea o commit, caso de prueba, resultado, responsable y enlace a la evidencia. **Una historia no se considera terminada si no puede demostrarse su trazabilidad.**"*
 
-**Actualizada**: 1 de septiembre de 2026 (Bloque B2 — pantalla de configuración de metas) · **Se actualiza en cada cierre de sprint.**
+**Actualizada**: 2 de septiembre de 2026 (Bloque D0 — identidad visual de La Serena) · **Se actualiza en cada cierre de sprint.**
 
 Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada · ⬜ no iniciada
 
@@ -87,9 +87,19 @@ El modelo de datos de las historias pendientes ya existe y está verificado; fal
 | RF-038 Parámetros | `Parametro` con vigencia | calculo-11; api ("devuelve los parámetros y marca los no confirmados") | pantalla de configuración |
 | ADR-008 Trazabilidad del vecino | `PersonaUsuaria` con RUT único + **alerta al registrar** | calculo-21; api ("se detecta a la misma persona en otra delegación", "no se duplicó la ficha") | ficha con historial cruzado |
 
+## 2.2 Requisitos no funcionales demostrables (Bloque D0, commit `d6e6dbf`)
+
+Los RNF de usabilidad y accesibilidad no cuelgan de una historia, pero el PDF los evalúa igual. Desde el Bloque D0 tienen verificación propia:
+
+| Requisito | Implementación (commit) | Prueba | Resultado | Resp. | Estado |
+|---|---|---|---|---|---|
+| RNF-011 Usabilidad (identidad, "mientras más fácil mejor") | `d6e6dbf` `frontend/src/styles/tokens.css`, `base.css`, `components/layout.css`, `pages/LoginPage.tsx`, `components/FaroSerena.tsx` — DESIGN §10, ADR-010, ADR-011 | `scripts/capturas.mjs`: 5 pantallas + login × 6 cuentas × 2 temas, escritorio (62) y móvil (48), revisadas una a una | OK; encontró y corrigió 3 desbordes a 390px y 2 defectos de identidad | A | ✅ |
+| RNF-012 Accesibilidad (contraste ≥ 4.5:1, nunca solo color, `prefers-reduced-motion`) | `d6e6dbf` tokens de los dos temas; `.marca-semaforo--mono`; animación del faro con apagado | `npm run verificar:contraste`: 83 comprobaciones (pares WCAG AA en ambos temas, ΔE entre los dos rojos, rampa ordinal, hex fuera de tokens) | PASS (83/83); corrigió 3 textos que estaban bajo 4.5:1 | A | ✅ |
+| RNF-013 Compatibilidad (Chrome/Edge, escritorio y móvil) | ídem | Capturas con el Edge instalado a 1440×900 y 390×844; ninguna captura móvil más ancha que el viewport | OK | A | 🟡 falta Chrome explícito y un dispositivo real |
+
 ## 3. Verificaciones automatizadas vigentes
 
-**108 comprobaciones, todas en verde** al 01-09-2026 (38 previas + 70 de la API v2, que incluyen las del contrato de la ficha personal y de la bandeja del verificador).
+**216 comprobaciones, todas en verde** al 02-09-2026: 133 del backend (17 smoke + 21 cálculo + 95 API) y **83 de contraste del frontend** (Bloque D0), más las 16 de RUT.
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -153,7 +163,15 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 
 Las dos comprobaciones en negrita son **regresiones**: nacieron de un error real encontrado probando el ciclo completo (una evidencia recién subida caía en la posición 87 de la cola y no se veía en pantalla).
 
-⚠ **Brecha de pruebas que queda**: las 108 comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría y seguridad de acceso, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend y las de usabilidad. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque bastante menor que antes.
+### `npm run verificar:contraste` (frontend) — 83/83
+
+Lee `tokens.css`, resuelve los dos temas (los translúcidos sobre su fondo real) y comprueba: texto principal, secundario y placeholder sobre superficie, fondo, fondo-2 y selección · acento y marca como texto · botón y botón:hover · barra lateral y panel del login · los tres estados como texto sobre su fondo pálido, como texto sobre superficie y como marca · las seis categorías y la rampa del tubo (3:1, monótona, pasos ≥ 1.5:1) · ΔE ≥ 15 entre `--acento` y `--estado-rojo` y entre `--marca` y `--estado-rojo` · fila seleccionada distinta de fila crítica · ningún hex fuera de `tokens.css`. Cubre RNF-012 y DESIGN §8.1.3, §8.10 y §8.11.
+
+### `node scripts/capturas.mjs` (frontend) — visual, no automatizada
+
+Captura cada pantalla con las seis cuentas en los dos temas; con `--movil`, a 390×844. No decide sola: alguien mira las capturas. Lo que sí es automático: a 390px una captura más ancha que 390 es un desborde horizontal. Cubre RNF-011 y RNF-013.
+
+⚠ **Brecha de pruebas que queda**: las comprobaciones cubren fórmulas, validadores, integración, concurrencia, auditoría, seguridad de acceso y contraste, pero **no están en un marco formal** (Jest / RTL) ni corren en CI, y faltan las de componentes del frontend. El PDF §14.3 exige las cinco categorías. Sigue siendo un riesgo de la entrega, aunque menor que antes.
 
 ---
 

@@ -14,13 +14,13 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 10 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
 | [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md) | Columnas, catálogos, códigos y fórmulas extraídos de la planilla en producción |
 | [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) | HU ↔ requisito ↔ commit ↔ prueba (exigida por los profesores) |
-| [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros |
+| [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | 11 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, ítems, tipografía y los dos rojos |
 
 ### Diseño y desarrollo
 
 | Documento | Contenido |
 |---|---|
-| [DESIGN.md](DESIGN.md) | Guía visual normativa (tipografías, paleta, accesibilidad, pantallas pendientes, lista negra) |
+| [DESIGN.md](DESIGN.md) | Guía visual normativa: identidad de la Municipalidad de La Serena (§10), tipografías, paleta, accesibilidad, criterios por pantalla, lista negra |
 | [docs/estado-proyecto.md](docs/estado-proyecto.md) | Estado por fase, contrato de API y Socket.io, deuda técnica |
 | **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** | **Qué sigue, en qué orden, cabos sueltos y trampas del entorno** |
 | [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) | Prompt listo para abrir una sesión nueva sin perder contexto |
@@ -94,7 +94,7 @@ La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-
 
 ## Verificación
 
-Cuatro suites automatizadas, **133 comprobaciones**, todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cinco suites automatizadas, **216 comprobaciones** (133 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
@@ -104,6 +104,10 @@ npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 17 · tiempo real, permisos y visibilidad por delegación
 npm run verificar:api      # 95 · registro, evidencia, validación, metas, concurrencia y auditoría
+
+cd frontend
+npm run verificar:contraste          # 83 · WCAG AA en los dos temas, los dos rojos separados, sin hex fuera de tokens
+node scripts/capturas.mjs capturas   # cada pantalla con las seis cuentas (--movil, --solo=login,ficha); servers arriba
 ```
 
 ## Estrategia de ramas y versiones
@@ -143,3 +147,5 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.5.2-tubo-vacio-explicado` | Corrección: el tubo resuelve su carga y explica el vacío a los roles sin delegación |
 | `v0.6.0-metas-funcionario` | API de metas por funcionario (RF-006, RF-007, RN-001), 126 comprobaciones en verde |
 | `v0.7.0-pantalla-metas` | Pantalla de configuración de metas (HU-05), bloqueo optimista en el guardado del conjunto y alcance del selector por rol |
+| `v0.7.1-metas-privacidad` | Corrección: solo la jefatura ve las metas de otros (consulta abierta nº 11) |
+| `v0.8.0-identidad-la-serena` | Identidad visual de la Municipalidad de La Serena (DESIGN §10): tokens, barra heráldica, login con el faro, Libre Franklin, ADR-010 y ADR-011, verificación de contraste y capturas por rol |

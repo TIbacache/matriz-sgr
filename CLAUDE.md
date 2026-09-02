@@ -20,9 +20,10 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** — qué sigue, con su orden y sus trampas.
 - [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) — prompt listo para abrir una sesión nueva. **Se actualiza al cerrar cada bloque.**
 
-## Estado del código (1 de septiembre de 2026)
+## Estado del código (2 de septiembre de 2026)
 
-**Construido y verificado** (133 comprobaciones en verde):
+**Construido y verificado** (133 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
+- **Identidad visual de La Serena (Bloque D0, DESIGN §10)**: tokens en los dos temas, barra heráldica, login con el Faro Monumental en SVG, Libre Franklin + General Sans (ADR-010), los dos rojos separados por rol, zona y forma (ADR-011), frase del producto. Verificada con `npm run verificar:contraste` y con capturas de las seis cuentas (`scripts/capturas.mjs`).
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - Dashboard BI con ECharts (gauges, heatmap, proyección, radar, tabla) y filtros cruzados.
@@ -40,7 +41,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
-- **El rediseño visual con la identidad de La Serena** (DESIGN §10): normativo, decidido y sin ejecutar. **Bloquea a los demás pendientes de frontend.**
+- Panel de actividad de usuarios (RF-030, HU-19), pedido por el docente en clase.
 
 ⚠ **"v1" no significa "obsoleto".** `/tareas` (el tubo: EP-04, RF-016 a RF-021), `/unidades` (RF-001) y `/categorias` sostienen requisitos oficiales vigentes y hay que **endurecerlas** con `version` → 409 y auditoría. Las que sí mueren son `/metas` v1 (unidad × categoría — el frontend ya no la llama) y `/kpis/cumplimiento`, que se van con el Bloque C. Detalle en [docs/estado-proyecto.md §3.2](docs/estado-proyecto.md).
 
@@ -64,7 +65,11 @@ npx prisma generate           # tras cambiar el esquema; falla si el server dev 
 cd frontend
 npm run dev                   # UI en :5173 (Vite)
 npm run build                 # tsc + vite build
+npm run verificar:contraste   # 83 comprobaciones WCAG de tokens.css en los dos temas + hex fuera de tokens
+node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas con las seis cuentas (servers arriba)
 ```
+
+⚠ **Vite huérfano en 5173**: igual que el 4000, un `vite` de una sesión anterior puede seguir sirviendo. `Get-NetTCPConnection -LocalPort 5173 -State Listen` y `Stop-Process` antes de levantar el propio.
 
 **Trampa conocida de migraciones**: `prisma migrate dev` es interactivo y falla en esta sesión. Usar:
 ```powershell
@@ -92,7 +97,7 @@ Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin
 11. **Trazabilidad de la persona usuaria**: `PersonaUsuaria` es única por organización (RUT único), **no por delegación** — detecta el caso del vecino que pide lo mismo en varias delegaciones (ADR-008).
 12. **Datos ficticios obligatorios**: prohibido cargar datos reales de ciudadanos o funcionarios en repo, base o capturas (§Condiciones del caso del PDF).
 13. **Costo cero**: sin dependencias ni servicios de pago. VPS solo al final si es imprescindible.
-14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado (RNF-012, DESIGN §8.1). **La identidad gráfica de la Municipalidad de La Serena es normativa** (DESIGN §10): rojo institucional `#DB0032`, heráldico `#8A0007`, Arial en documentos. Cumplir la norma es el piso; el diseño propio es el desafío.
+14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado por script (RNF-012, DESIGN §8.1, `npm run verificar:contraste`). **La identidad gráfica de la Municipalidad de La Serena es normativa y está implementada** (DESIGN §10, ADR-010, ADR-011): rojo institucional `#DB0032`, heráldico `#8A0007`, Libre Franklin + General Sans en pantalla, Arial en lo impreso. **El rojo institucional nunca entra en una zona de datos** (tablas, chips, gráficos): ahí lo seleccionado es `--seleccion` y el único rojo es `--estado-rojo`. Todo cambio visual se mira con las seis cuentas (`scripts/capturas.mjs`).
 15. **Una historia no está terminada sin prueba**: al implementarla se actualiza [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) con commit, caso de prueba y resultado.
 16. **Las ambigüedades se documentan, no se inventan**: hay 10 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí, con el mismo formato: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta.
 17. Puertos: API 4000, frontend 5173, Postgres 5432. Los puertos 3000/8000/27017 los ocupa otro proyecto Docker ("talia") — no tocarlos.
