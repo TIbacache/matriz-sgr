@@ -41,7 +41,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-001 | Administrar delegaciones (crear, modificar, activar, desactivar) | 🟡 | Falta activar/desactivar (hoy se elimina) |
+| RF-001 | Administrar delegaciones (crear, modificar, activar, desactivar) | ✅ | Bloque A3: `DELETE /unidades/:id` **desactiva** y la fila se conserva; se reactiva con `PATCH {activo:true}` y se consultan las inactivas con `?incluirInactivas=1`. Antes borraba de verdad, con actividades y metas colgando |
 | RF-002 | Administrar usuarios y roles (estado, cargo, delegación, uno o más roles) | 🟡 | Existe membresía con cargo y unidad; falta **múltiples roles** y estado, y la UI de administración |
 | RF-003 | Configurar cargos y funciones: asociar a cada cargo los ítems medidos | ✅ | `GET/POST/PATCH /cargos` y `/items` (`b1f3e75`). Falta la pantalla |
 | RF-004 | Catálogo de actividades, servicios, atenciones y subatenciones por área | 🟡 | `GET /catalogos` alimenta la UI con los valores **vigentes** (los formatos de evidencia ya salen de ahí); falta el CRUD y la desactivación (HU-27) |
@@ -100,7 +100,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
 | RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 16 ✅ · 13 🟡 · 9 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜)
+**Resumen: 38 RF → 18 ✅ · 13 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅)
 
 ---
 
@@ -160,8 +160,8 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | CA-05 | Al cambiar fecha o avance se recalculan meta acumulada y semáforo | ✅ |
 | CA-06 | Totales del tablero coinciden con el detalle filtrado | ✅ |
 | CA-07 | Un funcionario no modifica datos de otra delegación | ✅ verificado en smoke test |
-| CA-08 | Dos usuarios registran a la vez sin perder ni sobrescribir sin advertencia | 🟡 409 con la versión y el registro vigentes en todo el modelo v2; falta en las rutas v1 y el aviso en la UI |
-| CA-09 | Cada modificación crítica rastreable a usuario, fecha, valor anterior y nuevo | 🟡 verificado en el modelo v2; faltan las rutas v1 |
+| CA-08 | Dos usuarios registran a la vez sin perder ni sobrescribir sin advertencia | ✅ 409 con la versión y el registro vigentes en **todo** el sistema desde el Bloque A3 (el modelo v2 ya lo tenía; se sumaron `/tareas`, `/unidades` y `/categorias`), y el tubo —la pantalla más concurrida— **avisa** en vez de revertir en silencio |
+| CA-09 | Cada modificación crítica rastreable a usuario, fecha, valor anterior y nuevo | ✅ modelo v2 y rutas heredadas; la bitácora del tubo distingue además `cambiar_estado` de `actualizar` |
 | CA-10 | Período cerrado no alterable; reapertura autorizada y auditada | ✅ verificado (8 comprobaciones del ciclo del período) |
 
 ---

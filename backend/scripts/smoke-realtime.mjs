@@ -66,11 +66,13 @@ check("vista expone objetivo_al_dia y avance_relativo",
   typeof fila?.objetivo_al_dia === "number" && typeof fila?.avance_relativo === "number",
   `objetivo=${fila?.objetivo_al_dia} relativo=${fila?.avance_relativo}`);
 
-// 5. Permisos de edición: el funcionario no mueve tareas ajenas
+// 5. Permisos de edición: el funcionario no mueve tareas ajenas.
+// El cuerpo lleva `version` a propósito: la petición debe fallar por PERMISOS
+// (403), no por estar mal formada (400), o la prueba dejaría de probar lo suyo.
 const r403 = await fetch(`${API}/tareas/${tareaAjena.id}`, {
   method: "PATCH",
   headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionario.token}` },
-  body: JSON.stringify({ estado: "realizado" }),
+  body: JSON.stringify({ estado: "realizado", version: tareaAjena.version }),
 });
 check("usuario no mueve tarea ajena", r403.status === 403, `status ${r403.status}`);
 
@@ -96,9 +98,22 @@ const eventoPromise = new Promise((res) => socket.once("tarea:actualizada", res)
 const rOk = await fetch(`${API}/tareas/${tareaPropia.id}`, {
   method: "PATCH",
   headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionario.token}` },
-  body: JSON.stringify({ estado: "en_proceso" }),
+  body: JSON.stringify({ estado: "en_proceso", version: tareaPropia.version }),
 });
 check("usuario mueve su propia tarea", rOk.status === 200, `status ${rOk.status}`);
+
+// 7.bis CA-08 · ADR-005: repetir el movimiento con la versión ya consumida no
+// sobrescribe, responde 409 con el registro vigente. Era el hueco del tubo.
+const rConflicto = await fetch(`${API}/tareas/${tareaPropia.id}`, {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${funcionario.token}` },
+  body: JSON.stringify({ estado: "realizado", version: tareaPropia.version }),
+});
+const conflicto = await rConflicto.json();
+check("CA-08 mover con versión vencida → 409 con el registro vigente",
+  rConflicto.status === 409 && conflicto.versionActual === tareaPropia.version + 1 &&
+  conflicto.registro?.estado === "en_proceso",
+  `status ${rConflicto.status} versionActual=${conflicto.versionActual}`);
 const evento = await Promise.race([
   eventoPromise,
   new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000)),

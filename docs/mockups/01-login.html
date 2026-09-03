@@ -1139,6 +1139,30 @@
 .tubo-skeleton > div {
   height: 320px;
 }
+
+/* Aviso de conflicto de concurrencia — CA-08 · ADR-005.
+   Es zona de datos (DESIGN §3.3): nada de --marca ni --acento. Un choque de
+   ediciones es ESTADO, no marca, así que usa el ámbar de estado, el mismo con
+   el que ya se avisa el modo solo lectura. A diferencia del toast, no se va
+   solo: perder de vista que tu cambio no se guardó es justo lo que CA-08
+   prohíbe. */
+.tubo-conflicto {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  background: var(--estado-amarillo-bg);
+  border-left: 3px solid var(--estado-amarillo);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--estado-amarillo-texto);
+}
+
+.tubo-conflicto .btn-tabla {
+  margin-left: auto;
+}
 </style><style type="text/css" data-vite-dev-id="C:/Users/zgf/Documents/Scripts/matriz-sgr/frontend/src/pages/ficha.css">/* Ficha personal (RF-008) — DESIGN §8.2.
    Tres bloques verticales: identidad, ítems medidos, registro diario.
    Todo con tokens; ni un color ni una medida fuera de las escalas. */
@@ -3550,6 +3574,8 @@ td,
 .tubo-vacio-acciones a { text-decoration: none; display: inline-flex; align-items: center; }
 .tubo-skeleton { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--esp-4); }
 .tubo-skeleton > div { height: 320px; }
+.tubo-conflicto { display: flex; align-items: center; gap: var(--esp-3); flex-wrap: wrap; background: var(--estado-amarillo-bg); border-left: 3px solid var(--estado-amarillo); border-radius: var(--radio-control); padding: var(--esp-3) var(--esp-4); margin-bottom: var(--esp-4); font-size: 0.8125rem; color: var(--estado-amarillo-texto); }
+.tubo-conflicto .btn-tabla { margin-left: auto; }
 .ficha { padding: var(--esp-5); max-width: 1440px; margin: 0px auto; }
 .ficha-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--esp-4); flex-wrap: wrap; margin-bottom: var(--esp-5); }
 .ficha-header-sub { font-size: 0.8125rem; color: var(--tinta-2); margin-top: var(--esp-1); max-width: 60ch; }
