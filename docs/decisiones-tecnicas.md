@@ -92,6 +92,18 @@ CREATE INDEX personas_usuarias_nombre_completo
   ON personas_usuarias ((nombres || ' ' || apellido_paterno || ' ' || COALESCE(apellido_materno, '')));
 ```
 
+> **Nota de implementación del Bloque B3** (3 de septiembre de 2026): al construir la búsqueda de la ficha del vecino apareció el límite del índice de arriba. Es un btree sobre la expresión **tal cual**, así que sirve para comparar cadenas exactas pero no para el `LIKE` de prefijo sin distinguir mayúsculas, que es como busca una persona ("maldo" para *Maldonado*). La migración `20260903120000` agrega el par que sí lo resuelve, sobre la **misma** expresión:
+>
+> ```sql
+> CREATE INDEX personas_usuarias_nombre_busqueda
+>   ON personas_usuarias (
+>     lower(nombres || ' ' || apellido_paterno || ' ' || COALESCE(apellido_materno, ''))
+>     text_pattern_ops
+>   );
+> ```
+>
+> `GET /vecinos?q=` consulta esa expresión y no las columnas sueltas: la regla de concatenación sigue escrita una sola vez. El "contiene" (`%texto%`) no usa índice y hace recorrido secuencial; a la escala de una base municipal de vecinos es irrelevante, y decirlo aquí es más honesto que dejar creer que toda búsqueda es indexada.
+
 > **Nota de implementación** (por qué no una columna generada): la primera versión de este ADR proponía `GENERATED ALWAYS AS ... STORED`. Se descartó porque Prisma no modela columnas generadas y cada `prisma migrate` las detecta como deriva del esquema, lo que rompería las migraciones del equipo. El índice de expresión da la misma capacidad de búsqueda indexada sin ese costo, y el helper cumple el objetivo de escribir la regla una sola vez.
 
 ### Justificación
@@ -261,3 +273,46 @@ DESIGN §10.2 ofrecía como último recurso «bajar la saturación del estado an
 - Nacen `--marca`, `--marca-profundo`, `--marca-oscuro`, `--seleccion`, `--seleccion-bg`, `--barra-*` (tokens de la barra lateral) y `--cat-1..6`. Los hex sueltos de `lib/kanban.ts` desaparecen.
 - El radar del dashboard, que pintaba su serie con `--acento`, pasa a un neutro de datos: una serie en rojo institucional violaría el punto 2.
 - Regla para revisiones: si un PR pinta `--acento` o `--marca` dentro de `.tabla-sgr`, un chip, un gráfico o una tarjeta del tubo, se rechaza (se agrega a DESIGN §8).
+
+---
+
+## ADR-012 — Quién consulta la ficha del vecino, y con qué detalle
+
+### Contexto
+El Bloque B3 construye la pantalla con **más datos personales identificados** del sistema: nombre, RUT, teléfono, dirección y el historial completo de atenciones de una persona, cruzando delegaciones (ADR-008). Tres fuentes tiran en direcciones distintas y ninguna resuelve sola:
+
+- **El cliente** fue tajante: *"cada delegación tiene un libro, no se pueden ver entre ellos, pero cada integrante de la delegación puede ver todo el libro de la suya"* (reunión 00:37:11). Eso protege el libro, pero si se aplicara literal a la ficha del vecino, el caso del niño que pidió el mismo regalo en cinco delegaciones seguiría siendo indetectable, que es justo lo que el cliente vino a resolver.
+- **El PDF** define seis actores (§3) sin decir cuál accede a datos de vecinos. Al Usuario de consulta lo describe sobre *"tableros e informes"*; al Verificador, sobre *"revisar evidencias, validar o rechazar"*. RNF-004 y RNF-005 piden control por rol y mínimo privilegio.
+- **La ley chilena** (Leyes 19.628 y 21.719 de datos personales, Ley 21.663 de ciberseguridad) impone finalidad, proporcionalidad, mínimo privilegio y **trazabilidad del acceso**. Es la fuente más específica de las tres y la única con consecuencias fuera de la evaluación.
+
+### Decisión (3 de septiembre de 2026)
+
+**1. Quién entra.** Cuatro de los seis roles:
+
+| Rol | Ficha del vecino | Por qué |
+|---|---|---|
+| `admin`, `supervisor` | ✅ completa | Configuran y supervisan la operación; necesidad de conocer evidente |
+| `gerente`, `usuario` | ✅ con detalle reducido fuera de su delegación | Atienden a la persona: sin la ficha no pueden hacer su trabajo |
+| `verificador` | ⛔ 403 | Segregación de funciones (RNF-005): valida que una evidencia respalde una actividad, y para eso **no necesita saber a quién se atendió** |
+| `consulta` | ⛔ 403 | El PDF lo define sobre tableros e informes, que son **agregados**. Un dato agregado no requiere identidad |
+
+El 403 **explica el motivo** y ofrece la alternativa (el dashboard), en vez de dejar una pantalla en blanco o un 404 mudo.
+
+**2. Qué se ve.** El historial **cruza delegaciones siempre** —ocultarlo destruiría el control— pero lo que viaja de una delegación ajena es *reducido*: fecha, delegación, tipo de atención, estado y el código de evidencia. Nunca la descripción, la acción, el contacto ni quién atendió. La pantalla **dice cuántas filas están reducidas y por qué**.
+
+**3. Qué se audita.** Abrir la ficha de una persona identificada queda en la bitácora con la acción nueva `consultar` (usuario, fecha, a quién, cuántos hechos, si hubo aviso). **La búsqueda incremental no se audita**: registrar cada tecleo llenaría la bitácora de ruido sin decir nada.
+
+**4. Qué se puede corregir.** `PATCH /vecinos/:id` con bloqueo optimista. Rectificar un dato personal inexacto es un derecho del titular (Ley 19.628 art. 6). Lo hace el nivel central, o quien atendió a esa persona **en su propia delegación**. El RUT no se edita desde la pantalla: es la llave que une el historial y reasignarlo fusionaría dos historias; el servidor lo rechaza con 409 si ya pertenece a otra persona.
+
+**5. La ventana del aviso es un parámetro**, `ventana_duplicidad_dias` (30 días, `confirmado: false`), no un número en el código (ADR-007).
+
+### Justificación
+Ante fuentes que se contradicen, rige lo restrictivo y la ambigüedad se documenta (regla 18 del proyecto y §10 de los requerimientos). Dar acceso de más a `consulta` o al `verificador` sería irreversible en la práctica: los datos ya vistos no se "des-ven". Restringir de más, en cambio, se corrige con una línea el día que el docente responda la **consulta nº 12**, y mientras tanto ninguna historia queda bloqueada.
+
+La distinción entre *ver el hecho* y *ver el detalle* es lo que permite cumplir a la vez la regla del cliente (el libro es privado) y el requisito del PDF (CA-04, la secuencia consultable). No es un punto medio de compromiso: es que son dos preguntas distintas —*"¿esta persona ya fue atendida?"* y *"¿qué dice el registro de esa atención?"*— y solo la primera necesita cruzar delegaciones.
+
+### Consecuencias
+- Nace la acción `consultar` en el enum `AccionAuditoria` (migración `20260903120000`). La bitácora deja de registrar solo escrituras y pasa a responder también *"quién consultó a quién"*.
+- `ROLES_FICHA_VECINO` vive en `backend/src/services/vecinos.ts` y su espejo en `frontend/src/lib/vecinos.ts`; el menú lateral no ofrece la entrada a quien no puede entrar. **El servidor sigue siendo la autoridad**: el espejo del frontend es cortesía, no seguridad.
+- Si el docente responde que el rol de consulta debe acceder, el cambio es un elemento en un arreglo y su espejo. No toca modelo, ni migración, ni el resto de la API.
+- Queda registrado como **consulta abierta nº 12** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con sus dos preguntas concretas: quién accede, y cuál es la ventana de duplicidad.

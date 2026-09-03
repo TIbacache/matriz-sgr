@@ -338,11 +338,21 @@ Es la pantalla donde alguien decide **qué se le mide a una persona y con qué p
 2. **Una nota que se repite en cada fila es ruido, no ayuda.** La explicación va una sola vez sobre la tabla; en la fila queda una marca corta. Y el texto cambia según se pueda editar o no: decirle "puedes ajustar" a quien está en modo lectura es peor que no decir nada.
 3. **Un bloque de texto corrido no debe ser `flex`.** Cada `<strong>` se vuelve un ítem con su `gap` y aparecen huecos delante de la puntuación. `flex` es para disponer cajas, no para párrafos.
 
-### Ficha del vecino y trazabilidad (ADR-008, CA-04)
+### Ficha del vecino y trazabilidad (ADR-008, ADR-012, CA-04) — ✅ construida (Bloque B3, 03-09-2026)
 
-- Buscador por RUT arriba, con resultado inmediato.
-- **Historial cruzando delegaciones** en línea de tiempo vertical, indicando la delegación de cada atención.
-- Cuando la misma persona tiene atenciones del mismo tipo en distintas delegaciones, se muestra un **aviso ámbar con texto explícito** (es el caso del regalo de Navidad). El aviso informa; no bloquea ni acusa.
+`frontend/src/pages/VecinosPage.tsx` + `vecinos.css`. Los tres criterios que esta sección fijó antes de construirla se cumplieron, y la construcción agregó tres más.
+
+- **Buscador por RUT arriba, con resultado inmediato.** Busca 250 ms después de dejar de teclear —ni por letra, que es ruido, ni al presionar Enter, que es fricción— y desde 3 caracteres. El RUT se reconoce por su dígito verificador, así que da igual cómo se escriba. Un único resultado se abre solo.
+- **Historial cruzando delegaciones** en línea de tiempo vertical, con la delegación de cada atención en un chip.
+- **Aviso ámbar con texto explícito** arriba de todo el detalle —si va debajo, quien revisa ya decidió antes de leerlo—. Dice el tipo, las delegaciones y los días de diferencia, y termina diciendo que **informa, no bloquea**, y que la ventana es un valor provisional mientras no llegue la respuesta del docente.
+
+Lo que la construcción agregó:
+
+- **El aviso marca hechos, no delegaciones.** Marcar por delegación pintaba 21 de 35 hitos: una señal que cubre media pantalla se lee como fondo. El backend devuelve las claves de los hechos implicados y solo esos llevan la banda ámbar (banda lateral, no marco entero).
+- **Lo reservado se dice.** Para `gerente` y `usuario`, una atención de otra delegación muestra fecha, delegación, tipo y estado con la etiqueta «Detalle reservado» y a quién consultar; arriba, una línea cuenta cuántas son y por qué (ADR-012). Una fila muda se lee como un error del sistema; una fila que dice por qué está reservada se lee como una regla.
+- **El perfil sin acceso ve el motivo, no una pantalla en blanco.** El `verificador` y el rol `consulta` reciben la explicación legal y el camino que sí les corresponde (el dashboard), y no tienen la entrada en el menú.
+
+Zona de datos, con todo lo que eso implica (§3.3): ni `--acento` ni `--marca` entran; lo seleccionado es `--seleccion`/`--seleccion-bg` y el ámbar es `--estado-amarillo`, que es estado, no identidad. Verificado con `npm run verificar:contraste` (83/83) y con las seis cuentas en los dos temas, escritorio y 390px (`scripts/capturas.mjs --solo=vecinos`).
 
 ### Configuración de parámetros (RF-038)
 

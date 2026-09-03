@@ -36,7 +36,14 @@ const PANTALLAS = [
   { archivo: "03-ficha", ruta: "/ficha", cuenta: "territorial.centro@sgr.demo", titulo: "Ficha personal" },
   { archivo: "04-verificacion", ruta: "/verificacion", cuenta: "verificador@sgr.demo", titulo: "Bandeja del verificador" },
   { archivo: "05-metas", ruta: "/metas", cuenta: "coordinador@sgr.demo", titulo: "Configuración de metas" },
-  { archivo: "06-dashboard", ruta: "/dashboard", cuenta: "admin@sgr.demo", titulo: "Tablero de control" },
+  {
+    archivo: "06-vecino",
+    // Con el RUT del caso emblemático: la ficha sin búsqueda está en blanco.
+    ruta: "/vecinos?q=13.111.222-K",
+    cuenta: "coordinador@sgr.demo",
+    titulo: "Ficha del vecino",
+  },
+  { archivo: "07-dashboard", ruta: "/dashboard", cuenta: "admin@sgr.demo", titulo: "Tablero de control" },
 ];
 
 async function sesion(email) {

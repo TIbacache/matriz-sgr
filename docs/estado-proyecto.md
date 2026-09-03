@@ -1,7 +1,7 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 2 de septiembre de 2026 · `main` en `v0.8.3-mar-completo`
-**Verificación**: 216 comprobaciones automatizadas en verde — backend 133 (17 smoke + 21 cálculo + 95 API) y frontend 83 (contraste)
+**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.10.0-ficha-vecino`
+**Verificación**: 234 comprobaciones automatizadas en verde — backend 151 (17 smoke + 21 cálculo + 113 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
 Lo vigente está arriba; el registro histórico de las fases, al final.
@@ -43,17 +43,17 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Modelo de datos (16 entidades v2) | ✅ Migrado, con garantías en la base |
 | API del modelo v2 | ✅ Períodos, cargos, ítems, metas, actividades, evidencias, validación, cumplimiento y catálogos |
-| Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, dashboard |
+| Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, **ficha del vecino**, dashboard |
 | Identidad visual de La Serena (DESIGN §10) | ✅ Tokens, barra, login con el faro, tipografía; verificada por script y con capturas de los seis roles |
 | Tiempo real | ✅ Socket.io con rooms por delegación y organización |
 | Dashboard sobre el motor v2 | 🟡 Aún lee la vista materializada v1 (Bloque C) |
 | Pantallas de administración | 🟡 Falta períodos, cargos y catálogos |
-| Ficha del vecino | ⬜ Necesita endpoint de búsqueda de `PersonaUsuaria` |
+| Ficha del vecino y trazabilidad entre delegaciones | ✅ `/vecinos` con búsqueda por RUT y nombre, historial cruzado y aviso de duplicidad (Bloque B3) |
 | Informes, exportación y alertas | ⬜ |
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 16 ✅ · 13 🟡 · 9 ⬜** (al recibir la especificación: 5 · 13 · 20).
+**Contra los 38 RF oficiales: 17 ✅ · 13 🟡 · 8 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B3 cerró RF-032 y dejó RF-015 y CA-04 en 🟡: la **secuencia del caso ya es consultable**, faltan las tres gestiones de `AtencionSocial`.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -90,6 +90,9 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 | `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
 | `GET /catalogos?catalogo=` | todos | Solo lectura. El CRUD de HU-27 está pendiente |
 | `GET /usuarios[?unidad=]` | todos | Directorio con `cargo` y **`cargoId`** — es lo que dice qué ítems se le miden |
+| `GET /vecinos?q=&limite=` | admin, supervisor, gerente, usuario | Busca por **RUT** (exacto, en cualquier formato) o por **nombre** (parcial, sobre la expresión indexada de ADR-003). Menos de 3 caracteres devuelve vacío. Cada resultado trae `atenciones` y en cuántas `delegaciones`. `verificador` y `consulta` → **403 con el motivo** (ADR-012) |
+| `GET /vecinos/:id` | ídem | Ficha: `persona`, `alcance`, `resumen`, `aviso` y `historial` cruzando delegaciones. Para `gerente` y `usuario`, los hechos de otra delegación llegan **reducidos** (`detallado: false`, sin descripción ni contacto). Queda **auditado** con la acción `consultar`. UUID mal formado → 400; de otro tenant → 404 |
+| `PATCH /vecinos/:id` | nivel central, o quien la atendió en su delegación | Rectificación de datos personales (Ley 19.628 art. 6). Exige `version` → 409. RUT ya usado por otra persona → 409. Emite `vecino:actualizado` |
 
 ### 3.2 Rutas heredadas del modelo v1
 
@@ -114,9 +117,11 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 | Room | Eventos |
 |---|---|
 | `unidad:<id>` | `tarea:creada/actualizada/eliminada`, `presencia:actualizada`, `actividad:creada/actualizada/anulada`, `evidencia:creada`, `validacion:registrada`, `meta_item:creada/actualizada/eliminada` |
-| `org:<id>` | `unidad:*`, `categoria:*`, `meta:actualizada/eliminada`, `periodo:creado/actualizado/cerrado/reabierto`, `cargo:*`, `item:*`, `evidencia:pendiente`, `cumplimiento:cambiado`, `cumplimiento:recalculado` |
+| `org:<id>` | `unidad:*`, `categoria:*`, `meta:actualizada/eliminada`, `periodo:creado/actualizado/cerrado/reabierto`, `cargo:*`, `item:*`, `evidencia:pendiente`, `cumplimiento:cambiado`, `cumplimiento:recalculado`, `vecino:actualizado` |
 
 Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` **en la raíz**: es lo único que el oyente necesita para saber si le toca releer.
+
+`vecino:actualizado` va al room de **organización** y no al de unidad: una persona usuaria es única por organización (ADR-008) y su corrección interesa a todas las delegaciones que la atendieron.
 
 **Regla**: todo write pasa por `emitEvent()` de `services/broadcast.ts`. Endpoint mudo = bug.
 
@@ -158,11 +163,13 @@ Lo que Prisma no expresa, agregado por SQL en la migración:
 ### 5.2 Utilidades y servicios
 
 `lib/rut.ts` · `lib/fechas.ts` · `lib/persona.ts` · `lib/telefono.ts`
-`services/`: `parametros`, `auditoria`, `codigos`, `cumplimiento` (motor por funcionario), `concurrencia`, `alcance`, `almacenamiento`, `broadcast`.
+`services/`: `parametros`, `auditoria`, `codigos`, `cumplimiento` (motor por funcionario), `concurrencia`, `alcance`, `almacenamiento`, `broadcast`, `vecinos` (historial cruzado y detección de duplicidad, ADR-008).
 
 ### 5.3 Seed
 
-100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, 13 personas, 3 vecinos, 16 tareas con historial y **1.129 actividades con evidencia y validación**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert.
+100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, 13 personas, 3 vecinos, 16 tareas con historial y **1.126 actividades con evidencia y validación**, de las cuales **94 quedan a nombre de un vecino**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert.
+
+El reparto de vecinos es **determinista a propósito** (Bloque B3): Centro y Rural comparten el cargo «Territorial OO.CC. 1», así que el mismo ítem le toca al mismo vecino en las dos delegaciones y el caso emblemático del cliente —la misma persona atendida por lo mismo en dos delegaciones— queda armado en los datos de demostración, que es donde tiene que poder mostrarse.
 
 ⚠ Al agregar un parámetro nuevo a `services/parametros.ts` hay que **volver a sembrar**, o el endpoint que lo lee falla con "parámetro no configurado".
 
@@ -217,13 +224,26 @@ Donde se decide qué se le mide a cada persona y con qué peso.
 - Lo que ya sumó puntaje no se puede quitar: casilla desactivada con su razón. El dato sale de `GET /cumplimiento`, sin endpoint nuevo.
 - Solo la jefatura ve las metas de otros (ver consulta abierta nº 11).
 
-### 6.5 Dashboard (`/dashboard`) — EP-05
+### 6.5 Ficha del vecino (`/vecinos`) — ADR-008, ADR-012, RF-032, CA-04, HU-29
+
+Es el control que el cliente vino a buscar: la misma persona atendida en varias delegaciones (el niño que pidió el mismo regalo de Navidad en cinco).
+
+- **Buscador arriba, resultado inmediato** (250 ms tras dejar de teclear). El RUT se reconoce escrito como sea; cualquier otra cosa se busca como nombre.
+- **Un solo resultado se abre solo**: es lo que pasa siempre al buscar por RUT, y pedir un clic sobre la única fila posible es fricción pura.
+- **Aviso ámbar arriba de todo el detalle.** Si va debajo de la línea de tiempo, quien revisa ya decidió antes de leerlo. Dice qué tipo, en qué delegaciones y con cuántos días de diferencia, y remata con que **informa, no bloquea**.
+- **Línea de tiempo vertical** con la delegación de cada atención. Solo los hechos que el aviso señala llevan banda ámbar: marcar la delegación entera pintaría media pantalla y el aviso dejaría de señalar.
+- **Lo reservado se dice, no se esconde**: para un funcionario, las atenciones de otra delegación muestran fecha, delegación, tipo y estado, con la etiqueta «Detalle reservado» y «Consultar a la delegación X». Arriba, una línea cuenta cuántas son y por qué.
+- **Corregir datos** en línea, con bloqueo optimista y aviso de conflicto. El RUT no se edita ahí: es la llave del historial.
+- **El verificador y el rol de consulta ven la pantalla con el motivo escrito**, no un 404 mudo, y no tienen la entrada en el menú.
+- La URL guarda `?q=` e `?id=`: un enlace a la ficha de un vecino se pega en un correo interno sin explicar cómo llegar. Es además lo que permite que la captura y el mockup muestren algo.
+
+### 6.6 Dashboard (`/dashboard`) — EP-05
 
 ECharts modular con carga perezosa: gauges por delegación, heatmap semántico con escala discreta del semáforo, dumbbell de proyección, radar en énfasis, tubo apilado y tabla ordenable. Filtros cruzados: al hacer clic en cualquier gráfico se filtra todo. Todos los gráficos leen los tokens vivos y cambian con el tema sin recargar.
 
 ⚠ **Aún lee la vista materializada v1** (por delegación, con umbrales fijos en SQL). Migrarlo al motor v2 es el Bloque C.
 
-### 6.6 Piezas reutilizables
+### 6.7 Piezas reutilizables
 
 `ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color) · `MarcaSemaforo` (con `mono` para zonas de identidad) · `FaroSerena` · `.tabla-sgr` · `.btn-peligro` (contorno) · `.btn-tabla` · `useUnidadSocket` · `useOrgSocket` · `useArchivoEvidencia` · `useTokens` (los gráficos leen los tokens vivos; `colorCategoria()` devuelve `var(--cat-N)`).
 
@@ -284,6 +304,15 @@ ECharts modular con carga perezosa: gauges por delegación, heatmap semántico c
 22. **Un selector no ofrece lo que el servidor va a rechazar.** Vale para toda lista de elección: se filtra por el mismo alcance que aplica el backend, y si queda vacía se explica por qué.
 23. **Multi-tenant**: un recurso ajeno o inexistente responde 404. Un identificador mal formado responde 400 (es sintaxis, no alcance).
 
+**Datos personales de vecinos (Bloque B3 — ADR-012)**
+
+34. **Ver el hecho y ver el detalle son dos preguntas distintas.** *"¿Esta persona ya fue atendida en otra delegación?"* necesita cruzar delegaciones; *"¿qué dice ese registro?"* no. Por eso el historial cruza siempre y el detalle ajeno viaja reducido, en vez de elegir entre abrir el libro o esconder el caso.
+35. **Se audita el acceso, no la búsqueda.** Abrir la ficha de una persona identificada deja rastro (`consultar`); teclear en el buscador no. Auditar cada tecleo llena la bitácora de ruido y hace inútil justo lo que la Ley 21.663 quiere poder revisar.
+36. **Lo restrictivo primero, y documentado.** El `verificador` y el rol `consulta` quedan fuera de la ficha del vecino hasta que el docente responda la consulta nº 12. Ampliar después es un elemento en un arreglo; el dato ya visto no se des-ve.
+37. **La lista de resultados no trae teléfono ni dirección.** Para elegir a alguien basta nombre, RUT y en cuántas delegaciones registra atenciones. El dato de contacto aparece al abrir la ficha, que es donde existe la finalidad de usarlo.
+38. **El aviso señala hechos, no delegaciones.** Marcar toda la delegación pintaba media línea de tiempo; entonces el aviso deja de señalar y pasa a ser decorado. El backend devuelve las claves de los hechos implicados y la pantalla marca esos.
+39. **El RUT no se edita desde la pantalla del vecino.** Es la llave que une el historial entre delegaciones: reasignarlo fusionaría dos historias. El servidor responde 409 si ya pertenece a otra persona, y la corrección de un RUT se pide a administración.
+
 ---
 
 ## 8. Lo que aprendimos probando (errores reales, no hipotéticos)
@@ -300,13 +329,19 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | Tres textos bajo 4.5:1 desde hacía semanas | Nada visible: eran legibles "a ojo" | Usaban la marca de estado (`--estado-rojo`, `--estado-amarillo`) como color de texto en vez de la variante `-texto` | Los encontró el script de contraste en su primera corrida. A ojo no se ve la diferencia entre 4.1:1 y 4.5:1 |
 | La linterna del faro no se veía; después, "una lámina nublando el mar" | Primero el faro cortado por arriba; al arreglarlo, el mar como un rectángulo inset en el panel | `preserveAspectRatio="slice"` con altura fija recortaba el viewBox por arriba. Al pasar a `meet` + `aspect-ratio`, el dibujo quedó más angosto que el panel y el rectángulo del mar (del ancho exacto del viewBox) dejó ver el fondo a los lados, mientras las olas —que ya desbordaban— seguían hasta el borde | El mar, el promontorio y las olas se extienden 800 unidades fuera del viewBox por cada lado; `overflow: visible` en el SVG y `hidden` en el contenedor. Verificado a 1900, 1440 y 390 px |
 
-**Cinco reglas que salieron de aquí:**
+| El aviso de duplicidad pintaba media línea de tiempo | 21 de 35 hitos con marco ámbar: el aviso dejaba de señalar y se leía como decorado | La pantalla marcaba por **nombre de delegación**, y como las dos delegaciones estaban en el aviso, cualquier hito con clasificación quedaba marcado | El backend devuelve las claves de los **hechos** implicados y la pantalla marca esos; el marco entero pasó a banda lateral. Verificación nueva: los marcados deben ser menos que el historial |
+| La primera atención de cada vecino caía toda el mismo día | La línea de tiempo del vecino era un muro de "1 jul 2026" | En el seed, la actividad asignada era `n % 12 === 0` y `n` se traduce en el día del período: n=0 es siempre el primer día, para todos los ítems y todas las delegaciones | Desfase por índice de ítem. Se ve solo mirando la pantalla con datos reales: ninguna prueba de API lo habría notado |
+| El icono del aviso se aplastaba a un hilo en móvil | Una raya vertical donde debía ir el escudo | En un contenedor flex, un SVG con ancho intrínseco cede antes que un párrafo largo | `flex-shrink: 0` en los iconos de aviso. Lo encontró la captura a 390px |
+
+**Siete reglas que salieron de aquí:**
 
 1. **Ningún esqueleto perpetuo, y todo vacío explica su causa** y ofrece la acción que sí corresponde a ese rol.
 2. **Probar cada pantalla con los seis roles**, no solo con el propio. Ahora `scripts/capturas.mjs` lo hace en un comando.
 3. **Un servicio que traga sus errores necesita una prueba que mire el resultado**, no la ausencia de excepción.
 4. **El contraste se mide, no se mira**: `verificar:contraste` antes de cada merge.
 5. **Todo lo que se posiciona en absoluto necesita un ancestro `relative`**, aunque esté "oculto": lo oculto para la vista sigue ocupando espacio para el scroll.
+6. **Un aviso que marca de más deja de avisar.** Si una señal cubre la mitad de la pantalla, el ojo la lee como fondo. Señalar el hecho concreto, no la categoría a la que pertenece.
+7. **Los datos de demostración son parte del entregable.** Un caso que la especificación pide demostrar (CA-04) tiene que estar *armado a propósito* en el seed, con su fecha y su reparto pensados; si sale por casualidad, un día no sale.
 
 ---
 
@@ -323,8 +358,10 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | Las evidencias del seed no tienen archivo en disco: la bandeja muestra "No se pudo abrir el archivo (410)" con datos demo | seed | Baja (solo demo) |
 | Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría | rutas heredadas | Alta |
 | Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
-| Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria` | backend y frontend | Media |
-| API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia` y CRUD de catálogos y parámetros | backend | Media |
+| ~~Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria`~~ ✅ **resuelto el 03-09-2026** (Bloque B3): `GET /vecinos`, `GET /vecinos/:id`, `PATCH /vecinos/:id` y la pantalla `/vecinos` | — | ✅ |
+| La ficha del vecino no muestra las **tres gestiones** de `AtencionSocial` (RF-015, HU-03): la entidad existe, la API no. Es lo único que le falta a CA-04 | backend | Alta |
+| El historial del vecino trae hasta 500 hechos de una vez y la pantalla los pinta todos: falta paginar, como ya se hizo en la bandeja | `vecinos.routes.ts`, `VecinosPage.tsx` | Media |
+| API de `Ajuste`, `Comentario`, `Ausencia` y CRUD de catálogos y parámetros | backend | Media |
 | Pantallas de administración: períodos, cargos, catálogos | frontend | Media |
 | Alternativa por teclado en el arrastrar y soltar (RNF-012) | `KanbanBoard.tsx` | Media |
 | `.tabla-detalle` y `.tabla-sgr`: dos tablas con el mismo propósito | `dashboard.css` vs `base.css` | Media |
@@ -339,7 +376,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 
 ## 10. Bloqueos externos y consultas abiertas
 
-- **11 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1 y 3 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código.
+- **12 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1, 3 y 12 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código. La **nº 12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad) es la única sobre datos de terceros y la de mayor peso legal.
 - **Instrucciones verbales sin rúbrica** en [§9.bis](requerimientos-oficiales.md): diagrama de clases, 10 casos de uso, y que solo se revisará el Planner. Se contrastan cuando se publique la rúbrica.
 - **Columnas de asistencia** (licencia, vacaciones, compensatorios): sin definición. **No inventar el cálculo.**
 - **Matriz de roles definitiva**: hoy rige la del Documento Maestro §4; los ajustes solo tocan `middleware/roles.ts` y los checks de alcance.

@@ -1036,6 +1036,254 @@ check(
 );
 
 // ===========================================================================
+// 12. FICHA DEL VECINO — ADR-008 · ADR-012 · RF-032 · CA-04 · HU-03 · HU-29
+//
+// Es el control que el cliente vino a buscar (el niño que pidió el mismo
+// regalo en cinco delegaciones) y, a la vez, la pantalla con más datos
+// personales del sistema. Por eso aquí se prueban dos cosas a la vez: que la
+// duplicidad se DETECTE, y que el mínimo privilegio se RESPETE.
+// ===========================================================================
+
+// Rosa Maldonado es el caso emblemático del seed: misma persona, mismos ítems,
+// dos delegaciones. Se busca por su RUT escrito como lo escribiría una persona.
+const busquedaRut = (await A("GET", "/vecinos?q=13.111.222-K")).datos as {
+  criterio: string;
+  total: number;
+  personas: {
+    id: string;
+    nombreCompleto: string;
+    rutFormateado: string;
+    atenciones: number;
+    delegaciones: number;
+  }[];
+};
+const rosa = busquedaRut.personas[0];
+check(
+  "RF-032 la búsqueda por RUT reconoce el formato con puntos y guion (ADR-001)",
+  busquedaRut.criterio === "rut" && busquedaRut.total === 1 && rosa?.rutFormateado === "13.111.222-K",
+  `${rosa?.nombreCompleto} — ${rosa?.atenciones} atenciones en ${rosa?.delegaciones} delegaciones`
+);
+
+const busquedaSinPuntos = (await A("GET", "/vecinos?q=13111222K")).datos as {
+  total: number;
+  personas: { id: string }[];
+};
+check(
+  "ADR-001 el mismo RUT sin puntos ni guion encuentra a la misma persona",
+  busquedaSinPuntos.total === 1 && busquedaSinPuntos.personas[0]?.id === rosa?.id,
+  "13111222K → 13.111.222-K"
+);
+
+const busquedaNombre = (await A("GET", "/vecinos?q=maldo")).datos as {
+  criterio: string;
+  total: number;
+  personas: { id: string }[];
+};
+check(
+  "ADR-003 la búsqueda por nombre usa la expresión indexada (parcial, sin distinguir mayúsculas)",
+  busquedaNombre.criterio === "nombre" && busquedaNombre.personas.some((p) => p.id === rosa?.id),
+  `"maldo" → ${busquedaNombre.total} resultado(s)`
+);
+
+const busquedaCorta = (await A("GET", "/vecinos?q=ma")).datos as { total: number; minimo: number };
+check(
+  "Una búsqueda de menos de 3 caracteres no devuelve media base",
+  busquedaCorta.total === 0 && busquedaCorta.minimo === 3,
+  `mínimo ${busquedaCorta.minimo} caracteres`
+);
+
+interface FichaVecinoApi {
+  persona: { id: string; telefono: string | null; version: number };
+  alcance: { completo: boolean; hechosReducidos: number };
+  resumen: { atenciones: number; delegaciones: number; nombresDelegaciones: string[] };
+  aviso: {
+    ventanaDias: number;
+    ventanaConfirmada: boolean;
+    coincidencias: { clasificacion: string; delegaciones: string[]; diasEntre: number; hechos: string[] }[];
+  } | null;
+  historial: {
+    delegacion: { nombre: string };
+    detallado: boolean;
+    descripcion: string | null;
+    estado: string;
+  }[];
+}
+
+const fichaAdmin = (await A("GET", `/vecinos/${rosa!.id}`)).datos as FichaVecinoApi;
+check(
+  "ADR-008 el historial del vecino CRUZA delegaciones (es lo que hace detectable el caso)",
+  fichaAdmin.resumen.delegaciones >= 2 && fichaAdmin.historial.length === fichaAdmin.resumen.atenciones,
+  `${fichaAdmin.resumen.atenciones} hechos en ${fichaAdmin.resumen.nombresDelegaciones.join(" y ")}`
+);
+
+const coincidenciaCruzada = fichaAdmin.aviso?.coincidencias.find((c) => c.delegaciones.length >= 2);
+check(
+  "CA-04 el aviso ámbar aparece con atenciones del mismo tipo en delegaciones distintas",
+  fichaAdmin.aviso !== null && coincidenciaCruzada !== undefined,
+  coincidenciaCruzada
+    ? `«${coincidenciaCruzada.clasificacion}» en ${coincidenciaCruzada.delegaciones.join(" y ")}, ${coincidenciaCruzada.diasEntre} días`
+    : "sin aviso"
+);
+
+// El aviso señala HECHOS concretos, no delegaciones enteras: si marcara toda
+// la delegación, media línea de tiempo saldría resaltada y dejaría de señalar.
+const marcados = new Set((fichaAdmin.aviso?.coincidencias ?? []).flatMap((c) => c.hechos));
+check(
+  "CA-04 el aviso señala los hechos concretos que lo provocan, no la delegación entera",
+  marcados.size > 0 && marcados.size < fichaAdmin.historial.length,
+  `${marcados.size} de ${fichaAdmin.historial.length} hechos marcados`
+);
+
+const ventanaParametro = await prisma.parametro.findFirst({
+  where: { clave: "ventana_duplicidad_dias", periodoId: null },
+  select: { valor: true, confirmado: true },
+});
+check(
+  "ADR-007 la ventana de duplicidad sale del parámetro, no del código, y viaja con su marca",
+  ventanaParametro !== null &&
+    fichaAdmin.aviso?.ventanaDias === ventanaParametro.valor.toNumber() &&
+    fichaAdmin.aviso?.ventanaConfirmada === ventanaParametro.confirmado,
+  `ventana=${fichaAdmin.aviso?.ventanaDias} días, confirmado=${fichaAdmin.aviso?.ventanaConfirmada}`
+);
+
+// ADR-012: el alcance por rol. El funcionario de Centro ve TODO el historial
+// —si no, la duplicidad sería invisible— pero el detalle de Rural queda
+// reservado: el libro de cada delegación sigue siendo privado (regla 9).
+const fichaGabriel = (await G("GET", `/vecinos/${rosa!.id}`)).datos as FichaVecinoApi;
+const ajenasConDetalle = fichaGabriel.historial.filter((h) => !h.detallado && h.descripcion !== null);
+check(
+  "ADR-012 un funcionario ve el historial completo, pero el detalle de otra delegación queda reservado",
+  fichaGabriel.historial.length === fichaAdmin.historial.length &&
+    fichaGabriel.alcance.completo === false &&
+    fichaGabriel.alcance.hechosReducidos > 0 &&
+    ajenasConDetalle.length === 0,
+  `${fichaGabriel.historial.length} hechos, ${fichaGabriel.alcance.hechosReducidos} reducidos, 0 filtraciones`
+);
+
+const verificadorBusca = await V("GET", "/vecinos?q=maldo");
+const consultaBusca = await C("GET", "/vecinos?q=maldo");
+check(
+  "ADR-012/RNF-005 el verificador y el rol de consulta no acceden a datos personales de vecinos",
+  verificadorBusca.status === 403 && consultaBusca.status === 403,
+  `verificador=${verificadorBusca.status}, consulta=${consultaBusca.status}`
+);
+
+// Los seis roles del PDF §3: ninguno queda en blanco ni cargando. Cuatro abren
+// la ficha, dos reciben un 403 que EXPLICA el motivo.
+const rolesFicha: { nombre: string; cli: ReturnType<typeof api>; espera: number }[] = [
+  { nombre: "admin", cli: A, espera: 200 },
+  { nombre: "supervisor", cli: S, espera: 200 },
+  { nombre: "gerente", cli: D, espera: 200 },
+  { nombre: "usuario", cli: G, espera: 200 },
+  { nombre: "verificador", cli: V, espera: 403 },
+  { nombre: "consulta", cli: C, espera: 403 },
+];
+const desviaciones: string[] = [];
+let conMotivo = 0;
+for (const { nombre, cli, espera } of rolesFicha) {
+  const r = await cli("GET", `/vecinos/${rosa!.id}`);
+  if (r.status !== espera) desviaciones.push(`${nombre}: ${r.status} (esperado ${espera})`);
+  if (espera === 403 && typeof (r.datos as { error?: string })?.error === "string") conMotivo += 1;
+}
+check(
+  "ADR-012 los seis roles reciben lo suyo en la ficha del vecino, y el 403 dice por qué",
+  desviaciones.length === 0 && conMotivo === 2,
+  desviaciones.length === 0
+    ? "admin/supervisor/gerente/usuario=200, verificador/consulta=403 con motivo"
+    : desviaciones.join("; ")
+);
+
+check(
+  "Multi-tenant: identificador mal formado → 400, inexistente → 404 (no son lo mismo)",
+  (await A("GET", "/vecinos/no-es-uuid")).status === 400 &&
+    (await A("GET", "/vecinos/11111111-1111-1111-1111-111111111111")).status === 404,
+  "400 y 404"
+);
+
+// Ley 21.663 y 19.628: se audita el ACCESO a datos personales identificados,
+// no solo la modificación. Es lo que permite responder "quién consultó a quién".
+const consultasAuditadas = await prisma.auditoria.count({
+  where: { entidad: "PersonaUsuaria", entidadId: rosa!.id, accion: "consultar" },
+});
+check(
+  "RNF-008 · Ley 21.663 abrir la ficha de un vecino queda registrado en la bitácora",
+  consultasAuditadas > 0,
+  `${consultasAuditadas} consultas registradas sobre esta persona`
+);
+
+// --- Rectificación de datos (Ley 19.628 art. 6): PATCH con bloqueo optimista.
+// Se trabaja sobre una persona creada para la prueba: tocar a Rosa dejaría
+// alterados los datos de demostración.
+const personaPrueba = await prisma.personaUsuaria.create({
+  data: {
+    organizationId: admin.usuario.organizationId,
+    rut: null,
+    nombres: "Prueba",
+    apellidoPaterno: "Verificacion",
+    apellidoMaterno: "Temporal",
+    telefono: null,
+  },
+});
+creado.personas.push(personaPrueba.id);
+
+const correccionVecino = await A("PATCH", `/vecinos/${personaPrueba.id}`, {
+  telefono: "9 1234 5678",
+  sector: "Las Compañías",
+  version: personaPrueba.version,
+});
+const corregida = correccionVecino.datos as {
+  telefono: string | null;
+  telefonoFormateado: string;
+  sector: string | null;
+  version: number;
+};
+check(
+  "Ley 19.628 el dato personal inexacto se corrige, el teléfono se normaliza y la versión avanza",
+  correccionVecino.status === 200 &&
+    corregida.telefono === "912345678" &&
+    corregida.telefonoFormateado === "+56 9 1234 5678" &&
+    corregida.version === personaPrueba.version + 1,
+  `teléfono → ${corregida.telefono} (se muestra ${corregida.telefonoFormateado}), versión ${personaPrueba.version} → ${corregida.version}`
+);
+
+const correccionVecinoVieja = await A("PATCH", `/vecinos/${personaPrueba.id}`, {
+  sector: "Otro sector",
+  version: personaPrueba.version,
+});
+check(
+  "CA-08 · ADR-005 corregir con una versión vieja → 409, nunca sobrescritura silenciosa",
+  correccionVecinoVieja.status === 409 &&
+    (correccionVecinoVieja.datos as { versionActual?: number }).versionActual === corregida.version,
+  `409 con versionActual=${(correccionVecinoVieja.datos as { versionActual?: number }).versionActual}`
+);
+
+const rutOcupado = await A("PATCH", `/vecinos/${personaPrueba.id}`, {
+  rut: "13.111.222-K",
+  version: corregida.version,
+});
+check(
+  "ADR-008 el RUT es único por organización: reasignarlo fusionaría dos historiales → 409",
+  rutOcupado.status === 409,
+  `status ${rutOcupado.status}`
+);
+
+const telefonoMalo = await A("PATCH", `/vecinos/${personaPrueba.id}`, {
+  telefono: "123",
+  version: corregida.version,
+});
+check("RF-010 un teléfono inválido se rechaza al corregir (400)", telefonoMalo.status === 400, "400");
+
+const correccionVecinoAjena = await G("PATCH", `/vecinos/${personaPrueba.id}`, {
+  sector: "Centro",
+  version: corregida.version,
+});
+check(
+  "ADR-012 solo corrige los datos de un vecino quien lo atendió en su delegación, o el nivel central",
+  correccionVecinoAjena.status === 403,
+  `funcionario sin atención previa → ${correccionVecinoAjena.status}`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
 await prisma.metaItem.deleteMany({ where: { periodoId: { in: creado.periodos } } });

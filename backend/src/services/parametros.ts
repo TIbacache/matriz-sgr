@@ -22,6 +22,7 @@ export const CLAVES = {
   ajusteReclamo: "ajuste_reclamo",
   diasSinIngresoAlerta: "dias_sin_ingreso_alerta",
   evidenciaTamanoMaxMb: "evidencia_tamano_max_mb",
+  ventanaDuplicidadDias: "ventana_duplicidad_dias",
 } as const;
 
 export type ClaveParametro = (typeof CLAVES)[keyof typeof CLAVES];
@@ -95,6 +96,16 @@ export const VALORES_INICIALES: {
       "criterio del equipo: es configuración operativa del administrador, no una regla " +
       "pendiente del docente. Los formatos aceptados viven en el catálogo formato_evidencia.",
     confirmado: true,
+  },
+  {
+    clave: CLAVES.ventanaDuplicidadDias,
+    valor: 30,
+    descripcion:
+      "Días dentro de los cuales dos atenciones del mismo tipo en delegaciones distintas " +
+      "levantan el aviso de posible duplicidad (ADR-008, CA-04). ⚠ Sin confirmar: ninguna " +
+      "fuente fija la ventana. 30 días es el ciclo de gestión municipal más corto y evita " +
+      "que el aviso mezcle temporadas distintas. Consulta abierta nº 12.",
+    confirmado: false,
   },
 ];
 

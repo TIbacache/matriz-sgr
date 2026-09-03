@@ -8,6 +8,7 @@ import { TuboPage } from "./pages/TuboPage";
 import { FichaPage } from "./pages/FichaPage";
 import { BandejaPage } from "./pages/BandejaPage";
 import { MetasPage } from "./pages/MetasPage";
+import { VecinosPage } from "./pages/VecinosPage";
 
 // Carga perezosa: ECharts pesa; solo se descarga al entrar al dashboard,
 // y el tubo (la pantalla de todos los días) queda liviano.
@@ -38,6 +39,10 @@ export function App() {
                 con el motivo (DESIGN §8.2.8). El backend sigue siendo la
                 autoridad — el PUT responde 403. */}
             <Route path="/metas" element={<MetasPage />} />
+            {/* Sin guarda de rol por la misma razón: el verificador y el rol de
+                consulta ven la pantalla con el motivo escrito, no un 404 mudo
+                (ADR-012). El backend responde 403 igual. */}
+            <Route path="/vecinos" element={<VecinosPage />} />
             <Route
               path="/dashboard"
               element={

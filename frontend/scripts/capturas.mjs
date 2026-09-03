@@ -30,6 +30,10 @@ const RUTAS = [
   ["ficha", "/ficha"],
   ["verificacion", "/verificacion"],
   ["metas", "/metas"],
+  // La ficha del vecino nace vacía: sin una búsqueda hecha no hay nada que
+  // mirar. Se entra con el RUT del caso emblemático del seed (ADR-008) para
+  // que la captura muestre lo que la pantalla existe para mostrar.
+  ["vecinos", "/vecinos?q=13.111.222-K"],
   ["dashboard", "/dashboard"],
 ];
 const TEMAS = ["claro", "oscuro"];

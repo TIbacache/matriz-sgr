@@ -10,6 +10,7 @@ import {
   PanelLeftOpen,
   SquareKanban,
   Target,
+  UserSearch,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
@@ -54,6 +55,10 @@ const SIDEBAR_KEY = "matriz.sidebar";
 const PUEDEN_VALIDAR = ["verificador", "supervisor", "admin"];
 /** Espejo de requireRol("admin", "supervisor") en /metas-item (RF-007). */
 const PUEDEN_CONFIGURAR = ["admin", "supervisor"];
+/** Espejo de ROLES_FICHA_VECINO en /vecinos (ADR-012): datos personales de
+    vecinos, mínimo privilegio. El verificador y el rol de consulta quedan
+    fuera y por eso tampoco ven la entrada del menú. */
+const PUEDEN_VER_VECINOS = ["admin", "supervisor", "gerente", "usuario"];
 
 export function Layout() {
   const { usuario, organizacionNombre, logout } = useAuth();
@@ -111,6 +116,12 @@ export function Layout() {
               <ItemNav to="/metas" titulo="Configuración de metas">
                 <Target size={18} strokeWidth={1.5} />
                 <span className="layout-nav-texto">Metas</span>
+              </ItemNav>
+            )}
+            {PUEDEN_VER_VECINOS.includes(usuario?.rol ?? "") && (
+              <ItemNav to="/vecinos" titulo="Ficha del vecino">
+                <UserSearch size={18} strokeWidth={1.5} />
+                <span className="layout-nav-texto">Vecinos</span>
               </ItemNav>
             )}
             <ItemNav to="/dashboard" titulo="Dashboard">

@@ -60,7 +60,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-012 | Asociar evidencia (foto) al código, con fecha y autor de carga | ✅ | `POST /actividades/:id/evidencias`; ruta derivada del código, nunca del nombre del cliente |
 | RF-013 | Validar evidencia: aprobar, rechazar o **solicitar corrección**, con observación | ✅ | `POST /evidencias/:id/validacion`; observación obligatoria si no se aprueba |
 | RF-014 | Solo lo validado suma al avance | ✅ | Verificado de punta a punta: el avance sube solo tras aprobar, y una sola vez |
-| RF-015 | Atención social con **hasta 3 gestiones** para el mismo usuario | ⬜ | Columnas en estructura-planilla-real §4 |
+| RF-015 | Atención social con **hasta 3 gestiones** para el mismo usuario | 🟡 | Columnas en estructura-planilla-real §4. La entidad `AtencionSocial` existe en el modelo y la **trazabilidad de la persona** ya funciona (`/vecinos`, Bloque B3); falta la API de las tres gestiones |
 
 ### 3.3 Agenda colectiva (nuestro "tubo")
 
@@ -92,7 +92,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-032 | Buscar y filtrar por delegación, área, funcionario, cargo, período, ítem, estado, fechas | 🟡 | `/actividades` filtra por período, funcionario, ítem, delegación y rango de fechas; la bandeja por estado, período y delegación; el dashboard por trimestre y delegación. Falta **búsqueda por texto y por RUT** |
+| RF-032 | Buscar y filtrar por delegación, área, funcionario, cargo, período, ítem, estado, fechas | ✅ | `/actividades` filtra por período, funcionario, ítem, delegación y rango de fechas; la bandeja por estado, período y delegación; el dashboard por trimestre y delegación. La **búsqueda por RUT y por nombre** llegó con `GET /vecinos?q=` y la pantalla `/vecinos` (Bloque B3) |
 | RF-033 | Generar y **exportar informes** conservando filtros y encabezados | ⬜ | |
 | RF-034 | Trabajo simultáneo sin sobrescritura | 🟡 | Socket.io + **bloqueo optimista con 409** en todo el modelo v2 (`services/concurrencia.ts`); falta aplicarlo en las rutas v1 |
 | RF-035 | Comentarios/observaciones asociados a registros | ⬜ | Petición literal del cliente |
@@ -156,7 +156,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | CA-01 | Registro validado suma **una vez** y actualiza tableros | ✅ verificado; emite `cumplimiento:cambiado` al aprobar. La actualización **visual** del tablero llega con el Bloque C |
 | CA-02 | Evidencia rechazada conserva observación y no aporta puntaje | ✅ la observación es obligatoria al rechazar o pedir corrección |
 | CA-03 | Compromiso vencido se destaca, mantiene historial y genera alerta | 🟡 se destaca; faltan historial y alerta |
-| CA-04 | Caso social con 3 gestiones y secuencia consultable | ⬜ |
+| CA-04 | Caso social con 3 gestiones y secuencia consultable | 🟡 la **secuencia ya es consultable**: `/vecinos` muestra el historial de la persona cruzando delegaciones, con aviso de duplicidad (Bloque B3). Faltan las **3 gestiones** de `AtencionSocial`, que son RF-015 / HU-03 y siguen sin API |
 | CA-05 | Al cambiar fecha o avance se recalculan meta acumulada y semáforo | ✅ |
 | CA-06 | Totales del tablero coinciden con el detalle filtrado | ✅ |
 | CA-07 | Un funcionario no modifica datos de otra delegación | ✅ verificado en smoke test |
@@ -228,7 +228,7 @@ Dichas en clase el **1 de septiembre de 2026**, no están en el PDF ni en ningú
 | Instrucción | Qué implica | Estado |
 |---|---|---|
 | **El docente solo revisará el Planner** | Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner **no se evalúa**. Cargar el plan (58 tareas en `plan-desarrollo.csv`) deja de ser deuda técnica y pasa a ser bloqueante | ⬜ El tablero sigue vacío |
-| **El frontend también debe verse en GitHub** | No basta con que el código esté: hay que poder *ver* las pantallas navegando el repositorio. Se resolvió generando cada pantalla en dos formatos — `.html` autocontenido (se adjunta en Planner, abre con doble clic sin servidores) y `.png` (se ve en GitHub, que no ejecuta HTML) | ✅ [docs/mockups/](mockups/) con las 6 pantallas y [docs/diagramas/](diagramas/) con los 4 diagramas |
+| **El frontend también debe verse en GitHub** | No basta con que el código esté: hay que poder *ver* las pantallas navegando el repositorio. Se resolvió generando cada pantalla en dos formatos — `.html` autocontenido (se adjunta en Planner, abre con doble clic sin servidores) y `.png` (se ve en GitHub, que no ejecuta HTML) | ✅ [docs/mockups/](mockups/) con las 7 pantallas y [docs/diagramas/](diagramas/) con los 4 diagramas |
 | **Diagrama de clases** | No lo pide el PDF, que habla de "modelo de datos y principales diagramas de interacción" (§15, entregable 03). Se construye desde cero | ⬜ |
 | **Mínimo 10 casos de uso** | Tampoco está en el PDF con ese número. Se derivan de los 38 RF | ⬜ |
 | **Entrega el 15 de septiembre de 2026** | Es documentación de análisis y diseño, no código | ⬜ |
@@ -271,7 +271,7 @@ Dato que dio el docente y que **confirma el cálculo implementado**: la mayoría
 
 El PDF exige documentar las ambigüedades en vez de resolverlas en silencio. **Esta lista es la que se lleva a la reunión.**
 
-Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras tanto** y **qué cambia cuando llegue la respuesta**. Ninguna está bloqueando el desarrollo: las nº 1 y 3 viven en la tabla `parametro` con `confirmado: false` y se corrigen sin tocar código; las demás son decisiones provisionales acotadas a un archivo. La nº 10 es la única que puede implicar un costo, y la nº 11 la única con implicancia legal (protección de datos personales).
+Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras tanto** y **qué cambia cuando llegue la respuesta**. Ninguna está bloqueando el desarrollo: las nº 1 y 3 viven en la tabla `parametro` con `confirmado: false` y se corrigen sin tocar código; las demás son decisiones provisionales acotadas a un archivo. La nº 10 es la única que puede implicar un costo; la nº 11 y la nº 12 son las de implicancia legal (protección de datos personales).
 
 | Nº | Consulta | Impacto si cambia la respuesta |
 |---|---|---|
@@ -286,6 +286,7 @@ Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras 
 | 9 | ¿El verificador es transversal o por delegación? | Una línea en `services/alcance.ts` |
 | 10 | Antivirus y retención de evidencias (RNF-017) | Infraestructura y costo |
 | 11 | ¿Un funcionario ve las metas de sus pares? | Un filtro en la pantalla de metas |
+| 12 | ¿Quién consulta la ficha del vecino, y con qué ventana se avisa la duplicidad? | Un elemento en un arreglo (`ROLES_FICHA_VECINO`) y un `UPDATE` en `parametro` |
 
 1. **Ajustes por felicitación y reclamo**: el PDF (RN-011) menciona −20% y −30%; la planilla muestra **+10% (máx. 3)** y **−20%**; el audio dijo "+10, máximo 1 mensual". ¿Cuál rige?
 2. **Objetivo al día por persona**: en la planilla el cuadro global marca 61,54% (56 de 91 días) pero la tabla usa 50,55% por persona. ¿Se descuentan los días no trabajados del **numerador** (días transcurridos de la persona) manteniendo el denominador total? Es lo que sugieren los datos.
@@ -316,3 +317,10 @@ Cómo leerla: cada consulta dice qué dice cada fuente, **qué hicimos mientras 
     - **Qué hicimos mientras tanto**: rige lo restrictivo. Un funcionario (rol `usuario`) ve **solo sus propias metas**; la jefatura (`gerente`) ve las de su delegación y el nivel central (`admin`, `supervisor`) todas. Es además lo coherente con la ficha personal, donde `puedeElegirPersona` ya excluía al rol `usuario` — la pantalla de metas era, sin querer, más permisiva que el resto del sistema.
     - **Qué cambia con la respuesta**: si el docente indica que la transparencia entre pares es deseable (el cliente habló del "efecto Hawthorne" y de la sana competencia), se amplía el filtro `configurables` en `MetasPage.tsx`. Es una condición en un archivo; no toca modelo, API ni permisos del backend.
     - **Pregunta concreta**: ¿la medición de una persona es información del equipo, como su libro de actividades, o información reservada entre ella y su jefatura? Y si es lo primero, ¿alcanza al detalle (metas y ponderadores) o solo al consolidado que ya muestra el dashboard?
+
+12. **¿Quién puede consultar la ficha de un vecino, y dentro de cuántos días dos atenciones se consideran una posible duplicación?** (surgida al construir la ficha del vecino, Bloque B3). Es la consulta con más peso legal de la lista, porque es la única sobre datos de **terceros** —vecinos— y no de funcionarios.
+
+    - **Lo que dice cada fuente**: el cliente pidió expresamente detectar a la persona atendida en varias delegaciones (el niño que pidió el mismo regalo de Navidad en cinco), pero también que *"cada delegación tiene un libro y no se ven entre ellas"* (reunión 00:37:11). El PDF define seis actores (§3) sin decir cuál accede a datos personales de vecinos: al **Usuario de consulta** lo describe sobre *"tableros e informes"* y al **Verificador** sobre *"revisar evidencias"*. Las **Leyes 19.628 y 21.719** imponen finalidad, proporcionalidad y mínimo privilegio, y la **Ley 21.663** trazabilidad. Sobre la ventana de tiempo del aviso, **ninguna fuente dice nada**: ni el PDF, ni la planilla, ni el audio.
+    - **Qué hicimos mientras tanto** (ADR-012): rige lo restrictivo. Entran `admin`, `supervisor`, `gerente` y `usuario`; el `verificador` y el rol `consulta` reciben **403 con el motivo escrito**. El historial cruza delegaciones siempre —si no, el control no existe— pero el detalle de una atención ajena queda reservado: se ve fecha, delegación, tipo y estado, no la descripción ni el contacto. Abrir una ficha queda **auditado** con la acción `consultar`. La ventana vive en el parámetro `ventana_duplicidad_dias` = **30 días**, `confirmado: false`.
+    - **Qué cambia con la respuesta**: si el docente indica que el rol de consulta o el verificador deben acceder, es agregar su nombre a `ROLES_FICHA_VECINO` (un arreglo en `backend/src/services/vecinos.ts` y su espejo en el frontend). Si indica otra ventana, es un `UPDATE` en `parametro` y poner `confirmado: true`. **Ninguno de los dos toca el modelo ni la migración.**
+    - **Preguntas concretas**: (a) ¿el Usuario de consulta y el Verificador deben poder buscar a un vecino por RUT y ver su historial, o basta con que vean los tableros agregados? (b) ¿Dentro de cuántos días dos atenciones del mismo tipo en delegaciones distintas deben levantar el aviso? (c) ¿El aviso debe quedarse en informar, o el sistema debería impedir la segunda entrega hasta que alguien la autorice? Nuestra lectura es que **informar**, porque bloquear castigaría al vecino por un dato que el municipio todavía no verificó.
