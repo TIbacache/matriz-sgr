@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 2 de septiembre de 2026 (cierre del Bloque D0 — identidad visual de La Serena)
+**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque B3 — ficha del vecino)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -13,14 +13,14 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 17/17 verificaciones |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** (Bloques A y A2) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación y cumplimiento — 95/95 |
-| API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros |
-| Pantallas del modelo v2 | 🟡 Ficha personal, bandeja del verificador y **configuración de metas** listas; falta la ficha del vecino ← **aquí se retoma** |
+| **API del modelo v2** (Bloques A, A2 y B3) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento y **ficha del vecino** — 113/113 |
+| API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial` (**las 3 gestiones, lo único que le falta a CA-04**), `Comentario`, `Ausencia`, catálogos y parámetros |
+| Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas y **ficha del vecino**; faltan las de administración (períodos, cargos, catálogos) |
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **16 ✅ · 13 🟡 · 9 ⬜** (antes del Bloque A: 5 · 13 · 20). El eje **actividad → código → evidencia → validación → puntaje** ya funciona de extremo a extremo por API, y ahora también la configuración de **cargo → ítems → metas** que lo alimenta; lo que falta de ambos es la interfaz.
+Cumplimiento contra los 38 RF oficiales: **17 ✅ · 13 🟡 · 8 ⬜** (antes del Bloque A: 5 · 13 · 20). El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -74,7 +74,7 @@ Cerró de paso dos huecos: el `PUT` no comparaba `version` (CA-08) y el selector
 
 - ✅ **Ficha personal** (`/ficha`): cabecera con semáforo, tabla de ítems y registro diario con subida de evidencia, vista de la foto y anulación con motivo. Detalle en [estado-proyecto.md §6.2](estado-proyecto.md).
 - ✅ **Bandeja del verificador** (`/verificacion`): cola, foto grande, tres decisiones, teclado `J`/`K`/`Enter` y aviso de trabajo nuevo en vivo. Detalle en [estado-proyecto.md §6.3](estado-proyecto.md).
-- ⬜ **Ficha del vecino** (ADR-008, CA-04) ← **AQUÍ SE RETOMA (Bloque B3)**: buscador por RUT e historial cruzando delegaciones. Necesita un endpoint de búsqueda de `PersonaUsuaria` que **todavía no existe** (es lo primero a construir). Criterios en [DESIGN §8.2](../DESIGN.md) («Ficha del vecino y trazabilidad»). Ojo con la Ley 19.628: la ficha muestra datos personales de vecinos; quién puede buscarlos es una decisión de mínimo privilegio que hay que documentar (¿el rol consulta? ¿solo dentro de la delegación propia, aunque el historial cruce?).
+- ✅ **Ficha del vecino** (`/vecinos`) — ver el bloque B3 más abajo.
 
 **Cuidados**: la subida de evidencia **no es multipart** (el cuerpo es el archivo, `Content-Type` = su MIME, nombre opcional en `?nombre=`); los PATCH exigen `version` y devuelven 409 con el registro vigente, así que la UI necesita el aviso "otra persona modificó esto" (CA-08); y una actividad validada no se edita: se **anula con motivo**. Reutilizar `ChipSemaforo`, `.tabla-sgr` y `useUnidadSocket` en vez de escribir otros.
 
@@ -94,6 +94,20 @@ La segunda vuelta (`v0.8.2`) salió de la revisión del equipo con la foto del f
 
 **Regla para lo que venga**: toda pantalla nueva nace con el feedback de hover de `base.css` (le sale gratis si usa `.btn-*`, `.campo`, `.tabla-sgr`) y **no** agrega ambiente en zonas de datos.
 
+### ~~Bloque B3 — Ficha del vecino~~ ✅ TERMINADO (`v0.10.0-ficha-vecino`)
+
+El control que el cliente vino a buscar. Tres endpoints (`GET /vecinos?q=`, `GET /vecinos/:id`, `PATCH /vecinos/:id`), un servicio (`services/vecinos.ts`), una pantalla (`/vecinos`) y una migración. Contrato en [estado-proyecto.md §3.1](estado-proyecto.md), pantalla en [§6.5](estado-proyecto.md), decisión legal en **[ADR-012](decisiones-tecnicas.md)**.
+
+Lo que decidió y conviene no reabrir:
+
+- **Ver el hecho y ver el detalle son dos preguntas distintas.** El historial cruza delegaciones siempre; el detalle de una atención ajena viaja reducido. Así se cumplen a la vez la regla del cliente (el libro es privado) y CA-04 (la secuencia consultable).
+- **Rige lo restrictivo**: `verificador` y `consulta` reciben 403 **con el motivo escrito**. Documentado como **consulta abierta nº 12**, la única sobre datos de terceros.
+- **Se audita el acceso** (`consultar`), no la búsqueda incremental. Nueva acción en el enum, con migración.
+- La ventana de duplicidad es el parámetro `ventana_duplicidad_dias` (30 días, sin confirmar). **Ningún número en el código.**
+- El seed arma el caso emblemático **a propósito**: 94 actividades a nombre de tres vecinos ficticios, repartidas de forma determinista para que el mismo ítem le toque al mismo vecino en Centro y en Rural.
+
+⚠ **Lo que dejó abierto**: el historial trae hasta 500 hechos de una vez y la pantalla los pinta todos — falta paginar, como ya se hizo en la bandeja. Y CA-04 sigue en 🟡 hasta que exista la API de `AtencionSocial` con sus tres gestiones (RF-015, HU-03).
+
 ### Bloque C — Migrar el dashboard al cálculo v2
 
 Hoy el dashboard lee la **vista materializada v1** (por delegación, con umbrales y tope fijos en SQL). Debe pasar a consumir el motor por funcionario. Al terminar, **eliminar la vista v1** para que no queden dos verdades.
@@ -108,7 +122,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
-**Orden acordado el 1 de septiembre**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), y **después** la ficha del vecino (Bloque B3), endurecer las rutas heredadas y el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
+**Orden acordado el 1 de septiembre**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), después la ficha del vecino (Bloque B3, ✅ cerrada el 3 de septiembre), y **ahora** endurecer las rutas heredadas y el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
@@ -117,13 +131,15 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2; ~~falta su pantalla~~ → **resuelta** en el Bloque B2 (`/metas`) | — | ✅ |
 | ~~`PUT /metas-item` no aplica bloqueo optimista~~ → **resuelto** en el Bloque B2: cada meta existente debe traer su `version` | — | ✅ |
 | ~~Falta la prueba visual de `/metas` con las seis cuentas~~ → **hecha**: encontró tres cosas, la mayor que un funcionario veía las metas de sus pares. Detalle en [estado-proyecto.md](estado-proyecto.md) | — | ✅ |
-| **Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719 de datos personales**: no están reflejadas en los requisitos ni en la documentación. El sistema trata datos de vecinos y de desempeño de funcionarios de un organismo público | documentación y RNF | Alta |
+| **Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719 de datos personales**: reflejadas ya en **ADR-012**, en la consulta nº 12 y en el código de `/vecinos` (alcance por rol, detalle reducido, auditoría del acceso, rectificación). Falta llevarlas a los **RNF** del documento de requerimientos y al resto de las rutas | documentación y RNF | Media |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
-| Sin endpoint de búsqueda de `PersonaUsuaria`: la ficha del vecino no se puede construir todavía | backend | Media |
+| ~~Sin endpoint de búsqueda de `PersonaUsuaria`~~ → **resuelto** en el Bloque B3: `/vecinos` con búsqueda por RUT y nombre, historial cruzado, aviso de duplicidad y rectificación de datos | — | ✅ |
+| **Las 3 gestiones de `AtencionSocial`** (RF-015, HU-03): es lo único que le falta a CA-04, ahora que la secuencia ya es consultable | backend y frontend | Alta |
+| El historial del vecino no pagina: trae hasta 500 hechos y la pantalla los pinta todos. Misma lección que la bandeja | `vecinos.routes.ts`, `VecinosPage.tsx` | Media |
 | El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `frontend/src/lib/dashboard.ts` | Media |
-| `Comentario`, `AtencionSocial` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
+| `Comentario` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
 | **Panel de control de actividad de usuarios** (RF-030, HU-19): quién ingresó, **quién no** y quién está trabajando ahora, para admin y coordinador. Precisado por el docente en clase; detalle y la ambigüedad de "ingresar" en [requerimientos-oficiales §9.ter](requerimientos-oficiales.md). Las piezas existen (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario` y presencia por socket): falta la vista que las junta y una presencia a nivel de organización | frontend y backend | Alta |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
@@ -133,9 +149,9 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
-## 5. Las 11 consultas al docente
+## 5. Las 12 consultas al docente
 
-Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con tabla de impacto al inicio. **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Cuatro nacieron construyendo: la **8** (si una aprobación puede revertirse), la **9** (si el verificador es transversal o por delegación), la **10** (antivirus y retención de evidencias, RNF-017 — la única que puede implicar costo) y la **11** (si un funcionario ve las metas de sus pares — la única con implicancia legal). Las dos que más impactan en el cálculo:
+Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con tabla de impacto al inicio. **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Cinco nacieron construyendo: la **8** (si una aprobación puede revertirse), la **9** (si el verificador es transversal o por delegación), la **10** (antivirus y retención de evidencias, RNF-017 — la única que puede implicar costo), la **11** (si un funcionario ve las metas de sus pares) y la **12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad — la única sobre datos de **terceros**, y la de mayor peso legal). Las dos que más impactan en el cálculo:
 
 1. **Felicitación y reclamo**: el PDF dice −20% y −30%; la planilla muestra +10% (máx. 3) y −20%; el audio decía "+10, máx. 1 mensual".
 2. **Tope de 150%**: la planilla lo declara en el encabezado pero muestra valores de 154% y 206% sin recortar. ¿Se aplica o solo se informa?
@@ -163,6 +179,10 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **El 5173 también deja huérfanos**: un `vite` de una sesión de una semana atrás seguía sirviendo. Misma receta que el 4000 (`Get-NetTCPConnection -LocalPort 5173 -State Listen` → `Stop-Process`).
 - **`scripts/capturas.mjs` usa `playwright-core` con `channel: "msedge"`**: no descarga navegador (costo cero) y necesita los dos servidores arriba. Se corre desde `frontend/` (un script en otra carpeta no resuelve el paquete). Las capturas van a una carpeta fuera del repo: **no se commitean** (pesan y podrían mostrar datos).
 - **Un elemento `position: absolute` "oculto" (`.sr-only`) sin ancestro `relative` ensancha el documento** aunque esté dentro de una envoltura con scroll. Se ve solo en móvil y solo midiendo: la captura sale más ancha que el viewport.
+- **Un aviso que marca de más deja de avisar.** El de duplicidad marcaba por nombre de delegación y, como las dos estaban implicadas, pintaba 21 de 35 hitos: una señal que cubre media pantalla se lee como fondo. Ahora el backend devuelve las claves de los hechos implicados. Vale para cualquier resaltado: **señalar el hecho, no la categoría a la que pertenece**.
+- **Los datos de demostración son parte del entregable.** El caso que la especificación pide demostrar (CA-04) hay que armarlo a propósito en el seed, con su reparto y sus fechas pensados. La primera versión asignaba el vecino en `n % 12 === 0` y, como `n` es el día del período, todas las primeras atenciones caían el mismo día: la línea de tiempo era un muro de «1 jul 2026». No lo habría visto ninguna prueba de API.
+- **En flex, un SVG cede antes que un párrafo.** El icono del aviso se aplastaba a un hilo en móvil. `flex-shrink: 0` en todo icono que acompañe a un texto largo.
+- **Una pantalla que nace vacía necesita una URL que la llene** para poder capturarla o generar su mockup. `/vecinos` acepta `?q=` y `?id=`, que además sirven para compartir el enlace de una ficha.
 - **El contraste no se juzga a ojo**: 4.1:1 y 4.5:1 se ven iguales. `npm run verificar:contraste` antes de cada merge que toque `tokens.css` o un color de texto.
 - **Un mockup .html no se da por bueno hasta abrirlo desde `file://` sin red**: ECharts pinta en `<canvas>` y esos píxeles **no** sobreviven a serializar el HTML (el tablero salía con las tarjetas vacías). Se convierte cada canvas a `<img>` **conservando su `style`**, porque ECharts apila capas absolutas y sin eso el heatmap pierde las celdas. Lo cubre `npm run verificar:mockups`.
 - **Un SVG de escena que sangra hasta los bordes necesita `meet` + `aspect-ratio` para no recortarse, y entonces el "suelo" (mar, tierra) debe extenderse fuera del viewBox** con `overflow: visible`; si no, a un ancho distinto del que se probó aparece un rectángulo. Probar el arte a 1900, 1440 y 390 px, no a uno solo.

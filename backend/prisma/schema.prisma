@@ -73,6 +73,10 @@ enum AccionAuditoria {
   cambiar_estado
   cerrar_periodo
   reabrir_periodo
+  /// Lectura de datos personales identificados (ficha del vecino). Las Leyes
+  /// 19.628 / 21.719 y la Ley 21.663 piden trazabilidad del ACCESO, no solo de
+  /// la modificación: quién consultó a qué persona y cuándo (ADR-012).
+  consultar
 }
 
 model Organization {

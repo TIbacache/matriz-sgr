@@ -14,15 +14,15 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 ## Leer antes de trabajar
 
 - **[docs/estado-proyecto.md](docs/estado-proyecto.md)** — estado por fase, contrato de API y Socket.io, deuda técnica. Actualizar al cerrar cada fase.
-- **[docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md)** — 9 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, tipo/dirección de ítems.
+- **[docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md)** — 12 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, tipo/dirección de ítems, tipografía, los dos rojos, y **quién consulta la ficha del vecino (ADR-012)**.
 - **[docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md)** — HU ↔ requisito ↔ commit ↔ prueba. **Exigida por los profesores.**
 - **[DESIGN.md](DESIGN.md)** — normativo para todo el frontend. Un PR que viole su §8 se rechaza.
 - **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** — qué sigue, con su orden y sus trampas.
 - [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) — prompt listo para abrir una sesión nueva. **Se actualiza al cerrar cada bloque.**
 
-## Estado del código (2 de septiembre de 2026)
+## Estado del código (3 de septiembre de 2026)
 
-**Construido y verificado** (133 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
+**Construido y verificado** (151 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
 - **Identidad visual de La Serena (Bloques D0 y D1, DESIGN §10 y §3.6)**: tokens en los dos temas, barra heráldica con una escena de La Serena (San Francisco, jarro pato diaguita, La Recova, El Miliciano, papayo, faro, camanchaca, greca), login con el Faro Monumental en SVG —dibujado a partir del real— que gira e ilumina el mar, Libre Franklin + General Sans (ADR-010), los dos rojos separados por rol, zona y forma (ADR-011), frase del producto, **dos regímenes de movimiento** (ambiente solo en login y barra; estado en los datos) y hover en todo lo clickeable. Verificada con `npm run verificar:contraste` y con capturas de las seis cuentas (`scripts/capturas.mjs`).
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
@@ -32,13 +32,14 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **API de metas por funcionario (Bloque A2)**: `/metas-item` — meta y ponderador por funcionario, ítem y período (RF-006, RF-007). RN-001 exigida en sus dos formas: el alta unitaria rechaza superar el 100%, el `PUT` del conjunto exige el 100% exacto. **Ojo: `/metas` es el modelo v1 (unidad × categoría) y `/metas-item` el v2 (funcionario × ítem × período); no son lo mismo.**
 - **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
 - **Bandeja del verificador `/verificacion`** (RF-013, HU-11): cola, foto grande, tres decisiones con observación obligatoria y teclado `J`/`K`/`Enter`. Solo la ven verificador, supervisor y admin.
+- **Ficha del vecino `/vecinos`** (ADR-008, ADR-012, RF-032, CA-04, HU-29): búsqueda por RUT o nombre, historial **cruzando delegaciones** y aviso ámbar de posible atención duplicada. Es el control que el cliente vino a buscar. Su alcance por rol es una decisión legal (ADR-012): `verificador` y `consulta` reciben 403 con el motivo, y para `gerente` y `usuario` el detalle de una atención ajena viaja reducido. Abrir una ficha se **audita** (acción `consultar`).
 - **Configuración de metas `/metas`** (RF-006, RF-007, HU-05): totalizador de RN-001 siempre visible, todos los ítems del cargo, guardado del conjunto con `PUT`, reparto en partes iguales y protección de lo que ya sumó puntaje. Solo la editan admin y supervisor.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
 - Seed 100% ficticio con 1.126 actividades validadas.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
-- **Ficha del vecino** (ADR-008): necesita un endpoint de búsqueda de `PersonaUsuaria` que todavía no existe.
-- API de `Ajuste`, `AtencionSocial`, `Comentario`, `Ausencia`, catálogos y parámetros.
+- **Las tres gestiones de `AtencionSocial`** (RF-015, HU-03): la entidad existe y la trazabilidad de la persona ya funciona; falta la API. Es lo único que le queda a CA-04.
+- API de `Ajuste`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
 - Panel de actividad de usuarios (RF-030, HU-19), pedido por el docente en clase.
@@ -57,7 +58,7 @@ npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 17 verificaciones de integración (server corriendo)
 npm run verificar:calculo     # 21 verificaciones del motor de cálculo
-npm run verificar:api         # 95 verificaciones de la API v2 (server corriendo)
+npm run verificar:api         # 113 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo
@@ -67,7 +68,7 @@ npm run dev                   # UI en :5173 (Vite)
 npm run build                 # tsc + vite build
 npm run verificar:contraste   # 83 comprobaciones WCAG de tokens.css en los dos temas + hex fuera de tokens
 node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas con las seis cuentas (servers arriba)
-npm run mockups               # .html autocontenido + .png de las 6 pantallas → docs/mockups (servers arriba)
+npm run mockups               # .html autocontenido + .png de las 7 pantallas → docs/mockups (servers arriba)
 npm run verificar:mockups     # abre los .html desde file:// con la red bloqueada
 npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
 ```
@@ -102,7 +103,7 @@ Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin
 13. **Costo cero**: sin dependencias ni servicios de pago. VPS solo al final si es imprescindible.
 14. **Frontend**: CSS3 plano con los tokens de DESIGN.md (sin Tailwind, sin Inter, sin UI kits por defecto). dnd-kit, ECharts, accesible por teclado y con contraste validado por script (RNF-012, DESIGN §8.1, `npm run verificar:contraste`). **La identidad gráfica de la Municipalidad de La Serena es normativa y está implementada** (DESIGN §10, ADR-010, ADR-011): rojo institucional `#DB0032`, heráldico `#8A0007`, Libre Franklin + General Sans en pantalla, Arial en lo impreso. **El rojo institucional nunca entra en una zona de datos** (tablas, chips, gráficos): ahí lo seleccionado es `--seleccion` y el único rojo es `--estado-rojo`. Todo cambio visual se mira con las seis cuentas (`scripts/capturas.mjs`).
 15. **Una historia no está terminada sin prueba**: al implementarla se actualiza [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) con commit, caso de prueba y resultado.
-16. **Las ambigüedades se documentan, no se inventan**: hay 11 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí, con el mismo formato: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta.
+16. **Las ambigüedades se documentan, no se inventan**: hay 12 consultas abiertas al docente en [requerimientos-oficiales.md §10](docs/requerimientos-oficiales.md). Si aparece otra, se agrega ahí, con el mismo formato: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta.
 17. Puertos: API 4000, frontend 5173, Postgres 5432. Los puertos 3000/8000/27017 los ocupa otro proyecto Docker ("talia") — no tocarlos.
 18. **Marco legal chileno**: el sistema trata datos personales de vecinos y de desempeño de funcionarios de un organismo público. Aplican la **Ley 21.663 de ciberseguridad** y las **Leyes 19.628 / 21.719 de protección de datos personales**: finalidad, proporcionalidad, mínimo privilegio y trazabilidad. Ante la duda sobre quién puede ver un dato de desempeño, rige lo restrictivo y se documenta como consulta.
 19. **El docente solo revisará el Planner** (clase del 1-09-2026). Un entregable que está en el repositorio pero no adjunto o enlazado desde una tarea de Planner, no se evalúa. **Y dijo también que el frontend debe verse en GitHub.** Por eso todo entregable visual se produce en dos formatos: `.html` autocontenido para adjuntar en Planner y `.png` para que se vea en GitHub, donde Markdown no ejecuta HTML. Están en [docs/mockups/](docs/mockups/) y [docs/diagramas/](docs/diagramas/), y se regeneran con `npm run mockups` y `npm run diagramas`.

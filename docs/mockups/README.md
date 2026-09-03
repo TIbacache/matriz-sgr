@@ -1,6 +1,6 @@
 # Mockups de las pantallas — SGR
 
-**Generados el 2 de septiembre de 2026** desde la aplicación real corriendo, con `node scripts/mockups.mjs` (en `frontend/`). No son dibujos: son la aplicación, congelada.
+**Generados el 3 de septiembre de 2026** desde la aplicación real corriendo, con `node scripts/mockups.mjs` (en `frontend/`). No son dibujos: son la aplicación, congelada.
 
 Cada pantalla está dos veces, y cada formato sirve para una cosa distinta:
 
@@ -18,7 +18,7 @@ Cada pantalla está dos veces, y cada formato sirve para una cosa distinta:
 ```powershell
 # con el backend en :4000 y el frontend en :5173
 cd frontend
-node scripts/mockups.mjs           # .html + .png de las seis pantallas
+node scripts/mockups.mjs           # .html + .png de las siete pantallas
 node scripts/verificar-mockups.mjs # los abre desde file:// con la red bloqueada
 ```
 
@@ -56,11 +56,19 @@ Qué se le mide a cada persona y con qué peso (RF-006, RF-007). El totalizador 
 
 ![Configuración de metas](05-metas.png)
 
-## 6. Tablero de control
+## 6. Ficha del vecino — el control que el cliente vino a buscar
+
+El caso real: un niño pidió el mismo regalo de Navidad en cinco delegaciones y el sistema no lo detectaba. Aquí se busca a la persona por RUT o por nombre y se ve su historial **cruzando delegaciones**, con un aviso ámbar cuando hay atenciones del mismo tipo en distintas delegaciones dentro de una ventana configurable (ADR-008, CA-04). El aviso **informa; no bloquea ni acusa**.
+
+Es la pantalla con más datos personales del sistema, así que dice en voz alta lo que no muestra: para un funcionario, una atención de otra delegación aparece con su fecha, su delegación y su tipo, y el detalle queda reservado (ADR-012, Leyes 19.628 y 21.719).
+
+![Ficha del vecino](06-vecino.png)
+
+## 7. Tablero de control
 
 Semáforo por delegación, cumplimiento por pilar, proyección al cierre y detalle (EP-05). Los gráficos leen los tokens vivos, así que siguen el tema claro/oscuro solos.
 
-![Tablero de control](06-dashboard.png)
+![Tablero de control](07-dashboard.png)
 
 ---
 

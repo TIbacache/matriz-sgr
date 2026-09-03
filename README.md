@@ -11,7 +11,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 
 | Documento | Contenido |
 |---|---|
-| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 11 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
+| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 12 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
 | [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md) | Columnas, catálogos, códigos y fórmulas extraídos de la planilla en producción |
 | [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) | HU ↔ requisito ↔ commit ↔ prueba (exigida por los profesores) |
 | [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | 11 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, ítems, tipografía y los dos rojos |
@@ -34,7 +34,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | Documento | Contenido |
 |---|---|
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
-| **[docs/mockups/](docs/mockups/)** | **Las seis pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
+| **[docs/mockups/](docs/mockups/)** | **Las siete pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
 | [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
 | [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
@@ -96,7 +96,7 @@ La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-
 
 ## Verificación
 
-Cinco suites automatizadas, **216 comprobaciones** (133 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cinco suites automatizadas, **234 comprobaciones** (151 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
@@ -105,7 +105,7 @@ npm run verificar:calculo  # 21 · fórmulas del cálculo, semáforo, parámetro
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 17 · tiempo real, permisos y visibilidad por delegación
-npm run verificar:api      # 95 · registro, evidencia, validación, metas, concurrencia y auditoría
+npm run verificar:api      # 113 · registro, evidencia, validación, metas, ficha del vecino, concurrencia y auditoría
 
 cd frontend
 npm run verificar:contraste          # 83 · WCAG AA en los dos temas, los dos rojos separados, sin hex fuera de tokens
@@ -114,7 +114,7 @@ node scripts/capturas.mjs capturas   # cada pantalla con las seis cuentas (--mov
 
 ## Las pantallas
 
-Las seis pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
+Las siete pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
 
 ```powershell
 cd frontend

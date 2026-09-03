@@ -414,6 +414,20 @@ async function main() {
       "social.rural@sgr.demo": 0.15, // rojo
     };
 
+    // Vecinos en el registro diario (ADR-008). El reparto es DETERMINISTA a
+    // propósito: como Centro y Rural tienen el mismo cargo "Territorial
+    // OO.CC. 1" —y por lo tanto los mismos ítems y el mismo recorrido de `n`—,
+    // la primera atención de cada ítem cae siempre en el mismo vecino y en la
+    // misma fecha en las dos delegaciones. Así el caso emblemático del cliente
+    // (la misma persona atendida por lo mismo en dos delegaciones) queda
+    // armado en los datos de demostración, que es donde debe poder mostrarse.
+    const vecinos = [...vecinoPorRut.values()];
+    const datosVecino = new Map(
+      VECINOS.map((v, i) => [vecinos[i]!, { nombre: `${v.nombres} ${v.paterno} ${v.materno}`, fono: v.telefono }])
+    );
+    /** Una de cada 12 atenciones queda a nombre de un vecino identificado. */
+    const CADA_CUANTAS_UN_VECINO = 12;
+
     const actividades: Prisma.ActividadCreateManyInput[] = [];
     const evidencias: Prisma.EvidenciaCreateManyInput[] = [];
     const validaciones: Prisma.ValidacionCreateManyInput[] = [];
@@ -432,7 +446,11 @@ async function main() {
       const factor = cumplimientoObjetivo[p.email] ?? 0.5;
 
       // Por cada ítem, tantas actividades como fracción de su meta
-      for (const item of items) {
+      for (const [idx, item] of items.entries()) {
+        // Desfase por ítem: sin él, la primera atención de todos los ítems cae
+        // el mismo día (el primero del período) y la línea de tiempo del vecino
+        // sale como un muro de una sola fecha.
+        const desfase = (idx * 5) % CADA_CUANTAS_UN_VECINO;
         const cuantas = Math.round(item.meta * factor);
         for (let n = 0; n < cuantas; n++) {
           const diaOffset = n % diasDisponibles;
@@ -444,6 +462,14 @@ async function main() {
 
           const actividadId = randomUUID();
           const evidenciaId = randomUUID();
+          // El vecino se elige por ÍNDICE DE ÍTEM, no por funcionario: así el
+          // mismo ítem le toca al mismo vecino en Centro y en Rural, que es el
+          // caso que el sistema debe saber detectar (ADR-008).
+          const vecinoId =
+            (n + desfase) % CADA_CUANTAS_UN_VECINO === 0
+              ? vecinos[(idx + Math.floor((n + desfase) / CADA_CUANTAS_UN_VECINO)) % vecinos.length]!
+              : null;
+          const vecino = vecinoId ? datosVecino.get(vecinoId) : undefined;
           actividades.push({
             id: actividadId,
             organizationId: org.id,
@@ -456,6 +482,9 @@ async function main() {
             descripcion: `${item.nombreItem} — registro ${n + 1}`,
             accion: "Gestión realizada",
             ingresoATubo: n % 5 === 0,
+            personaUsuariaId: vecinoId,
+            contactoNombre: vecino?.nombre ?? null,
+            contactoFono: vecino?.fono ?? null,
           });
           // La ruta la deriva el mismo helper que usa el alta real (RNF-017):
           // si el seed inventara el formato, la ficha y la bandeja pedirían un
@@ -503,6 +532,9 @@ async function main() {
     // no quedan huérfanos en disco.
     for (const a of archivos) await guardarArchivo(a.ruta, a.contenido);
     console.log(`  ${actividades.length} actividades con evidencia y validación`);
+    console.log(
+      `  ${actividades.filter((a) => a.personaUsuariaId).length} de ellas a nombre de un vecino ficticio (ADR-008)`
+    );
     console.log(`  ${archivos.length} imágenes sintéticas escritas en el almacén de evidencias`);
   }
 

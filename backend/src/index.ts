@@ -20,6 +20,7 @@ import { actividadesRouter } from "./routes/actividades.routes.js";
 import { evidenciasRouter } from "./routes/evidencias.routes.js";
 import { cumplimientoRouter } from "./routes/cumplimiento.routes.js";
 import { catalogosRouter } from "./routes/catalogos.routes.js";
+import { vecinosRouter } from "./routes/vecinos.routes.js";
 
 const app = express();
 app.use(cors({ origin: env.corsOrigin }));
@@ -55,6 +56,7 @@ app.get("/", (_req, res) =>
         "POST /evidencias/:id/validacion",
         "GET /cumplimiento/:periodoId",
         "GET /catalogos?catalogo=formato_evidencia",
+        "GET /vecinos?q= · GET|PATCH /vecinos/:id (ficha del vecino, ADR-008)",
       ],
     },
   })
@@ -79,6 +81,9 @@ app.use("/actividades", actividadesRouter);
 app.use("/evidencias", evidenciasRouter);
 app.use("/cumplimiento", cumplimientoRouter);
 app.use("/catalogos", catalogosRouter);
+// Ficha del vecino: la pantalla con más datos personales. Su alcance por rol
+// es una decisión legal, no de comodidad (ADR-012).
+app.use("/vecinos", vecinosRouter);
 
 // Manejador de errores al final: Express 5 captura rechazos async solo.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

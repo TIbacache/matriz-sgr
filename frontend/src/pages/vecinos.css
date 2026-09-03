@@ -1,0 +1,494 @@
+/* Ficha del vecino (ADR-008, ADR-012, CA-04) — DESIGN §8.2.
+   Ni un color ni una medida fuera de los tokens (DESIGN §8.10).
+
+   Regla que esta hoja respeta y conviene no olvidar (DESIGN §3.3): esto es una
+   ZONA DE DATOS. No entra `--acento` ni `--marca`: lo seleccionado usa
+   `--seleccion` y el único rojo posible es `--estado-rojo`. El aviso de
+   duplicidad es ámbar porque es un estado de los datos, no identidad. */
+
+.vecinos {
+  padding: var(--esp-5);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.vecinos-header {
+  margin-bottom: var(--esp-5);
+}
+
+.vecinos-sub {
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  margin-top: var(--esp-1);
+  max-width: 66ch;
+}
+
+/* ---- Perfil sin acceso: se explica, no se deja en blanco (DESIGN §7) ---- */
+
+.vecinos-bloqueo {
+  display: flex;
+  gap: var(--esp-3);
+  align-items: flex-start;
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  padding: var(--esp-4);
+  color: var(--tinta-2);
+  max-width: 72ch;
+}
+
+.vecinos-bloqueo strong {
+  color: var(--tinta);
+}
+
+.vecinos-bloqueo p {
+  margin-top: var(--esp-2);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+/* ---- Buscador: el protagonista de la pantalla ---- */
+
+.vecinos-buscador {
+  margin-bottom: var(--esp-4);
+}
+
+.vecinos-campo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 520px;
+}
+
+.vecinos-campo svg {
+  position: absolute;
+  left: var(--esp-3);
+  color: var(--tinta-3);
+  pointer-events: none;
+}
+
+.vecinos-campo .campo {
+  padding-left: calc(var(--esp-3) * 2 + 16px);
+  font-size: 1rem;
+}
+
+.vecinos-ayuda {
+  margin-top: var(--esp-2);
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+}
+
+/* ---- Resultados ---- */
+
+.vecinos-resultados {
+  margin-bottom: var(--esp-5);
+}
+
+.vecinos-lista {
+  list-style: none;
+  display: grid;
+  gap: var(--esp-2);
+  max-width: 720px;
+}
+
+.vecinos-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--esp-1) var(--esp-3);
+  align-items: baseline;
+  text-align: left;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--borde);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  cursor: pointer;
+  color: var(--tinta);
+  font: inherit;
+  transition:
+    border-color var(--dur-1) var(--ease-expo),
+    background var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo);
+}
+
+.vecinos-item:hover {
+  border-color: var(--borde-fuerte);
+  background: var(--fondo);
+  transform: translateY(-1px);
+}
+
+.vecinos-item:active {
+  transform: translateY(0) scale(0.995);
+}
+
+/* Lo seleccionado dentro de una zona de datos es `--seleccion`, nunca el rojo
+   institucional (DESIGN §3.3). Y se marca con borde Y fondo: nunca solo color. */
+.vecinos-item--activo {
+  border-color: var(--seleccion);
+  border-left-color: var(--seleccion);
+  background: var(--seleccion-bg);
+}
+
+.vecinos-item-nombre {
+  font-weight: 600;
+}
+
+.vecinos-item-rut {
+  color: var(--tinta-2);
+  font-size: 0.8125rem;
+}
+
+.vecinos-item-cifras {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+}
+
+/* ---- Aviso ámbar: el control que el cliente vino a buscar ---- */
+
+.vecinos-aviso {
+  display: flex;
+  gap: var(--esp-3);
+  align-items: flex-start;
+  background: var(--estado-amarillo-bg);
+  border-left: 3px solid var(--estado-amarillo);
+  border-radius: var(--radio-control);
+  padding: var(--esp-4);
+  margin-bottom: var(--esp-4);
+  color: var(--estado-amarillo-texto);
+}
+
+/* Sin esto el icono se aplasta a un hilo cuando el texto es largo: en flex,
+   un SVG con ancho intrínseco cede antes que el párrafo. Se vio en móvil. */
+.vecinos-aviso > svg,
+.vecinos-bloqueo > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.vecinos-aviso p {
+  margin-top: var(--esp-2);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.vecinos-aviso-detalle {
+  margin: var(--esp-2) 0 0 var(--esp-4);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.vecinos-aviso-nota {
+  opacity: 0.85;
+  font-size: 0.75rem !important;
+}
+
+/* ---- Cabecera de la persona ---- */
+
+.vecinos-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-5);
+  justify-content: space-between;
+  align-items: flex-start;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  padding: var(--esp-4) var(--esp-5);
+}
+
+.vecinos-identidad h2 {
+  font-family: var(--font-titulo);
+  font-size: 1.375rem;
+  line-height: 1.2;
+}
+
+.vecinos-identidad > p {
+  color: var(--tinta-2);
+  font-size: 0.875rem;
+  margin-top: var(--esp-1);
+}
+
+.vecinos-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-4);
+  margin: var(--esp-3) 0;
+}
+
+.vecinos-datos dt {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-3);
+}
+
+.vecinos-datos dd {
+  font-size: 0.875rem;
+  color: var(--tinta);
+  margin-top: 2px;
+}
+
+.vecinos-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-5);
+}
+
+.vecinos-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 96px;
+}
+
+.vecinos-cifra-valor {
+  font-family: var(--font-titulo);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.vecinos-cifra-nombre {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-3);
+}
+
+/* Más de una delegación es EL dato de esta pantalla: se destaca sin gritar. */
+.vecinos-cifra--marcada .vecinos-cifra-valor {
+  color: var(--estado-amarillo-texto);
+}
+
+/* ---- Corrección de datos ---- */
+
+.vecinos-correccion {
+  background: var(--fondo-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  padding: var(--esp-4) var(--esp-5);
+  margin-top: var(--esp-3);
+}
+
+.vecinos-correccion-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--esp-3);
+}
+
+.vecinos-correccion-campos label {
+  display: block;
+}
+
+.vecinos-correccion-ancho {
+  grid-column: 1 / -1;
+}
+
+.vecinos-correccion-nota {
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+  margin: var(--esp-3) 0;
+  max-width: 70ch;
+}
+
+.vecinos-conflicto {
+  background: var(--seleccion-bg);
+  border-left: 3px solid var(--seleccion);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-3);
+  font-size: 0.8125rem;
+  color: var(--tinta);
+}
+
+/* ---- Reparto y reserva ---- */
+
+.vecinos-reparto {
+  margin-top: var(--esp-3);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.vecinos-reserva {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  margin-top: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--tinta-2);
+  max-width: 78ch;
+}
+
+.vecinos-reserva svg {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ---- Línea de tiempo vertical ---- */
+
+.vecinos-titulo-linea {
+  font-family: var(--font-titulo);
+  font-size: 1rem;
+  margin: var(--esp-5) 0 var(--esp-3);
+}
+
+.vecinos-linea {
+  list-style: none;
+  position: relative;
+  margin-left: var(--esp-2);
+  padding-left: var(--esp-5);
+  border-left: 1px solid var(--borde);
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.vecinos-hito {
+  position: relative;
+}
+
+.vecinos-hito-punto {
+  position: absolute;
+  left: calc(var(--esp-5) * -1 - 4px);
+  top: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--borde-fuerte);
+  box-shadow: 0 0 0 3px var(--fondo);
+}
+
+.vecinos-hito--marcado .vecinos-hito-punto {
+  background: var(--estado-amarillo);
+}
+
+.vecinos-hito-cuerpo {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  transition:
+    border-color var(--dur-1) var(--ease-expo),
+    transform var(--dur-1) var(--ease-expo);
+}
+
+.vecinos-hito-cuerpo:hover {
+  border-color: var(--borde-fuerte);
+  transform: translateY(-1px);
+}
+
+/* El hito señalado por el aviso lleva una banda lateral, no un marco entero:
+   con varias coincidencias reales el marco pinta media línea de tiempo y el
+   aviso deja de señalar. La banda marca sin gritar. */
+.vecinos-hito--marcado .vecinos-hito-cuerpo {
+  border-left: 3px solid var(--estado-amarillo);
+  padding-left: calc(var(--esp-4) - 2px);
+}
+
+.vecinos-hito-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-2);
+}
+
+.vecinos-hito-fecha {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+  font-weight: 600;
+}
+
+.vecinos-hito-delegacion {
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+  background: var(--fondo-2);
+  border-radius: var(--radio-control);
+  padding: 1px var(--esp-2);
+}
+
+.vecinos-hito-titulo {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.vecinos-hito-sub {
+  font-weight: 400;
+  color: var(--tinta-2);
+}
+
+.vecinos-hito-detalle {
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  margin-top: var(--esp-1);
+  line-height: 1.55;
+}
+
+.vecinos-hito-pie {
+  font-size: 0.6875rem;
+  color: var(--tinta-3);
+  margin-top: var(--esp-2);
+}
+
+/* Estados: símbolo + palabra, nunca solo color (DESIGN §8.1.4). Aquí la
+   palabra ya lo dice, y el color solo la acompaña. */
+.vecinos-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: var(--radio-control);
+  padding: 1px var(--esp-2);
+  background: var(--fondo-2);
+  color: var(--tinta-2);
+}
+
+.vecinos-estado--ok {
+  background: var(--estado-verde-bg);
+  color: var(--estado-verde-texto);
+}
+
+.vecinos-estado--espera {
+  background: var(--estado-amarillo-bg);
+  color: var(--estado-amarillo-texto);
+}
+
+.vecinos-estado--alerta {
+  background: var(--estado-rojo-bg);
+  color: var(--estado-rojo-texto);
+}
+
+.vecinos-estado--reservado {
+  background: var(--fondo-2);
+  color: var(--tinta-3);
+}
+
+@media (max-width: 720px) {
+  .vecinos {
+    padding: var(--esp-4) var(--esp-3);
+  }
+
+  .vecinos-cabecera {
+    gap: var(--esp-4);
+  }
+
+  .vecinos-cifras {
+    gap: var(--esp-4);
+  }
+
+  .vecinos-linea {
+    padding-left: var(--esp-4);
+  }
+
+  .vecinos-hito-punto {
+    left: calc(var(--esp-4) * -1 - 4px);
+  }
+}
