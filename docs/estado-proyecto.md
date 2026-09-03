@@ -53,7 +53,7 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 18 ✅ · 13 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B3 cerró RF-032 y dejó RF-015 y CA-04 en 🟡: la **secuencia del caso ya es consultable**, faltan las tres gestiones de `AtencionSocial`. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero.
+**Contra los 38 RF oficiales: 17 ✅ · 14 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B3 cerró RF-032 y dejó RF-015 y CA-04 en 🟡: la **secuencia del caso ya es consultable**, faltan las tres gestiones de `AtencionSocial`. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 **bajó** de ✅ a 🟡 el 3 de septiembre: estaba marcado como completo con una nota que decía que le faltaba el campo INT/EXT, y la nota tenía razón.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -359,6 +359,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | El nombre de la organización se trunca en la barra de 240px ("Municipalidad Demo (datos fi…") | `layout.css` | Baja |
 | Las evidencias del seed no tienen archivo en disco: la bandeja muestra "No se pudo abrir el archivo (410)" con datos demo | seed | Baja (solo demo) |
 | ~~Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría~~ ✅ **resuelto el 03-09-2026** (Bloque A3), junto con RF-001 (la baja de una delegación la desactiva) y el aviso de conflicto en el tubo | — | ✅ |
+| 🔴 **El tubo no puede enlazar al vecino** (RF-016, RF-017): `services/vecinos.ts` lee `tarea.personaUsuariaId` y la línea de tiempo del vecino muestra compromisos, pero **nada en la aplicación crea ese vínculo** — el `tareaSchema` no acepta `interesExterno`, `solicitante`, `territorio`, `areaApoyo` ni `personaUsuariaId`, y el modal tampoco los pide. Solo el seed los llena. Una tarea externa creada desde la aplicación **no aparece en la ficha del vecino**. Plan en [siguiente-sesion §3, Bloque B5](siguiente-sesion.md) | `tareas.routes.ts`, `NuevaTareaModal.tsx` | **Alta** |
 | `TareaHistorial` sigue sin usarse: RF-018 pide **historial de transición** visible, y hoy el recorrido de una tarjeta solo está en la bitácora de auditoría (que es interna). Es lo que le falta a CA-03 junto con la alerta | `tareas.routes.ts`, entidad ya modelada | Media |
 | Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
 | ~~Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria`~~ ✅ **resuelto el 03-09-2026** (Bloque B3): `GET /vecinos`, `GET /vecinos/:id`, `PATCH /vecinos/:id` y la pantalla `/vecinos` | — | ✅ |

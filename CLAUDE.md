@@ -40,6 +40,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
 - **Las tres gestiones de `AtencionSocial`** (RF-015, HU-03): la entidad existe y la trazabilidad de la persona ya funciona; falta la API. Es lo único que le queda a CA-04.
+- 🔴 **El formulario del tubo no captura al solicitante** (RF-016, RF-017, Bloque B5): `interesExterno`, `solicitante`, `territorio`, `areaApoyo` y `personaUsuariaId` están en el esquema y los llena el seed, pero el `tareaSchema` no los acepta. Como `services/vecinos.ts` **sí** lee `tarea.personaUsuariaId`, una tarea externa creada desde la aplicación no aparece en la ficha del vecino: la trazabilidad parece rota sin estarlo. **No pedir RUT en el tubo** — la planilla real no lo tiene ahí (estructura-planilla-real §6).
 - API de `Ajuste`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
