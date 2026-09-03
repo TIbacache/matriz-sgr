@@ -2,7 +2,7 @@
 
 **Exigida por el PDF (§15.1)**: *"Cada equipo deberá mantener una matriz con: HU, requisito relacionado, tarea o commit, caso de prueba, resultado, responsable y enlace a la evidencia. **Una historia no se considera terminada si no puede demostrarse su trazabilidad.**"*
 
-**Actualizada**: 3 de septiembre de 2026 (Bloque B3 — ficha del vecino) · **Se actualiza en cada cierre de sprint.**
+**Actualizada**: 3 de septiembre de 2026 (Bloque A3 — endurecimiento de las rutas heredadas) · **Se actualiza en cada cierre de sprint.**
 
 Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada · ⬜ no iniciada
 
@@ -28,6 +28,8 @@ Salto del Bloque A2 (commit `de68901`): **HU-05 queda demostrable** — las meta
 
 Salto del Bloque B2: **HU-05 queda completa con su pantalla** (`/metas`), y con ella el ciclo configurar → registrar → validar → medir se recorre entero por interfaz. Aparecen dos verificaciones de un tipo nuevo: las que prueban **el contrato con los seis roles** en vez de un solo camino feliz. La segunda destapó un fallo real antes de que llegara a la vista.
 
+Salto del Bloque A3: **CA-08 y CA-09 quedan completos**. Eran los dos criterios que arrastraban un 🟡 desde el Bloque A por la misma razón: el modelo v2 aplicaba bloqueo optimista y auditoría, pero las tres rutas heredadas de la Fase 2 —`/tareas`, `/unidades`, `/categorias`— no, y son las que sostienen el tubo y las delegaciones. El tubo era el caso más expuesto: varias personas arrastrando tarjetas del mismo libro en vivo, y el `PATCH` del drag & drop sin comparar versión. De paso se cerró una violación de **RF-001** que llevaba desde la Fase 2: dar de baja una delegación la **borraba**, con sus actividades y metas colgando; el esquema ya tenía la columna `activo` y la ruta la ignoraba.
+
 Salto del Bloque B3: **HU-29 queda demostrable** y con ella **RF-032**, el último requisito de búsqueda que faltaba. HU-03 pasa a 🟡: la *secuencia consultable* de CA-04 ya existe —el historial del vecino cruzando delegaciones, con su aviso de duplicidad— y lo que resta son las tres gestiones de `AtencionSocial`. Es también el primer bloque cuyas verificaciones prueban **límites legales** y no solo reglas de negocio: quién no puede ver un dato, qué parte de un registro no viaja, y que abrir una ficha quede en la bitácora.
 
 ---
@@ -50,7 +52,7 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-10 Códigos verificadores | RF-011 | — | `91f1917` `services/codigos.ts` + trigger · `b1f3e75` uso en el alta | api:"RF-011 código no ambiguo" (`TOO-20260715-0004`), "el correlativo avanza"; calculo-19, calculo-20 | PASS | B | ✅ |
 | HU-11 Validación de actividades | RF-013, RF-014, RF-036 | — | `b1f3e75` `backend/src/routes/evidencias.routes.ts` · **bandeja** `frontend/src/pages/BandejaPage.tsx` | api:"la evidencia entra a la bandeja", "rechazar exige observación", "tres decisiones", "no valida su propia evidencia", "el punto se suma solo tras la aprobación", "una aprobada no se re-decide", "la bandeja entrega lo que la pantalla necesita", "lo aprobado sale de la cola", "permite revisar lo ya decidido", "una anulada desaparece", "filtra por delegación" | PASS (11/11) | A | ✅ falta prueba de componente (Bloque D) |
 | HU-12 Agenda compartida | RF-016, RF-017 | HU-3.1 | `91e8fcb` `3eeb705` kanban dnd-kit + Socket.io | smoke-12, smoke-13 | PASS | A | ✅ |
-| HU-13 Actualización de estados | RF-018, RF-036 | HU-3.1 | `tareas.routes.ts` PATCH | smoke-12 | PASS | A | 🟡 falta historial de transición |
+| HU-13 Actualización de estados | RF-018, RF-036 | HU-3.1 | `tareas.routes.ts` PATCH · **`a3`** bloqueo optimista y auditoría del movimiento | smoke-12, smoke-13; api:"CA-08 mover una tarjeta del tubo sin `version` se rechaza (400)", "CA-08 dos personas moviendo la misma tarjeta: la segunda recibe 409, no pisa a la primera", "CA-09 la bitácora del tubo distingue crear, cambiar_estado y actualizar" | PASS | A | 🟡 falta `TareaHistorial` (historial de transición visible para la persona usuaria) |
 | HU-14 Seguimiento de compromisos | RF-019, RF-021, RF-037 | HU-5.1 | `b5e7eff` `GET /kpis/tubo`, vencidas | smoke-15 | PASS (`vencidas=2`) | A | 🟡 faltan "próximo a vencer" y alertas |
 | HU-15 Continuidad operativa | RF-017, RF-036 | — | Lectura del tubo por delegación | smoke-2 | PASS | B | 🟡 falta reasignación con motivo |
 | HU-16 Semáforo de cumplimiento | RF-026, RF-027 | HU-4.2, HU-5.1 | `8de89a5` vista v2 + `b5e7eff` GaugeGrid | smoke-6, smoke-7 | PASS (verde/naranjo/rojo) | A | ✅ |
@@ -60,10 +62,10 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-20 Generación de informes | RF-032, RF-033 | — | Filtros del dashboard | — | — | B | 🟡 falta exportación |
 | HU-21 Funcionarios rezagados | RF-027, RF-029, RF-037 | HU-5.3 | Tabla ordenable + línea "Ojo 80%" | visual | OK | B | ⬜ sin alerta |
 | HU-22 Brechas de productividad | RF-031, RF-038 | — | — | — | — | B | ⬜ |
-| HU-23 Trabajo colaborativo en línea | RF-034, RNF-003 | HU-3.1, HU-6.1 | `91e8fcb` Socket.io rooms + presencia · `b1f3e75` `services/concurrencia.ts` | smoke-10, smoke-13; api:"CA-08 edición con versión vieja → 409", "PATCH de actividad con versión errada → 409" | PASS | A | ✅ en el modelo v2; las rutas v1 aún no comparan `version` |
+| HU-23 Trabajo colaborativo en línea | RF-034, RNF-003 | HU-3.1, HU-6.1 | `91e8fcb` Socket.io rooms + presencia · `b1f3e75` `services/concurrencia.ts` · **`a3`** las tres rutas heredadas y el aviso en el tubo (`TuboPage.tsx`, `.tubo-conflicto`) | smoke-10, smoke-13, smoke-14; api:"CA-08 edición con versión vieja → 409", "PATCH de actividad con versión errada → 409", "CA-08 dos personas moviendo la misma tarjeta: la segunda recibe 409, no pisa a la primera", "CA-08 reutilizar una versión consumida en categorías → 409 con el registro vigente" | PASS | A | ✅ **todo el sistema** compara `version`, y la pantalla más concurrida avisa en vez de revertir en silencio |
 | HU-24 Comunicación entre delegaciones | RF-035 | — | — | — | — | B | ⬜ |
 | HU-25 Adaptación continua | RF-038 | HU-2.2 | CRUD de categorías | — | — | A | 🟡 sin versionado |
-| HU-26 Administración de delegaciones, usuarios y roles | RF-001, RF-002, RNF-004, RNF-005 | HU-1.1, HU-1.2, HU-2.1, HU-3.3 | `91e8fcb` auth + `8de89a5` alcance.ts | smoke-1…5, smoke-8, smoke-11 | PASS | A | ✅ |
+| HU-26 Administración de delegaciones, usuarios y roles | RF-001, RF-002, RNF-004, RNF-005 | HU-1.1, HU-1.2, HU-2.1, HU-3.3 | `91e8fcb` auth + `8de89a5` alcance.ts · **`a3`** `unidades.routes.ts` (baja = desactivación, no borrado) | smoke-1…5, smoke-8, smoke-11; api:"RF-001 dar de baja una delegación la DESACTIVA, no la borra", "RF-001 una delegación desactivada sale de los selectores pero se sigue pudiendo consultar", "Un funcionario no crea delegaciones (403)" | PASS | A | ✅ |
 | HU-27 Administración de catálogos | RF-004 | HU-2.2 | `categorias.routes.ts` · `GET /catalogos` (lectura, alimenta los formularios) | api:"RF-004 los formatos de evidencia salen del catálogo", "el catálogo coincide con lo que el servidor acepta" | PASS (2/2) | A | 🟡 solo lectura: falta el CRUD y la desactivación desde la UI |
 | HU-28 Administración de períodos | RF-005, RN-013 | — | `b1f3e75` `backend/src/routes/periodos.routes.ts` | api:"días calculados desde las fechas", "solapados rechazados", "cierre", "un período cerrado no se modifica", "la reapertura exige autorización y motivo", "el motivo queda en la bitácora" | PASS (8/8) | A | ✅ falta la pantalla |
 | HU-29 Búsqueda y filtros | RF-032 | HU-5.2 | `b3` `backend/src/routes/vecinos.routes.ts` (`GET /vecinos?q=`) · **pantalla** `frontend/src/pages/VecinosPage.tsx` · migración `20260903120000` (índice de búsqueda por nombre) · filtros del dashboard, de `/actividades` y de la bandeja | api:"RF-032 la búsqueda por RUT reconoce el formato con puntos y guion", "ADR-001 el mismo RUT sin puntos ni guion encuentra a la misma persona", "ADR-003 la búsqueda por nombre usa la expresión indexada", "Una búsqueda de menos de 3 caracteres no devuelve media base", "Multi-tenant: identificador mal formado → 400, inexistente → 404" | PASS (5/5) | A | ✅ |
@@ -102,7 +104,7 @@ Los RNF de usabilidad y accesibilidad no cuelgan de una historia, pero el PDF lo
 
 ## 3. Verificaciones automatizadas vigentes
 
-**234 comprobaciones, todas en verde** al 03-09-2026: **151 del backend** (17 smoke + 21 cálculo + 113 API) y **83 de contraste del frontend**. Aparte corre `npm run verificar:rut` (16 RUT del seed más los casos de normalización), que no entra en el total porque depende de que la base esté sembrada.
+**254 comprobaciones, todas en verde** al 03-09-2026: **171 del backend** (18 smoke + 21 cálculo + 132 API) y **83 de contraste del frontend**. Aparte corre `npm run verificar:rut` (16 RUT del seed más los casos de normalización), que no entra en el total porque depende de que la base esté sembrada.
 
 ### `npm run verificar:calculo` — 21/21
 
@@ -130,7 +132,7 @@ Pruebas unitarias de las fórmulas (lo que el PDF §14.3 exige como cobertura m�
 
 Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `17.721.947-9` y `17,721,947-9` (el formato de Google Sheets) y se rechacen un DV incorrecto y el dato sucio `216944` que aparece en la planilla real. Cubre RF-010 y ADR-001.
 
-### `npm run smoke` — 17/17
+### `npm run smoke` — 18/18
 
 | # | Verificación | Cubre |
 |---|---|---|
@@ -145,11 +147,12 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 9-11 | Join al room propio OK; a otra delegación rechazado | RF-034, CA-07 |
 | 10 | Presencia en vivo | HU-23 |
 | 12-13 | Mover tarea propia y su evento en tiempo real | RF-018, HU-12, HU-13 |
-| 14 | `GET /usuarios` con cargos | RF-002 |
-| 15 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
-| 16-17 | Crear tarea y su evento | RF-016, HU-02 |
+| 14 | **Mover con una versión ya consumida → 409 con el registro vigente** | CA-08, ADR-005, HU-23 |
+| 15 | `GET /usuarios` con cargos | RF-002 |
+| 16 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
+| 17-18 | Crear tarea y su evento | RF-016, HU-02 |
 
-### `npm run verificar:api` — 113/113 (Bloques A, A2, B, B2 y B3)
+### `npm run verificar:api` — 132/132 (Bloques A, A2, A3, B, B2 y B3)
 
 Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
 
@@ -164,8 +167,8 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 | Contrato de la ficha personal (5) | los formatos salen del catálogo y coinciden con lo que aplica el 415, registro paginado por período y funcionario, las anuladas solo si se piden, la ficha de una persona trae ítems, metas y semáforo | RF-004, RF-008, HU-06 |
 | Contrato de la bandeja (8) | la cola entrega código, funcionario y delegación en cada fila; **lo recién subido es alcanzable en la primera página con `orden=recientes`**; **la cola pagina sin repetir**; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; el verificador no tiene libro pero sí bandeja; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
 | Metas por funcionario (25) | RN-001 en sus dos formas (el alta no supera el 100%, el lote exige el 100% exacto), meta 0 rechazada, ítem ajeno al cargo, sin duplicados, 409 por versión en el alta y en el lote, período cerrado sin cambios, lo que ya sumó puntaje no se quita, el funcionario ve lo suyo con la suma y el faltante, delegación ajena → 404, auditoría de crear/actualizar/eliminar, la regresión de `Decimal`, **los seis roles cargan la pantalla**, **el selector ofrece exactamente lo que cada rol puede consultar**, y lo configurado es lo que el motor mide | RF-003, RF-007, RF-008, RN-001, RN-002, RN-009, RN-013, CA-01, CA-08, RNF-005, RNF-008 |
-
 | Ficha del vecino (18) | búsqueda por RUT en cualquier formato y por nombre parcial sobre la expresión indexada, mínimo de 3 caracteres, el historial **cruza delegaciones**, el aviso ámbar del mismo tipo en delegaciones distintas, **el aviso señala hechos concretos y no la delegación entera**, la ventana sale del parámetro con su marca `confirmado`, **el funcionario ve todo el historial pero el detalle ajeno viaja vacío**, verificador y consulta → 403, los seis roles reciben lo suyo y el 403 dice por qué, 400 contra 404, **abrir la ficha queda en la bitácora como `consultar`**, corrección con teléfono normalizado y versión que avanza, 409 por versión vieja, 409 por RUT ya usado, teléfono inválido → 400, y no corrige quien no atendió a esa persona | RF-010, RF-032, CA-04, CA-08, RNF-005, RNF-008, ADR-001, ADR-003, ADR-005, ADR-007, ADR-008, **ADR-012**, Leyes 19.628 / 21.719 / 21.663 |
+| Rutas heredadas endurecidas (19) | categorías y delegaciones nacen con `version` 1; el `PATCH` **sin `version` se rechaza con 400** en las tres rutas; con la versión vigente aplica e incrementa; **reutilizar una versión consumida da 409 con el registro vigente**, en categorías, delegaciones y tarjetas del tubo; un funcionario no crea categorías ni delegaciones (403); categoría inexistente → 404; **RF-001: dar de baja una delegación la desactiva y la fila sigue en la base**; una delegación desactivada sale de los selectores y se sigue consultando con `?incluirInactivas=1`; la bitácora del tubo **distingue `cambiar_estado` de `actualizar`**; cada evento guarda usuario, valor anterior y valor nuevo; al borrar una tarea la bitácora conserva lo que decía; categorías y delegaciones también dejan rastro de crear, actualizar y eliminar, con su `origen` | RF-001, RF-016…RF-021, CA-08, CA-09, RNF-005, RNF-008, ADR-005, ADR-006 |
 
 Las comprobaciones en negrita son **regresiones o hallazgos de revisión**: nacieron de errores reales encontrados probando el ciclo completo (una evidencia recién subida caía en la posición 87 de la cola y no se veía; el selector de metas ofrecía personas que el servidor rechaza con 404; el aviso de duplicidad marcaba tantos hitos que dejaba de señalar).
 

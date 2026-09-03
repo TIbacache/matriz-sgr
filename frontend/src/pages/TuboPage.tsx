@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, ApiError } from "../lib/api";
 import type { CategoriaGestion, Conectado, Tarea, UnidadTerritorial } from "../lib/types";
 import { colorCategoria, puedeMoverTarea } from "../lib/kanban";
 import { useAuth } from "../context/AuthContext";
@@ -26,6 +26,7 @@ export function TuboPage() {
   const [cargando, setCargando] = useState(true);
   const [cargandoUnidades, setCargandoUnidades] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [conflicto, setConflicto] = useState<string | null>(null);
 
   const terminoUnidad = terminologia.unidad ?? "unidad";
 
@@ -103,22 +104,42 @@ export function TuboPage() {
   );
 
   // Actualización optimista (HU-3.1): mover ya, revertir si el PATCH falla.
+  //
+  // El PATCH manda la `version` que tenía la tarjeta al arrastrarla (CA-08).
+  // Si otra persona la movió en el intervalo, el servidor responde 409 y NO
+  // sobrescribe: entonces no se revierte a ciegas —eso volvería a inventar un
+  // estado que ya no es el vigente— sino que se recarga el libro y se avisa.
+  // Un conflicto no puede desaparecer solo a los 5 segundos como un error de
+  // red: el aviso queda hasta que la persona lo cierra.
   const onMover = useCallback(
     (tarea: Tarea, nuevoEstado: string) => {
       const estadoAnterior = tarea.estado;
       setTareas((prev) =>
         prev.map((t) => (t.id === tarea.id ? { ...t, estado: nuevoEstado } : t))
       );
-      api.patch<Tarea>(`/tareas/${tarea.id}`, { estado: nuevoEstado }).catch((e) => {
-        setTareas((prev) =>
-          prev.map((t) => (t.id === tarea.id ? { ...t, estado: estadoAnterior } : t))
-        );
-        mostrarError(
-          e instanceof Error ? `No se pudo mover la tarea: ${e.message}` : "No se pudo mover la tarea"
-        );
-      });
+      api
+        .patch<Tarea>(`/tareas/${tarea.id}`, { estado: nuevoEstado, version: tarea.version })
+        .then((actualizada) =>
+          setTareas((prev) => prev.map((t) => (t.id === actualizada.id ? actualizada : t)))
+        )
+        .catch((e) => {
+          if (e instanceof ApiError && e.status === 409) {
+            setConflicto(
+              `«${tarea.titulo}»: otra persona la movió mientras arrastrabas, así que no se guardó tu cambio. ` +
+                "Abajo tienes el estado vigente."
+            );
+            cargarTareas();
+            return;
+          }
+          setTareas((prev) =>
+            prev.map((t) => (t.id === tarea.id ? { ...t, estado: estadoAnterior } : t))
+          );
+          mostrarError(
+            e instanceof Error ? `No se pudo mover la tarea: ${e.message}` : "No se pudo mover la tarea"
+          );
+        });
     },
-    [mostrarError]
+    [mostrarError, cargarTareas]
   );
 
   if (!usuario) return null;
@@ -162,6 +183,20 @@ export function TuboPage() {
           </div>
         )}
       </header>
+
+      {conflicto && (
+        <p className="tubo-conflicto" role="alert">
+          {conflicto}
+          <button
+            type="button"
+            className="btn-tabla"
+            onClick={() => setConflicto(null)}
+            aria-label="Cerrar el aviso de conflicto"
+          >
+            Entendido
+          </button>
+        </p>
+      )}
 
       {cargandoUnidades || cargando ? (
         <div className="tubo-skeleton" aria-hidden="true">

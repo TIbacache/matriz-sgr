@@ -23,6 +23,11 @@ const creado = {
   cargos: [] as string[],
   items: [] as string[],
   personas: [] as string[],
+  // Bloque A3 — rutas heredadas. La delegación de prueba hay que borrarla de
+  // verdad al terminar: si quedara desactivada, el smoke dejaría de contar 6.
+  categorias: [] as string[],
+  unidades: [] as string[],
+  tareas: [] as string[],
 };
 
 async function login(email: string): Promise<{ token: string; usuario: { id: string } }> {
@@ -1284,8 +1289,210 @@ check(
 );
 
 // ===========================================================================
+// 9. RUTAS HEREDADAS ENDURECIDAS — CA-08 · CA-09 · ADR-005 · ADR-006 · RF-001
+//
+// `/tareas`, `/unidades` y `/categorias` vienen de la Fase 2 y sostienen
+// requisitos vigentes (EP-04, RF-001, RF-016 a RF-021): "v1" nunca quiso decir
+// "obsoleta". Les faltaban las dos garantías transversales del sistema —
+// bloqueo optimista y auditoría— y a `/unidades`, además, el propio RF-001:
+// una delegación se DESACTIVA, no se borra.
+// ===========================================================================
+
+// ---- /categorias ----
+const catCreada = await S("POST", "/categorias", { nombre: "Prueba A3", ordenPrioridad: 99 });
+const categoriaPrueba = catCreada.datos as { id: string; version: number; nombre: string };
+creado.categorias.push(categoriaPrueba.id);
+check(
+  "CA-08 una categoría nace con version 1",
+  catCreada.status === 201 && categoriaPrueba.version === 1,
+  `status ${catCreada.status} version ${categoriaPrueba.version}`
+);
+
+const catSinVersion = await S("PATCH", `/categorias/${categoriaPrueba.id}`, { nombre: "Sin versión" });
+check(
+  "CA-08 el PATCH de categoría sin `version` se rechaza (400), no se aplica a ciegas",
+  catSinVersion.status === 400,
+  `status ${catSinVersion.status}`
+);
+
+const catEditada = await S("PATCH", `/categorias/${categoriaPrueba.id}`, {
+  nombre: "Prueba A3 editada",
+  version: categoriaPrueba.version,
+});
+check(
+  "CA-08 el PATCH de categoría con la versión vigente aplica e incrementa",
+  catEditada.status === 200 && (catEditada.datos as { version: number }).version === 2,
+  `status ${catEditada.status}`
+);
+
+const catConflicto = await S("PATCH", `/categorias/${categoriaPrueba.id}`, {
+  nombre: "Pisada",
+  version: categoriaPrueba.version, // la misma de antes: ya consumida
+});
+check(
+  "CA-08 reutilizar una versión consumida en categorías → 409 con el registro vigente",
+  catConflicto.status === 409 &&
+    (catConflicto.datos as { versionActual: number; registro: { nombre: string } }).versionActual === 2 &&
+    (catConflicto.datos as { registro: { nombre: string } }).registro.nombre === "Prueba A3 editada",
+  `status ${catConflicto.status}`
+);
+
+const catRolUsuario = await G("POST", "/categorias", { nombre: "No debería", ordenPrioridad: 1 });
+check(
+  "Un funcionario no crea categorías (403)",
+  catRolUsuario.status === 403,
+  `status ${catRolUsuario.status}`
+);
+
+check(
+  "Multi-tenant: una categoría inexistente o ajena responde 404",
+  (await S("PATCH", "/categorias/11111111-1111-1111-1111-111111111111", { nombre: "X", version: 1 }))
+    .status === 404
+);
+
+// ---- /unidades ----
+const uniCreada = await A("POST", "/unidades", { nombre: "Delegación de prueba A3" });
+const unidadPrueba = uniCreada.datos as { id: string; version: number; activo: boolean };
+creado.unidades.push(unidadPrueba.id);
+check(
+  "RF-001 una delegación nace activa y con version 1",
+  uniCreada.status === 201 && unidadPrueba.version === 1 && unidadPrueba.activo === true,
+  `status ${uniCreada.status}`
+);
+
+const uniSinVersion = await A("PATCH", `/unidades/${unidadPrueba.id}`, { nombre: "Sin versión" });
+check(
+  "CA-08 el PATCH de delegación sin `version` se rechaza (400)",
+  uniSinVersion.status === 400,
+  `status ${uniSinVersion.status}`
+);
+
+const uniEditada = await A("PATCH", `/unidades/${unidadPrueba.id}`, {
+  nombre: "Delegación de prueba A3 (editada)",
+  version: unidadPrueba.version,
+});
+const uniConflicto = await A("PATCH", `/unidades/${unidadPrueba.id}`, {
+  nombre: "Pisada",
+  version: unidadPrueba.version,
+});
+check(
+  "CA-08 en delegaciones la versión vigente aplica y la consumida da 409",
+  uniEditada.status === 200 && uniConflicto.status === 409,
+  `${uniEditada.status} y ${uniConflicto.status}`
+);
+
+// RF-001 es explícito: no se pierde la historia. Antes del Bloque A3 el DELETE
+// borraba de verdad, con actividades y metas colgando de la delegación.
+const uniBaja = await A("DELETE", `/unidades/${unidadPrueba.id}`);
+const uniEnBase = await prisma.unidadTerritorial.findUnique({ where: { id: unidadPrueba.id } });
+const uniListadoVigente = (await A("GET", "/unidades")).datos as { id: string }[];
+const uniListadoTodo = (await A("GET", "/unidades?incluirInactivas=1")).datos as { id: string }[];
+check(
+  "RF-001 dar de baja una delegación la DESACTIVA, no la borra",
+  uniBaja.status === 204 && uniEnBase !== null && uniEnBase.activo === false,
+  `status ${uniBaja.status} · sigue en la base: ${uniEnBase !== null}`
+);
+check(
+  "RF-001 una delegación desactivada sale de los selectores pero se sigue pudiendo consultar",
+  !uniListadoVigente.some((u) => u.id === unidadPrueba.id) &&
+    uniListadoTodo.some((u) => u.id === unidadPrueba.id),
+  `vigentes ${uniListadoVigente.length} · con inactivas ${uniListadoTodo.length}`
+);
+
+const uniRolUsuario = await G("POST", "/unidades", { nombre: "No debería" });
+check("Un funcionario no crea delegaciones (403)", uniRolUsuario.status === 403, `status ${uniRolUsuario.status}`);
+
+// ---- /tareas (el tubo) ----
+const tareaCreada = await A("POST", "/tareas", {
+  titulo: "Tarea de prueba A3",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  responsableId: gabriel.usuario.id,
+});
+const tareaPrueba = tareaCreada.datos as { id: string; version: number; estado: string };
+creado.tareas.push(tareaPrueba.id);
+check(
+  "CA-08 una tarea nace con version 1",
+  tareaCreada.status === 201 && tareaPrueba.version === 1,
+  `status ${tareaCreada.status} version ${tareaPrueba.version}`
+);
+
+const tareaSinVersion = await G("PATCH", `/tareas/${tareaPrueba.id}`, { estado: "en_proceso" });
+check(
+  "CA-08 mover una tarjeta del tubo sin `version` se rechaza (400)",
+  tareaSinVersion.status === 400,
+  `status ${tareaSinVersion.status}`
+);
+
+const tareaMovida = await G("PATCH", `/tareas/${tareaPrueba.id}`, {
+  estado: "en_proceso",
+  version: tareaPrueba.version,
+});
+const tareaPisada = await G("PATCH", `/tareas/${tareaPrueba.id}`, {
+  estado: "realizado",
+  version: tareaPrueba.version,
+});
+check(
+  "CA-08 dos personas moviendo la misma tarjeta: la segunda recibe 409, no pisa a la primera",
+  tareaMovida.status === 200 &&
+    tareaPisada.status === 409 &&
+    (tareaPisada.datos as { registro: { estado: string } }).registro.estado === "en_proceso",
+  `${tareaMovida.status} y ${tareaPisada.status}`
+);
+
+// CA-09: la bitácora distingue mover de editar, para poder reconstruir el
+// recorrido de una tarjeta por el tubo sin confundirlo con un cambio de texto.
+const tareaRenombrada = await G("PATCH", `/tareas/${tareaPrueba.id}`, {
+  titulo: "Tarea de prueba A3 (renombrada)",
+  version: (tareaMovida.datos as { version: number }).version,
+});
+const auditoriaTarea = await prisma.auditoria.findMany({
+  where: { entidad: "tarea", entidadId: tareaPrueba.id },
+  orderBy: { createdAt: "asc" },
+});
+const accionesTarea = auditoriaTarea.map((a) => a.accion);
+check(
+  "CA-09 la bitácora del tubo distingue crear, cambiar_estado y actualizar",
+  tareaRenombrada.status === 200 &&
+    accionesTarea.includes("crear") &&
+    accionesTarea.includes("cambiar_estado") &&
+    accionesTarea.includes("actualizar"),
+  accionesTarea.join(", ")
+);
+check(
+  "CA-09 cada cambio del tubo guarda usuario, valor anterior y valor nuevo",
+  auditoriaTarea.every((a) => a.usuarioId !== null) &&
+    auditoriaTarea.some((a) => a.valorAnterior !== null && a.valorNuevo !== null) &&
+    auditoriaTarea.some((a) => a.usuarioId === gabriel.usuario.id),
+  `${auditoriaTarea.length} eventos`
+);
+
+const tareaBorrada = await A("DELETE", `/tareas/${tareaPrueba.id}`);
+const auditoriaBorrado = await prisma.auditoria.findFirst({
+  where: { entidad: "tarea", entidadId: tareaPrueba.id, accion: "eliminar" },
+});
+check(
+  "CA-09 al borrar una tarea la bitácora conserva lo que decía: es lo único que queda",
+  tareaBorrada.status === 204 && auditoriaBorrado !== null && auditoriaBorrado.valorAnterior !== null,
+  `status ${tareaBorrada.status}`
+);
+
+const auditoriaHeredadas = await prisma.auditoria.findMany({
+  where: { entidad: { in: ["categoria", "unidad"] }, entidadId: { in: [categoriaPrueba.id, unidadPrueba.id] } },
+});
+check(
+  "CA-09 categorías y delegaciones también dejan rastro (crear, actualizar y eliminar)",
+  ["crear", "actualizar", "eliminar"].every((a) => auditoriaHeredadas.some((x) => x.accion === a)) &&
+    auditoriaHeredadas.every((a) => a.origen !== null),
+  `${auditoriaHeredadas.length} eventos`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
+await prisma.tarea.deleteMany({ where: { id: { in: creado.tareas } } });
+await prisma.categoriaGestion.deleteMany({ where: { id: { in: creado.categorias } } });
+await prisma.unidadTerritorial.deleteMany({ where: { id: { in: creado.unidades } } });
 await prisma.metaItem.deleteMany({ where: { periodoId: { in: creado.periodos } } });
 for (const e of creado.evidencias) await eliminarArchivo(e.ruta);
 await prisma.validacion.deleteMany({ where: { evidenciaId: { in: creado.evidencias.map((e) => e.id) } } });

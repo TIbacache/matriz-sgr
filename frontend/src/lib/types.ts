@@ -30,12 +30,16 @@ export interface UnidadTerritorial {
   // rol puede abrir el tubo de esta unidad. El semáforo consolidado es aparte
   // y lo ven todos.
   puedeVerLibro: boolean;
+  /** RF-001: una delegación se desactiva, no se borra. */
+  activo: boolean;
+  version: number;
 }
 
 export interface CategoriaGestion {
   id: string;
   nombre: string;
   ordenPrioridad: number;
+  version: number;
 }
 
 export interface Tarea {
@@ -49,6 +53,9 @@ export interface Tarea {
   responsableId: string | null;
   responsable: { id: string; nombre: string } | null;
   categoria: { id: string; nombre: string } | null;
+  // Bloqueo optimista (CA-08, ADR-005): el PATCH la exige y el servidor
+  // responde 409 si otra persona movió la tarjeta mientras tanto.
+  version: number;
 }
 
 export interface Conectado {

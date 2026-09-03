@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque B3 — ficha del vecino)
+**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque A3 — endurecimiento de las rutas heredadas)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -11,16 +11,16 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Capa | Estado |
 |---|---|
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
-| Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 17/17 verificaciones |
+| Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 18/18 verificaciones · **rutas endurecidas** (Bloque A3): `version` → 409 y auditoría en `/tareas`, `/unidades` y `/categorias` |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** (Bloques A, A2 y B3) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento y **ficha del vecino** — 113/113 |
+| **API del modelo v2** (Bloques A, A2, A3 y B3) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento, **ficha del vecino** y las **rutas heredadas endurecidas** — 132/132 |
 | API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial` (**las 3 gestiones, lo único que le falta a CA-04**), `Comentario`, `Ausencia`, catálogos y parámetros |
 | Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas y **ficha del vecino**; faltan las de administración (períodos, cargos, catálogos) |
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **17 ✅ · 13 🟡 · 8 ⬜** (antes del Bloque A: 5 · 13 · 20). El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
+Cumplimiento contra los 38 RF oficiales: **18 ✅ · 13 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). **CA-08 y CA-09 quedaron en ✅** con el Bloque A3. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -108,6 +108,20 @@ Lo que decidió y conviene no reabrir:
 
 ⚠ **Lo que dejó abierto**: el historial trae hasta 500 hechos de una vez y la pantalla los pinta todos — falta paginar, como ya se hizo en la bandeja. Y CA-04 sigue en 🟡 hasta que exista la API de `AtencionSocial` con sus tres gestiones (RF-015, HU-03).
 
+### ~~Bloque A3 — Endurecer las rutas heredadas~~ ✅ TERMINADO (`v0.11.0-rutas-endurecidas`)
+
+`/tareas`, `/unidades` y `/categorias` pasaron a tener lo que ya tenía el modelo v2: bloqueo optimista con `version` → 409 (CA-08) y auditoría de todo write (CA-09). **Los dos criterios de aceptación quedaron en ✅.** Detalle del contrato en [estado-proyecto §3.2](estado-proyecto.md) y la pantalla en [§6.1](estado-proyecto.md).
+
+Lo que decidió y conviene no reabrir:
+
+- **El `PATCH` exige `version`, sin excepción para el drag & drop.** Mover una tarjeta es un write como cualquier otro, y el tubo es la pantalla donde más gente escribe a la vez: era justo la que sobrescribía en silencio. Una petición sin `version` responde 400.
+- **Ante un 409, la pantalla no revierte: recarga y avisa.** Revertir al estado anterior inventaría un valor que ya no es el vigente. El aviso es **persistente** (no un toast) y nombra la tarjeta.
+- **La bitácora del tubo distingue `cambiar_estado` de `actualizar`**, para poder reconstruir el recorrido de una tarjeta sin confundirlo con un cambio de texto.
+- **RF-001 estaba incumplido y nadie lo había notado**: `DELETE /unidades/:id` borraba de verdad, con actividades, metas y tareas colgando de la delegación. El esquema ya tenía la columna `activo` desde el modelo v2 y la ruta la ignoraba. Ahora desactiva, es idempotente, y las inactivas se consultan con `?incluirInactivas=1`. **Vale la pena revisar si hay más columnas del modelo v2 que ninguna ruta usa.**
+- `CategoriaGestion` era la última entidad editable sin `version`: migración `20260903190000_endurecer_rutas_heredadas`.
+
+⚠ **Lo que dejó abierto**: `TareaHistorial` sigue sin usarse. RF-018 pide un **historial de transición** y la auditoría no lo reemplaza (es interna, no una vista para la persona usuaria). Junto con la alerta, es lo que le falta a CA-03.
+
 ### Bloque C — Migrar el dashboard al cálculo v2
 
 Hoy el dashboard lee la **vista materializada v1** (por delegación, con umbrales y tope fijos en SQL). Debe pasar a consumir el motor por funcionario. Al terminar, **eliminar la vista v1** para que no queden dos verdades.
@@ -126,13 +140,15 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
-| **Endurecer `/tareas`, `/unidades` y `/categorias`** con `version` → 409 y auditoría. ⚠ No son "v1 obsoleto": sostienen el tubo (EP-04) y las delegaciones (RF-001). Las que sí mueren son `/metas` v1 y `/kpis/cumplimiento` — ver [estado-proyecto §3.2](estado-proyecto.md) | rutas heredadas | Alta, tras el rediseño |
+| ~~**Endurecer `/tareas`, `/unidades` y `/categorias`** con `version` → 409 y auditoría~~ → **resuelto** en el Bloque A3, junto con RF-001 (la baja de una delegación la desactiva) y el aviso de conflicto en el tubo. Las que sí mueren siguen siendo `/metas` v1 y `/kpis/cumplimiento` — ver [estado-proyecto §3.2](estado-proyecto.md) | — | ✅ |
+| **`TareaHistorial` sin usar**: RF-018 pide historial de transición y la bitácora de auditoría no lo reemplaza (es interna). Con la alerta, es lo que le falta a CA-03 | `tareas.routes.ts` | Media |
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
 | ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2; ~~falta su pantalla~~ → **resuelta** en el Bloque B2 (`/metas`) | — | ✅ |
 | ~~`PUT /metas-item` no aplica bloqueo optimista~~ → **resuelto** en el Bloque B2: cada meta existente debe traer su `version` | — | ✅ |
 | ~~Falta la prueba visual de `/metas` con las seis cuentas~~ → **hecha**: encontró tres cosas, la mayor que un funcionario veía las metas de sus pares. Detalle en [estado-proyecto.md](estado-proyecto.md) | — | ✅ |
 | **Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719 de datos personales**: reflejadas ya en **ADR-012**, en la consulta nº 12 y en el código de `/vecinos` (alcance por rol, detalle reducido, auditoría del acceso, rectificación). Falta llevarlas a los **RNF** del documento de requerimientos y al resto de las rutas | documentación y RNF | Media |
 | Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
+| **Auditar si hay más columnas del modelo v2 que ninguna ruta usa.** El Bloque A3 encontró `UnidadTerritorial.activo` modelada y contradicha por su propio `DELETE`: el esquema decía una cosa y la API otra, y ninguna prueba lo veía | `schema.prisma` contra `src/routes/` | Media |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
 | ~~Sin endpoint de búsqueda de `PersonaUsuaria`~~ → **resuelto** en el Bloque B3: `/vecinos` con búsqueda por RUT y nombre, historial cruzado, aviso de duplicidad y rectificación de datos | — | ✅ |
@@ -172,6 +188,14 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
   Stop-Process -Id <pid> -Force
   ```
   Si una verificación falla de forma inexplicable, **lo primero es confirmar de quién es el servidor que responde**.
+
+  ⚠ **Matar al que escucha no basta**: quien escucha es el *hijo* que `tsx watch` lanza, y el vigilante lo **respawnea** en segundo o dos. Pasó otra vez en el Bloque A3, con un `tsx watch` del día anterior. Hay que subir al padre y matar el árbol:
+  ```powershell
+  $p = (Get-NetTCPConnection -LocalPort 4000 -State Listen).OwningProcess
+  Get-CimInstance Win32_Process -Filter "ProcessId=$p" | Select-Object ParentProcessId, CommandLine
+  Stop-Process -Id <hijo>,<padre> -Force
+  ```
+  La señal de que quedó uno vivo es que `npm run dev` muere con `EADDRINUSE` **en su log** y `curl /health` responde 200 igual.
 - **`npm run verificar:api` necesita el servidor corriendo** (como el smoke) y toca la base: crea un período, un cargo, ítems, actividades y una evidencia, y **los borra al terminar**. Si se interrumpe a la mitad, quedan datos de prueba: `npx prisma db seed` los limpia.
 - **Probar cada pantalla con los seis roles, no solo con el propio.** Dos errores reales aparecieron así: el tubo se quedaba cargando para siempre con el verificador (no tiene delegación) y la bandeja escondía lo recién subido. Ninguna prueba automatizada los habría visto: son de pantalla.
 - **El seed deja 88 evidencias pendientes**: cualquier cosa que se registre al probar cae al final de la cola de la bandeja. Para verla, usar el orden **"Recientes primero"**. Toda lista nueva que se construya debe decir "N de TOTAL" y paginar; una lista que oculta el resto en silencio hace creer que el sistema perdió el dato (pasó, y quedó cubierto con dos verificaciones).

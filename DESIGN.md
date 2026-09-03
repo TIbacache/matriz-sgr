@@ -1,7 +1,8 @@
 # DESIGN.md — Especificación visual SGR
 
-**Versión**: 1.5 · **Fecha**: 2 de septiembre de 2026
+**Versión**: 1.6 · **Fecha**: 3 de septiembre de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.6**: §8.2 suma la regla del **aviso de conflicto** (CA-08), general para toda pantalla con bloqueo optimista: releer en vez de revertir, aviso persistente y nombrar el registro. §3 anota que los dos tratamientos del aviso (`--seleccion` y ámbar) todavía no están unificados.
 **v1.5**: §3.6 pasa a tener dos regímenes de movimiento —**estado** en las zonas de datos y **ambiente** en las zonas de identidad— y una regla de feedback para todo lo clickeable. Decisión del equipo del 2 de septiembre: "la app se mueve sin que la toquen". §8.9 se reescribe en consecuencia.
 **v1.4**: §10 ejecutado — identidad de la Municipalidad de La Serena en tokens, barra y login (ADR-010 tipografía, ADR-011 los dos rojos). §2 y §3 actualizadas a lo implementado; §8 suma la regla 11; nace §10.7 con la verificación por script.
 **v1.2**: §8.1 Accesibilidad como norma obligatoria (RNF-012 y RNF-013 del PDF).
@@ -85,7 +86,9 @@ Los dos rojos del sistema tienen papeles distintos y **ningún token cumple los 
 | `--acento` / `--acento-hover` | `#DB0032` / `#8A0007` | `#FF4D6D` / `#FF7A92` | Lo interactivo: enlaces, navegación activa, anillo de foco |
 | `--btn-bg` / `--btn-bg-hover` / `--btn-texto` | `#DB0032` / `#8A0007` / blanco | `#DB0032` / `#B8002A` / blanco | Botón primario (en oscuro conserva el luminoso como fondo: con blanco cumple 5.17:1) |
 | `--barra-fondo`, `--barra-texto`, `--barra-texto-2`, `--barra-borde`, `--barra-hover-bg`, `--barra-activo-bg` | heráldico + blancos con opacidad | heráldico profundo | Todo lo que se dibuja sobre la barra lateral |
-| `--seleccion` / `--seleccion-bg` | `#1A1A1A` / `#E9E8E4` | `#E6E9EA` / blanco al 7% | "Esto es lo seleccionado" **dentro de una zona de datos**: fila activa, gauge filtrado, columna de destino del tubo, aviso de conflicto |
+| `--seleccion` / `--seleccion-bg` | `#1A1A1A` / `#E9E8E4` | `#E6E9EA` / blanco al 7% | "Esto es lo seleccionado" **dentro de una zona de datos**: fila activa, gauge filtrado, columna de destino del tubo, aviso neutro que solo señala lo vigente |
+
+⚠ **Los avisos de conflicto (CA-08) no están unificados y hay que decidirlo.** Hoy conviven dos tratamientos: `--seleccion` cuando el aviso solo señala el dato vigente (`.vecinos-conflicto`) y `--estado-amarillo` cuando además informa que **un cambio no se guardó** (`.metas-aviso--conflicto`, `.tubo-conflicto`). La distinción es defendible —perder un cambio es estado, no selección— pero no está escrita como regla. Mientras tanto: si el aviso comunica una pérdida, ámbar; si solo orienta, `--seleccion`.
 | `--cat-1` … `--cat-6` | acero, oliva, teja, violeta, tierra, verde azulado | versiones claras | Franja de categoría de la tarjeta del tubo. Ninguno rojo |
 | `--tubo-1..3` | neutros cálidos → negro profundo | invertida | Rampa ordinal del tubo apilado y de la proyección |
 | `--texto-sobre-estado` | blanco | blanco | Texto encima de un relleno fuerte de estado (celdas del heatmap) |
@@ -278,7 +281,7 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
 
-**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ⬜ ficha del vecino · ⬜ configuración de parámetros.
+**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ✅ ficha del vecino (`frontend/src/pages/VecinosPage.tsx`, 03-09-2026) · ✅ aviso de conflicto del tubo (03-09-2026) · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
@@ -291,6 +294,15 @@ Es la "pestaña personal" de la planilla: donde cada funcionario ve su medición
 1. **Cabecera de identidad**: nombre, cargo, delegación y período, más el semáforo personal con su chip ●▲■ y el objetivo al día. Una sola cifra hero (§Marcas), nunca cuatro compitiendo.
 2. **Tabla de ítems**: ítem · ponderador · meta · avance · % cumplimiento · ponderado. Números con `tabular-nums`, alineados a la derecha. La fila de total se separa con borde superior de 2px, no con color de fondo. Los ítems **inversos** (menor es mejor) llevan una marca textual explícita — nunca se distinguen solo por comportamiento.
 3. **Registro de actividades**: la tabla densa del día a día. Fila nueva siempre visible arriba, sin abrir modal para lo frecuente.
+
+### Tubo de trabajo — aviso de conflicto (CA-08) ✅ construido
+
+Regla general para **cualquier** pantalla que escriba con bloqueo optimista:
+
+1. **Ante un 409 no se revierte a ciegas.** Volver al valor anterior inventa un estado que ya no es el vigente: hay que **releer del servidor** y mostrar lo que de verdad hay.
+2. **El aviso es persistente, no un toast.** Un mensaje de 5 segundos puede perderse, y perder de vista que un cambio no se guardó es exactamente lo que CA-08 prohíbe. Lleva `role="alert"` y se cierra a mano.
+3. **Nombra el registro concreto** ("«Solicitud de máquina…»: otra persona la movió"), no la categoría. Misma lección que el aviso de duplicidad del vecino: un aviso que marca de más deja de avisar.
+4. Es **zona de datos**: ni `--marca` ni `--acento` (§3.3). Un choque de ediciones es estado.
 
 ### Formularios de registro (RF-009, RF-010)
 

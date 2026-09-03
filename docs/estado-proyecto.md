@@ -1,7 +1,7 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.10.0-ficha-vecino`
-**Verificación**: 234 comprobaciones automatizadas en verde — backend 151 (17 smoke + 21 cálculo + 113 API) y frontend 83 (contraste)
+**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.11.0-rutas-endurecidas`
+**Verificación**: 254 comprobaciones automatizadas en verde — backend 171 (18 smoke + 21 cálculo + 132 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
 Lo vigente está arriba; el registro histórico de las fases, al final.
@@ -53,7 +53,7 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 17 ✅ · 13 🟡 · 8 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B3 cerró RF-032 y dejó RF-015 y CA-04 en 🟡: la **secuencia del caso ya es consultable**, faltan las tres gestiones de `AtencionSocial`.
+**Contra los 38 RF oficiales: 18 ✅ · 13 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B3 cerró RF-032 y dejó RF-015 y CA-04 en 🟡: la **secuencia del caso ya es consultable**, faltan las tres gestiones de `AtencionSocial`. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -96,13 +96,13 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 
 ### 3.2 Rutas heredadas del modelo v1
 
-⚠ **No todas son obsoletas.** Tres sostienen requisitos oficiales vigentes y hay que **endurecerlas**; dos están muertas y hay que **borrarlas**.
+⚠ **No todas son obsoletas.** Tres sostienen requisitos oficiales vigentes y **ya están endurecidas** (Bloque A3); dos están muertas y hay que **borrarlas**.
 
 | Endpoint | Veredicto | Por qué |
 |---|---|---|
-| `GET/POST/PATCH/DELETE /tareas` | **Se queda — endurecer** | Es el tubo de trabajo: EP-04, RF-016 a RF-021, HU-12 a HU-15. `Tarea` tiene campos v2 y su `TareaHistorial` (RF-018). Le falta `version` → 409 y auditoría |
-| `GET/POST/PATCH/DELETE /unidades` | **Se queda — endurecer** | Delegaciones, RF-001. La usan cuatro pantallas. Le falta `version` y auditoría |
-| `GET/POST/PATCH/DELETE /categorias` | **Se queda — endurecer** | Clasificación del tubo. Podría converger a `CatalogoItem` más adelante |
+| `GET/POST/PATCH/DELETE /tareas` | **Se queda — ✅ endurecida** | Es el tubo de trabajo: EP-04, RF-016 a RF-021, HU-12 a HU-15. Desde el Bloque A3 el `PATCH` exige `version` y responde 409, y todo write se audita (`crear`, `cambiar_estado`, `actualizar`, `eliminar`). Sigue pendiente `TareaHistorial` (RF-018) |
+| `GET/POST/PATCH/DELETE /unidades` | **Se queda — ✅ endurecida** | Delegaciones, RF-001. Desde el Bloque A3: `version` → 409, auditoría, y el `DELETE` **desactiva** en vez de borrar (`?incluirInactivas=1` para verlas) |
+| `GET/POST/PATCH/DELETE /categorias` | **Se queda — ✅ endurecida** | Clasificación del tubo. Desde el Bloque A3: `version` → 409 y auditoría. Podría converger a `CatalogoItem` más adelante |
 | `GET/PUT/PATCH /metas` (unidad × categoría × trimestre) | **Muere — borrar** | Reemplazada por `/metas-item`. **El frontend ya no la llama.** No se puede borrar todavía porque la vista materializada v1 depende de la tabla `Meta` |
 | `GET /kpis/cumplimiento` · `POST /kpis/recalcular` | **Muere con el Bloque C** | Lee la vista materializada v1, por delegación y con umbrales fijos en SQL |
 | `GET /kpis/tubo` | **Se queda** | Conteos agregados del tubo; es independiente del cálculo v1 |
@@ -191,6 +191,8 @@ Todas siguen los criterios que **DESIGN §8.2 fijó antes** de construirlas, y d
 ### 6.1 Tubo de trabajo (`/`) — EP-04
 
 Kanban con dnd-kit, tiempo real y presencia. Actualización optimista con reversión y aviso si el PATCH falla. Permisos espejo del backend (que sigue siendo la autoridad). El libro es **privado por delegación**; el verificador no tiene libro y ve un vacío que lo explica.
+
+**Conflicto de concurrencia (Bloque A3, CA-08)**: el PATCH viaja con la `version` que tenía la tarjeta al arrastrarla. Si alguien la movió en el intervalo, el servidor responde 409 y la pantalla **no revierte a ciegas** —eso inventaría un estado que ya no es el vigente—: recarga el libro y muestra un aviso ámbar persistente que nombra la tarjeta (`.tubo-conflicto`). Persistente a propósito: un toast de 5 segundos puede perderse, y perder de vista que tu cambio no se guardó es justo lo que CA-08 prohíbe. Es zona de datos, así que usa el ámbar de **estado**, no `--marca` ni `--acento` (DESIGN §3.3).
 
 ⚠ Pendiente de accesibilidad: falta la alternativa por teclado del arrastrar y soltar (`KeyboardSensor` de dnd-kit).
 
@@ -356,7 +358,8 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | El rol se muestra con el nombre técnico ("Supervisor", "Gerente") en la barra; el municipio dice "Coordinador" y "Delegado". La terminología por tenant ya existe (`configuracionTerminologia`) | `Layout.tsx` `ROL_LABEL` | Media |
 | El nombre de la organización se trunca en la barra de 240px ("Municipalidad Demo (datos fi…") | `layout.css` | Baja |
 | Las evidencias del seed no tienen archivo en disco: la bandeja muestra "No se pudo abrir el archivo (410)" con datos demo | seed | Baja (solo demo) |
-| Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría | rutas heredadas | Alta |
+| ~~Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría~~ ✅ **resuelto el 03-09-2026** (Bloque A3), junto con RF-001 (la baja de una delegación la desactiva) y el aviso de conflicto en el tubo | — | ✅ |
+| `TareaHistorial` sigue sin usarse: RF-018 pide **historial de transición** visible, y hoy el recorrido de una tarjeta solo está en la bitácora de auditoría (que es interna). Es lo que le falta a CA-03 junto con la alerta | `tareas.routes.ts`, entidad ya modelada | Media |
 | Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
 | ~~Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria`~~ ✅ **resuelto el 03-09-2026** (Bloque B3): `GET /vecinos`, `GET /vecinos/:id`, `PATCH /vecinos/:id` y la pantalla `/vecinos` | — | ✅ |
 | La ficha del vecino no muestra las **tres gestiones** de `AtencionSocial` (RF-015, HU-03): la entidad existe, la API no. Es lo único que le falta a CA-04 | backend | Alta |

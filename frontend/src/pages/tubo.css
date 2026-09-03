@@ -71,3 +71,27 @@
 .tubo-skeleton > div {
   height: 320px;
 }
+
+/* Aviso de conflicto de concurrencia — CA-08 · ADR-005.
+   Es zona de datos (DESIGN §3.3): nada de --marca ni --acento. Un choque de
+   ediciones es ESTADO, no marca, así que usa el ámbar de estado, el mismo con
+   el que ya se avisa el modo solo lectura. A diferencia del toast, no se va
+   solo: perder de vista que tu cambio no se guardó es justo lo que CA-08
+   prohíbe. */
+.tubo-conflicto {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  background: var(--estado-amarillo-bg);
+  border-left: 3px solid var(--estado-amarillo);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--estado-amarillo-texto);
+}
+
+.tubo-conflicto .btn-tabla {
+  margin-left: auto;
+}

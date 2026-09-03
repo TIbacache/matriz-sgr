@@ -5,9 +5,21 @@ import { requireAuth, type AuthPayload } from "../middleware/auth.js";
 import { requireRol } from "../middleware/roles.js";
 import { emitEvent, roomUnidad } from "../services/broadcast.js";
 import { unidadesVisibles } from "../services/alcance.js";
+import { auditarDesde } from "../services/auditoria.js";
+import { actualizarConVersion, resolverVersion } from "../services/concurrencia.js";
+
+// Agenda colectiva, "el tubo" — EP-04 · RF-016 a RF-021 · CA-08 · CA-09.
+//
+// Ruta heredada de la Fase 2, endurecida en el Bloque A3. El tubo es la
+// pantalla más concurrida del sistema —varias personas arrastrando tarjetas en
+// el mismo libro, en vivo— y era justo la que sobrescribía en silencio: el
+// PATCH del drag & drop no comparaba versión, así que dos movimientos
+// simultáneos dejaban ganar al último sin que nadie se enterara (CA-08).
 
 export const tareasRouter = Router();
 tareasRouter.use(requireAuth);
+
+const versionSchema = z.object({ version: z.number().int().positive() });
 
 const tareaSchema = z.object({
   titulo: z.string().min(1).max(200),
@@ -92,14 +104,22 @@ tareasRouter.post("/", requireRol("admin", "supervisor", "gerente"), async (req,
       categoria: { select: { id: true, nombre: true } },
     },
   });
+  await auditarDesde(auth, req)({
+    accion: "crear",
+    entidad: "tarea",
+    entidadId: tarea.id,
+    valorNuevo: tarea,
+  });
   emitEvent(roomUnidad(tarea.unidadTerritorialId), "tarea:creada", tarea);
   res.status(201).json(tarea);
 });
 
 // PATCH /tareas/:id — lo dispara el drag & drop del kanban (HU-3.1).
+// Exige `version`: mover una tarjeta es un write como cualquier otro y dos
+// personas pueden estar mirando el mismo libro (CA-08).
 tareasRouter.patch("/:id", async (req, res) => {
-  const parsed = tareaSchema.partial().safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Datos inválidos" });
+  const parsed = tareaSchema.partial().extend(versionSchema.shape).safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Datos inválidos", detalle: parsed.error.issues });
   const auth = req.auth!;
 
   const existente = await prisma.tarea.findFirst({
@@ -121,13 +141,35 @@ tareasRouter.patch("/:id", async (req, res) => {
     if (!destinoOk) return res.status(403).json({ error: "Sin permisos en la unidad destino" });
   }
 
-  const tarea = await prisma.tarea.update({
-    where: { id: existente.id },
-    data: parsed.data,
-    include: {
-      responsable: { select: { id: true, nombre: true } },
-      categoria: { select: { id: true, nombre: true } },
-    },
+  const { version, ...cambios } = parsed.data;
+  const resultado = await actualizarConVersion({
+    actualizar: async () =>
+      (
+        await prisma.tarea.updateMany({
+          where: { id: existente.id, organizationId: auth.organizationId, version },
+          data: { ...cambios, version: { increment: 1 } },
+        })
+      ).count,
+    releer: () =>
+      prisma.tarea.findFirst({
+        where: { id: existente.id, organizationId: auth.organizationId },
+        include: {
+          responsable: { select: { id: true, nombre: true } },
+          categoria: { select: { id: true, nombre: true } },
+        },
+      }),
+  });
+  const tarea = resolverVersion(res, resultado, "esta tarea");
+  if (!tarea) return;
+
+  await auditarDesde(auth, req)({
+    // Mover una tarjeta es un cambio de estado, no una edición cualquiera:
+    // la bitácora lo distingue para poder reconstruir el recorrido del tubo.
+    accion: cambios.estado && cambios.estado !== existente.estado ? "cambiar_estado" : "actualizar",
+    entidad: "tarea",
+    entidadId: tarea.id,
+    valorAnterior: existente,
+    valorNuevo: tarea,
   });
   emitEvent(roomUnidad(tarea.unidadTerritorialId), "tarea:actualizada", tarea);
   if (tarea.unidadTerritorialId !== existente.unidadTerritorialId) {
@@ -148,6 +190,15 @@ tareasRouter.delete("/:id", async (req, res) => {
   }
 
   await prisma.tarea.delete({ where: { id: existente.id } });
+
+  // Se audita DESPUÉS de borrar y con el registro completo: la bitácora es lo
+  // único que queda de la tarea (RNF-008, ADR-006).
+  await auditarDesde(auth, req)({
+    accion: "eliminar",
+    entidad: "tarea",
+    entidadId: existente.id,
+    valorAnterior: existente,
+  });
   emitEvent(roomUnidad(existente.unidadTerritorialId), "tarea:eliminada", { id: existente.id });
   res.status(204).end();
 });

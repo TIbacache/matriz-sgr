@@ -207,6 +207,10 @@ model CategoriaGestion {
   nombre         String
   ordenPrioridad Int    @map("orden_prioridad")
 
+  /// ADR-005 · CA-08: bloqueo optimista, igual que en el modelo v2. Era la
+  /// única entidad editable del sistema que no lo tenía.
+  version Int @default(1)
+
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tareas       Tarea[]
   metas        Meta[]
