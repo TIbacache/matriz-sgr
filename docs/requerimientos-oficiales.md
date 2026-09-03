@@ -60,7 +60,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-012 | Asociar evidencia (foto) al código, con fecha y autor de carga | ✅ | `POST /actividades/:id/evidencias`; ruta derivada del código, nunca del nombre del cliente |
 | RF-013 | Validar evidencia: aprobar, rechazar o **solicitar corrección**, con observación | ✅ | `POST /evidencias/:id/validacion`; observación obligatoria si no se aprueba |
 | RF-014 | Solo lo validado suma al avance | ✅ | Verificado de punta a punta: el avance sube solo tras aprobar, y una sola vez |
-| RF-015 | Atención social con **hasta 3 gestiones** para el mismo usuario | 🟡 | Columnas en estructura-planilla-real §4. La entidad `AtencionSocial` existe en el modelo y la **trazabilidad de la persona** ya funciona (`/vecinos`, Bloque B3); falta la API de las tres gestiones |
+| RF-015 | Atención social con **hasta 3 gestiones** para el mismo usuario | ✅ | Bloque B4: `/atenciones-sociales` con las tres gestiones **como avance** — el servidor decide el casillero, no el cliente, y no admite una cuarta (ADR-013). Tipos, sub-atenciones y gestiones salen de `CatalogoItem` |
 
 ### 3.3 Agenda colectiva (nuestro "tubo")
 
@@ -100,7 +100,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
 | RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 17 ✅ · 14 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅)
+**Resumen: 38 RF → 18 ✅ · 13 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅)
 
 ---
 
@@ -156,7 +156,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | CA-01 | Registro validado suma **una vez** y actualiza tableros | ✅ verificado; emite `cumplimiento:cambiado` al aprobar. La actualización **visual** del tablero llega con el Bloque C |
 | CA-02 | Evidencia rechazada conserva observación y no aporta puntaje | ✅ la observación es obligatoria al rechazar o pedir corrección |
 | CA-03 | Compromiso vencido se destaca, mantiene historial y genera alerta | 🟡 se destaca; faltan historial y alerta |
-| CA-04 | Caso social con 3 gestiones y secuencia consultable | 🟡 la **secuencia ya es consultable**: `/vecinos` muestra el historial de la persona cruzando delegaciones, con aviso de duplicidad (Bloque B3). Faltan las **3 gestiones** de `AtencionSocial`, que son RF-015 / HU-03 y siguen sin API |
+| CA-04 | Caso social con 3 gestiones y secuencia consultable | ✅ cerrado de punta a punta: el caso con sus 3 gestiones (Bloque B4) y su secuencia consultable desde la ficha del vecino **cruzando delegaciones**, con aviso de duplicidad (Bloque B3). Desde otra delegación viaja el avance del caso, no su contenido (ADR-012, ADR-013) |
 | CA-05 | Al cambiar fecha o avance se recalculan meta acumulada y semáforo | ✅ |
 | CA-06 | Totales del tablero coinciden con el detalle filtrado | ✅ |
 | CA-07 | Un funcionario no modifica datos de otra delegación | ✅ verificado en smoke test |

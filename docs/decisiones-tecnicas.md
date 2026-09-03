@@ -316,3 +316,50 @@ La distinción entre *ver el hecho* y *ver el detalle* es lo que permite cumplir
 - `ROLES_FICHA_VECINO` vive en `backend/src/services/vecinos.ts` y su espejo en `frontend/src/lib/vecinos.ts`; el menú lateral no ofrece la entrada a quien no puede entrar. **El servidor sigue siendo la autoridad**: el espejo del frontend es cortesía, no seguridad.
 - Si el docente responde que el rol de consulta debe acceder, el cambio es un elemento en un arreglo y su espejo. No toca modelo, ni migración, ni el resto de la API.
 - Queda registrado como **consulta abierta nº 12** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con sus dos preguntas concretas: quién accede, y cuál es la ventana de duplicidad.
+
+---
+
+## ADR-013 — Las tres gestiones son un avance, no tres campos
+
+### Contexto
+RF-015 pide *"atención social con hasta 3 gestiones para el mismo usuario"* y CA-04 exige que esa secuencia sea **consultable**. La planilla real del cliente ([estructura-planilla-real §4](estructura-planilla-real.md)) lo resuelve como lo que es —una hoja de cálculo—: nueve columnas planas en la misma fila (`PRIMERA GESTIÓN`, `FECHA PROGRAMADA A VISITA`, `Observación`, `SEGUNDA GESTIÓN`, `FECHA DE VISITA`, `FECHA ENTREGA INFORME`, `TERCERA GESTIÓN`, `FECHA ENTREGA BENEFICIO`). La entidad `AtencionSocial` se modeló desde ahí y conserva esas columnas.
+
+El problema aparece al abrirlas por API. Si el cliente elige en qué columna escribe, la "secuencia" deja de existir: se puede registrar la tercera gestión sin la primera, poner la fecha de entrega del beneficio junto a la gestión inicial, o rellenar las tres de una vez. Nada de eso lo impide el esquema, y **una secuencia que el sistema no garantiza no es demostrable**, que es exactamente lo que CA-04 pide demostrar.
+
+Al mismo tiempo, la atención social es la información **más sensible** del sistema: la situación socioeconómica de un vecino identificado. ADR-012 ya fijó el criterio para la ficha del vecino; falta decidir cómo se hereda aquí.
+
+### Decisión (3 de septiembre de 2026)
+
+**1. El servidor decide el casillero, no el cliente.** `POST /atenciones-sociales/:id/gestiones` recibe el valor de la gestión y sus fechas, **no su número**. El servidor deduce cuál toca de lo ya registrado (`siguienteGestion`), la coloca y devuelve `gestionRegistrada`. No hay forma de saltarse la primera ni de registrar una cuarta: el tope es del requisito, no del formulario.
+
+**2. Cada gestión solo admite sus propias fechas.** Mandar `fechaEntregaBeneficio` en la gestión 1 responde 422 con la lista de las que sí acepta. Guardarla en el campo que no le corresponde produciría un dato falso que después nadie sabría interpretar.
+
+**3. El avance se deduce de los datos, no de un contador.** `gestionesRegistradas` y `estado` (`abierta` / `cerrada`) se calculan de las tres columnas cada vez. Un contador aparte puede desincronizarse; las columnas, no.
+
+**4. La atención es 1:1 con la actividad, y solo existe con un vecino identificado.** Se crea colgada de ella (`POST /actividades/:id/atencion-social`), igual que la evidencia: así no puede nacer huérfana ni apuntar a la actividad de otra delegación. Una segunda atención sobre la misma actividad responde 409 —eso es un duplicado, no un avance—, y sin `personaUsuariaId` responde 422, porque sin persona no hay caso que seguir ni duplicidad que detectar (RN-012, ADR-008).
+
+**5. La observación se anexa, no se sobrescribe.** La planilla tiene una sola columna `Observación` para todo el caso. Al avanzar, lo escrito se agrega debajo con su número de gestión. Pisarla borraría el relato, que es lo único que explica *por qué* el caso avanzó como avanzó.
+
+**6. Alcance por rol: hereda ADR-012 y lo aprieta un punto.**
+
+| Rol | Detalle del caso social | Por qué |
+|---|---|---|
+| `admin`, `supervisor` | ✅ completo | Igual que la ficha del vecino |
+| `gerente`, `usuario` | ✅ en su delegación; fuera de ella **solo el avance** | Atienden el caso; para no duplicar la ayuda basta saber que existe y en qué va |
+| `verificador` | ⛔ 403 con el motivo escrito | Valida que la foto corresponda al código: para eso **no necesita saber si la persona pidió una caja de alimentos** |
+| `consulta` | ⛔ 403 con el motivo escrito | Trabaja con agregados; un agregado no requiere identidad |
+
+En el historial del vecino, una atención de otra delegación viaja con `gestionesRegistradas` y `estado` pero con `tipoAtencion`, `subAtencion` y las gestiones **vacíos**. Abrir un caso queda en la bitácora como `consultar`, y avanzarlo como `cambiar_estado` —no como `actualizar`— para poder reconstruir la secuencia sin confundirla con una corrección de texto.
+
+**7. Los cinco desplegables salen de `CatalogoItem`** (`tipo_atencion`, `sub_atencion`, `gestion_1`, `gestion_2`, `gestion_3`), y el de cada gestión se valida contra **su** catálogo: la tercera gestión no ofrece "visita terreno" porque en la planilla del cliente tampoco lo ofrece. Ninguna lista vive en el código (RF-004, ADR-007).
+
+### Justificación
+La alternativa —exponer las nueve columnas y confiar en que la pantalla las llene en orden— es más barata y más fiel a la planilla, pero traslada al formulario una regla que es del requisito. El día que alguien llame la API desde otro cliente, o que la pantalla cambie, la secuencia se rompe en silencio. Poner la regla en el servidor cuesta una función (`siguienteGestion`) y hace que CA-04 sea **demostrable con una prueba** y no con una promesa.
+
+Sobre el punto 6: el verificador es el caso que más se discutió. Necesita ver la actividad para validar su evidencia, y el sistema se la muestra; lo que no le muestra es el detalle socioeconómico, que no interviene en la decisión que él toma. Ante la duda sobre un dato sensible rige lo restrictivo (regla 18), y ampliarlo después es una línea.
+
+### Consecuencias
+- La secuencia queda garantizada por el servidor: `POST /gestiones` con la primera ausente coloca la primera, no la tercera; y con las tres hechas responde 422.
+- `proyectar()` en `backend/src/services/atencion-social.ts` es la **única** forma en que la atención sale del backend —del alta, del avance y de dentro de una actividad—; dos formas del mismo concepto obligarían a la pantalla a saber de dónde vino cada una.
+- La pantalla no tiene selector de "número de gestión", y eso es deliberado: sería la forma de dejar que el usuario rompa la secuencia. Cambia de campos según la etapa (DESIGN §8.2).
+- Corregir una gestión ya registrada **no está resuelto**: `PATCH` solo toca la cabecera. Si el cliente pide corregir una gestión mal escrita, la decisión será si se corrige con bloqueo optimista o si se anula la actividad y se registra otra, como con las validaciones aprobadas (consulta abierta nº 8). Queda anotado, no inventado.

@@ -1488,6 +1488,306 @@ check(
 );
 
 // ===========================================================================
+// 10. ATENCIÓN SOCIAL Y SUS TRES GESTIONES — RF-015 · RF-004 · RN-012 · CA-04
+//     HU-03 · ADR-006 · ADR-008 · ADR-012 · Leyes 19.628 / 21.719
+//
+// El caso que la especificación pide demostrar de punta a punta: un vecino
+// llega, se abre su atención, y esa atención AVANZA hasta tres veces. Se monta
+// sobre las dos actividades de la misma vecina que ya creó la sección 3 —una
+// en Centro y otra en Rural—, porque el valor de CA-04 no es que el caso
+// exista, sino que se vea cruzando delegaciones sin abrir el libro ajeno.
+// ===========================================================================
+
+const actividadSocialCentro = (actConPersona.datos as { id: string }).id;
+const actividadSocialRural = (actRural.datos as { id: string }).id;
+const actividadSinVecino = (act2.datos as { id: string }).id;
+
+const altaAtencion = await G("POST", `/actividades/${actividadSocialCentro}/atencion-social`, {
+  tipoAtencion: "Entrega emergencia",
+  subAtencion: "Informe aporte material",
+  requiereVisita: true,
+  observacion: "La vecina solicita ayuda por temporal.",
+});
+const atencion = altaAtencion.datos as {
+  id: string;
+  version: number;
+  gestionesRegistradas: number;
+  estado: string;
+  siguienteGestion: number | null;
+};
+check(
+  "RF-015 la atención social se crea colgada de una actividad y nace sin gestiones",
+  altaAtencion.status === 201 && atencion.gestionesRegistradas === 0 && atencion.siguienteGestion === 1,
+  `status ${altaAtencion.status} · registradas ${atencion.gestionesRegistradas}`
+);
+
+const tipoInventado = await G("POST", `/actividades/${actividadSinVecino}/atencion-social`, {
+  tipoAtencion: "Lo que se me ocurra",
+});
+check(
+  "RF-004 el tipo de atención sale del catálogo, no de una lista en el código",
+  tipoInventado.status === 422,
+  `status ${tipoInventado.status}`
+);
+
+const subInventada = await G("POST", `/actividades/${actividadSinVecino}/atencion-social`, {
+  tipoAtencion: "Informes sociales",
+  subAtencion: "Categoría que no existe",
+});
+check("RF-004 la sub-atención también sale del catálogo", subInventada.status === 422, `status ${subInventada.status}`);
+
+// RN-012: sin persona identificada no hay caso que seguir ni duplicidad que
+// detectar. `act2` se registró sin vecino a propósito.
+const sinPersona = await G("POST", `/actividades/${actividadSinVecino}/atencion-social`, {
+  tipoAtencion: "Informes sociales",
+});
+check(
+  "RN-012 una atención social exige un vecino identificado detrás",
+  sinPersona.status === 422,
+  `status ${sinPersona.status}`
+);
+
+const duplicada = await G("POST", `/actividades/${actividadSocialCentro}/atencion-social`, {
+  tipoAtencion: "Informes sociales",
+});
+check(
+  "RF-015 la atención es 1:1 con la actividad: una segunda es duplicado, no avance (409)",
+  duplicada.status === 409 && typeof (duplicada.datos as { atencionSocialId?: string }).atencionSocialId === "string",
+  `status ${duplicada.status}`
+);
+
+// --- Las tres gestiones como AVANCE ---
+const g1 = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Atención social a usuario presencial",
+  fechaProgramadaVisita: "2026-07-20",
+  version: atencion.version,
+});
+const trasG1 = g1.datos as { gestionRegistrada: number; version: number; gestionesRegistradas: number; estado: string };
+check(
+  "RF-015 el SERVIDOR decide qué gestión es: la primera cae en el casillero 1",
+  g1.status === 201 && trasG1.gestionRegistrada === 1 && trasG1.gestionesRegistradas === 1 && trasG1.estado === "abierta",
+  `status ${g1.status} · gestión ${trasG1.gestionRegistrada}`
+);
+
+const fechaAjena = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Entrega informe",
+  fechaEntregaBeneficio: "2026-07-25",
+  version: trasG1.version,
+});
+check(
+  "Cada gestión solo admite sus propias fechas (planilla §4)",
+  fechaAjena.status === 422,
+  `status ${fechaAjena.status}`
+);
+
+const gestionInventada = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Gestión que no está en ningún catálogo",
+  version: trasG1.version,
+});
+check(
+  "RF-004 el valor de la gestión se valida contra el catálogo de ESA gestión",
+  gestionInventada.status === 422,
+  `status ${gestionInventada.status}`
+);
+
+const g2 = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Entrega informe",
+  fechaVisita: "2026-07-21",
+  fechaEntregaInforme: "2026-07-24",
+  observacion: "Se realiza la visita y se entrega el informe.",
+  version: trasG1.version,
+});
+const trasG2 = g2.datos as {
+  gestionRegistrada: number;
+  version: number;
+  gestionesRegistradas: number;
+  gestiones: { numero: number; valor: string }[];
+  observacion: string | null;
+};
+check(
+  "RF-015 la segunda gestión AVANZA el caso y no pisa la primera",
+  g2.status === 201 &&
+    trasG2.gestionRegistrada === 2 &&
+    trasG2.gestionesRegistradas === 2 &&
+    trasG2.gestiones.some((x) => x.numero === 1 && x.valor === "Atención social a usuario presencial"),
+  `gestiones: ${trasG2.gestiones.map((x) => x.numero).join(", ")}`
+);
+check(
+  "La observación de una gestión se ANEXA: el relato del caso no se sobrescribe",
+  (trasG2.observacion ?? "").includes("temporal") && (trasG2.observacion ?? "").includes("Gestión 2"),
+  (trasG2.observacion ?? "sin observación").replace(/\n/g, " | ")
+);
+
+const conVersionVieja = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Entrega beneficio",
+  version: trasG1.version, // ya consumida por la segunda gestión
+});
+check(
+  "CA-08 avanzar con una versión consumida → 409, no una gestión duplicada",
+  conVersionVieja.status === 409,
+  `status ${conVersionVieja.status}`
+);
+
+const g3 = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Entrega beneficio",
+  fechaEntregaBeneficio: "2026-07-28",
+  version: trasG2.version,
+});
+const trasG3 = g3.datos as {
+  gestionRegistrada: number;
+  version: number;
+  estado: string;
+  siguienteGestion: number | null;
+};
+check(
+  "RF-015 con la tercera gestión el caso queda CERRADO",
+  g3.status === 201 && trasG3.gestionRegistrada === 3 && trasG3.estado === "cerrada" && trasG3.siguienteGestion === null,
+  `estado ${trasG3.estado}`
+);
+
+const cuarta = await G("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Entrega informe",
+  version: trasG3.version,
+});
+check(
+  "RF-015 no existe una cuarta gestión: el tope es del requisito, no del formulario",
+  cuarta.status === 422,
+  `status ${cuarta.status}`
+);
+
+// --- Alcance por rol: es una decisión legal, no de comodidad (ADR-012) ---
+const verificadorMira = await V("GET", `/atenciones-sociales/${atencion.id}`);
+const consultaMira = await C("GET", `/atenciones-sociales/${atencion.id}`);
+check(
+  "ADR-012 verificador y consulta no acceden al caso social, y el 403 dice por qué",
+  verificadorMira.status === 403 &&
+    consultaMira.status === 403 &&
+    (verificadorMira.datos as { error: string }).error.includes("socioeconómica"),
+  `${verificadorMira.status} y ${consultaMira.status}`
+);
+
+const ajena = await I("GET", `/atenciones-sociales/${atencion.id}`);
+check(
+  "Regla 9 el caso social de otra delegación responde 404, no 403",
+  ajena.status === 404,
+  `status ${ajena.status}`
+);
+
+const escrituraAjena = await I("POST", `/atenciones-sociales/${atencion.id}/gestiones`, {
+  gestion: "Entrega informe",
+  version: trasG3.version,
+});
+check(
+  "RNF-005 nadie avanza el caso social de otra delegación",
+  escrituraAjena.status === 404,
+  `status ${escrituraAjena.status}`
+);
+
+const lecturaDelCaso = await G("GET", `/atenciones-sociales/${atencion.id}`);
+const consultasDelCaso = await prisma.auditoria.count({
+  where: { entidad: "atencion_social", entidadId: atencion.id, accion: "consultar" },
+});
+check(
+  "ADR-006 · ADR-012 abrir un caso social queda en la bitácora como `consultar`",
+  lecturaDelCaso.status === 200 && consultasDelCaso >= 1,
+  `${consultasDelCaso} acceso(s) auditado(s)`
+);
+
+const bitacoraCaso = await prisma.auditoria.findMany({
+  where: { entidad: "atencion_social", entidadId: atencion.id },
+});
+const accionesCaso = [...new Set(bitacoraCaso.map((a) => a.accion))];
+check(
+  "CA-09 la bitácora distingue abrir el caso (`crear`) de avanzarlo (`cambiar_estado`)",
+  accionesCaso.includes("crear") && accionesCaso.includes("cambiar_estado"),
+  accionesCaso.join(", ")
+);
+
+// --- CA-04 de punta a punta: la secuencia, consultable y cruzando delegaciones ---
+const atencionRural = await I("POST", `/actividades/${actividadSocialRural}/atencion-social`, {
+  tipoAtencion: "Entrega emergencia",
+  primeraGestion: "Atención social a usuario presencial",
+});
+check(
+  "RF-015 la primera gestión puede venir en el alta: atender a la persona YA es gestionar",
+  atencionRural.status === 201 && (atencionRural.datos as { gestionesRegistradas: number }).gestionesRegistradas === 1,
+  `status ${atencionRural.status}`
+);
+
+interface HechoConAtencion {
+  id: string;
+  detallado: boolean;
+  delegacion: { nombre: string };
+  atencionSocial: {
+    gestionesRegistradas: number;
+    estado: string;
+    tipoAtencion: string | null;
+    gestiones: unknown[];
+  } | null;
+}
+
+const fichaVecina = await A("GET", `/vecinos/${personaCreada.id}`);
+const hechos = (fichaVecina.datos as { historial: HechoConAtencion[] }).historial;
+const casoCentro = hechos.find((h) => h.id === actividadSocialCentro);
+const casoRural = hechos.find((h) => h.id === actividadSocialRural);
+check(
+  "CA-04 el caso social y su avance aparecen en el historial del vecino, en las DOS delegaciones",
+  casoCentro?.atencionSocial?.gestionesRegistradas === 3 &&
+    casoCentro.atencionSocial.estado === "cerrada" &&
+    casoRural?.atencionSocial?.gestionesRegistradas === 1 &&
+    casoRural.atencionSocial.estado === "abierta",
+  `Centro ${casoCentro?.atencionSocial?.gestionesRegistradas}/3 · Rural ${casoRural?.atencionSocial?.gestionesRegistradas}/3`
+);
+
+// ADR-012 aplicado al dato más sensible: la funcionaria de Rural debe SABER
+// que el caso de Centro existe y va cerrado —eso es lo que evita duplicar la
+// ayuda— sin llegar a leer de qué se trata.
+const fichaDesdeRural = await I("GET", `/vecinos/${personaCreada.id}`);
+const hechosRural = (fichaDesdeRural.datos as { historial: HechoConAtencion[] }).historial;
+const centroDesdeRural = hechosRural.find((h) => h.id === actividadSocialCentro);
+check(
+  "ADR-012 desde otra delegación se ve el AVANCE del caso pero no su contenido",
+  centroDesdeRural?.detallado === false &&
+    centroDesdeRural.atencionSocial?.gestionesRegistradas === 3 &&
+    centroDesdeRural.atencionSocial.estado === "cerrada" &&
+    centroDesdeRural.atencionSocial.tipoAtencion === null &&
+    centroDesdeRural.atencionSocial.gestiones.length === 0,
+  `detallado=${centroDesdeRural?.detallado} · tipo=${centroDesdeRural?.atencionSocial?.tipoAtencion}`
+);
+
+// --- Corrección de la cabecera ---
+const cabeceraOk = await G("PATCH", `/atenciones-sociales/${atencion.id}`, {
+  subAtencion: "Acta de entrega",
+  version: trasG3.version,
+});
+const cabeceraVieja = await G("PATCH", `/atenciones-sociales/${atencion.id}`, {
+  subAtencion: "Orientación social",
+  version: trasG3.version,
+});
+check(
+  "CA-08 la cabecera del caso se corrige con su versión, y la consumida da 409",
+  cabeceraOk.status === 200 && cabeceraVieja.status === 409,
+  `${cabeceraOk.status} y ${cabeceraVieja.status}`
+);
+
+check(
+  "Multi-tenant: identificador mal formado → 400, caso inexistente → 404",
+  (await A("GET", "/atenciones-sociales/no-es-uuid")).status === 400 &&
+    (await A("GET", "/atenciones-sociales/11111111-1111-1111-1111-111111111111")).status === 404,
+  "400 y 404"
+);
+
+// El seed arma el caso a propósito: los datos de demostración son parte del
+// entregable y sin ellos la pantalla queda correcta y vacía.
+const atencionesSembradas = await prisma.atencionSocial.count();
+const completasSembradas = await prisma.atencionSocial.count({ where: { terceraGestion: { not: null } } });
+check(
+  "CA-04 el seed deja casos sociales en las tres etapas, incluidos algunos completos",
+  atencionesSembradas >= 20 && completasSembradas >= 1,
+  `${atencionesSembradas} atenciones, ${completasSembradas} con las 3 gestiones`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
 await prisma.tarea.deleteMany({ where: { id: { in: creado.tareas } } });

@@ -428,6 +428,19 @@ async function main() {
     /** Una de cada 12 atenciones queda a nombre de un vecino identificado. */
     const CADA_CUANTAS_UN_VECINO = 12;
 
+    // RF-015 · CA-04: el caso social que la especificación pide DEMOSTRAR.
+    // Los datos de demostración son parte del entregable: si el seed no arma
+    // el caso a propósito, la pantalla queda correcta y vacía. Se reparten
+    // atenciones en las tres etapas —recién abierta, a medio camino y con sus
+    // tres gestiones— para que la ficha muestre el avance y no un solo estado.
+    // Los valores salen de los mismos catálogos que exige la API (RF-004).
+    const GESTIONES_1 = ["Atención social a usuario presencial", "Visita terreno", "Entrega informe"];
+    const GESTIONES_2 = ["Visita terreno", "Entrega informe", "Entrega beneficio"];
+    const GESTIONES_3 = ["Entrega beneficio", "Entrega informe"];
+    const TIPOS_ATENCION = ["Informes sociales", "Gestión de subsidios", "Entrega emergencia", "Derivación"];
+    const SUB_ATENCIONES = ["Informe aporte económico", "Orientación social", "SUF", "Acta de entrega"];
+    const atenciones: Prisma.AtencionSocialCreateManyInput[] = [];
+
     const actividades: Prisma.ActividadCreateManyInput[] = [];
     const evidencias: Prisma.EvidenciaCreateManyInput[] = [];
     const validaciones: Prisma.ValidacionCreateManyInput[] = [];
@@ -486,6 +499,30 @@ async function main() {
             contactoNombre: vecino?.nombre ?? null,
             contactoFono: vecino?.fono ?? null,
           });
+          // RF-015: el detalle social es 1:1 con la actividad y solo existe
+          // cuando hay una persona identificada detrás (RN-012). El número de
+          // gestiones es determinista para que la demostración sea repetible.
+          if (area === "SOCIAL" && vecinoId) {
+            const cuantasGestiones = ((n + idx) % 3) + 1;
+            const diaVisita = new Date(fecha.getTime() + 3 * 86_400_000);
+            const diaInforme = new Date(fecha.getTime() + 8 * 86_400_000);
+            const diaBeneficio = new Date(fecha.getTime() + 15 * 86_400_000);
+            atenciones.push({
+              organizationId: org.id,
+              actividadId,
+              tipoAtencion: TIPOS_ATENCION[(idx + n) % TIPOS_ATENCION.length]!,
+              subAtencion: SUB_ATENCIONES[(idx + n) % SUB_ATENCIONES.length]!,
+              requiereVisita: cuantasGestiones >= 2,
+              observacion: `Caso derivado desde ${p.delegacion}. Seguimiento en curso.`,
+              primeraGestion: GESTIONES_1[n % GESTIONES_1.length]!,
+              fechaProgramadaVisita: cuantasGestiones >= 2 ? diaVisita : null,
+              segundaGestion: cuantasGestiones >= 2 ? GESTIONES_2[n % GESTIONES_2.length]! : null,
+              fechaVisita: cuantasGestiones >= 2 ? diaVisita : null,
+              fechaEntregaInforme: cuantasGestiones >= 2 ? diaInforme : null,
+              terceraGestion: cuantasGestiones >= 3 ? GESTIONES_3[n % GESTIONES_3.length]! : null,
+              fechaEntregaBeneficio: cuantasGestiones >= 3 ? diaBeneficio : null,
+            });
+          }
           // La ruta la deriva el mismo helper que usa el alta real (RNF-017):
           // si el seed inventara el formato, la ficha y la bandeja pedirían un
           // archivo que el servidor no sabe resolver y responderían 410.
@@ -528,6 +565,9 @@ async function main() {
     for (let i = 0; i < validaciones.length; i += LOTE) {
       await prisma.validacion.createMany({ data: validaciones.slice(i, i + LOTE) });
     }
+    for (let i = 0; i < atenciones.length; i += LOTE) {
+      await prisma.atencionSocial.createMany({ data: atenciones.slice(i, i + LOTE) });
+    }
     // Los archivos van al almacén después de las filas: si algo falla arriba,
     // no quedan huérfanos en disco.
     for (const a of archivos) await guardarArchivo(a.ruta, a.contenido);
@@ -536,6 +576,10 @@ async function main() {
       `  ${actividades.filter((a) => a.personaUsuariaId).length} de ellas a nombre de un vecino ficticio (ADR-008)`
     );
     console.log(`  ${archivos.length} imágenes sintéticas escritas en el almacén de evidencias`);
+    console.log(
+      `  ${atenciones.length} atenciones sociales con sus gestiones (RF-015): ` +
+        `${atenciones.filter((a) => a.terceraGestion).length} completas con las 3`
+    );
   }
 
   await prisma.$executeRawUnsafe("REFRESH MATERIALIZED VIEW cumplimiento_ponderado_vista");

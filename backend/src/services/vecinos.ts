@@ -43,6 +43,23 @@ export interface HechoHistorial {
   funcionario: { id: string; nombre: string } | null;
   contactoNombre: string | null;
   contactoFono: string | null;
+  /**
+   * RF-015 · CA-04: el caso social, cuando la actividad tiene uno. La
+   * EXISTENCIA del caso y su avance viajan siempre —son el hecho que hace
+   * consultable la secuencia entre delegaciones—, pero el tipo, la
+   * sub-atención, la observación y las fechas solo si `detallado`. Saber que
+   * una persona lleva 2 de 3 gestiones en otra delegación es lo que evita
+   * duplicar la ayuda; saber que pidió una caja de alimentos no hace falta
+   * para eso (ADR-012, Leyes 19.628 / 21.719).
+   */
+  atencionSocial: {
+    id: string;
+    gestionesRegistradas: number;
+    estado: "abierta" | "cerrada";
+    tipoAtencion: string | null;
+    subAtencion: string | null;
+    gestiones: { numero: number; valor: string; fecha: string | null }[];
+  } | null;
 }
 
 export interface CoincidenciaDuplicidad {
@@ -100,6 +117,46 @@ export function aPersonaResumen(p: {
  * lo que cae fuera de sus delegaciones llega reducido, no oculto: ocultarlo
  * destruiría justamente el control que ADR-008 vino a dar.
  */
+/**
+ * Resume el caso social para el historial. La regla de ADR-012 aplicada al
+ * dato más sensible del sistema: el AVANCE se ve siempre (es lo que permite a
+ * la otra delegación saber que el caso ya está en curso y no volver a
+ * empezarlo), el CONTENIDO solo dentro de la propia delegación.
+ */
+function resumirAtencion(
+  a: {
+    id: string;
+    tipoAtencion: string;
+    subAtencion: string | null;
+    primeraGestion: string | null;
+    fechaProgramadaVisita: Date | null;
+    segundaGestion: string | null;
+    fechaVisita: Date | null;
+    terceraGestion: string | null;
+    fechaEntregaBeneficio: Date | null;
+  },
+  detallado: boolean
+): HechoHistorial["atencionSocial"] {
+  const registradas = a.terceraGestion ? 3 : a.segundaGestion ? 2 : a.primeraGestion ? 1 : 0;
+  const gestiones = detallado
+    ? ([
+        { numero: 1, valor: a.primeraGestion, fecha: a.fechaProgramadaVisita },
+        { numero: 2, valor: a.segundaGestion, fecha: a.fechaVisita },
+        { numero: 3, valor: a.terceraGestion, fecha: a.fechaEntregaBeneficio },
+      ]
+        .filter((g) => g.valor !== null)
+        .map((g) => ({ numero: g.numero, valor: g.valor as string, fecha: g.fecha ? aIso(g.fecha) : null })))
+    : [];
+  return {
+    id: a.id,
+    gestionesRegistradas: registradas,
+    estado: registradas >= 3 ? "cerrada" : "abierta",
+    tipoAtencion: detallado ? a.tipoAtencion : null,
+    subAtencion: detallado ? a.subAtencion : null,
+    gestiones,
+  };
+}
+
 export async function historialDePersona(
   organizationId: string,
   personaUsuariaId: string,
@@ -122,6 +179,19 @@ export async function historialDePersona(
         funcionario: { select: { id: true, nombre: true } },
         evidencias: {
           select: { validaciones: { select: { decision: true }, orderBy: { createdAt: "desc" }, take: 1 } },
+        },
+        atencionSocial: {
+          select: {
+            id: true,
+            tipoAtencion: true,
+            subAtencion: true,
+            primeraGestion: true,
+            fechaProgramadaVisita: true,
+            segundaGestion: true,
+            fechaVisita: true,
+            terceraGestion: true,
+            fechaEntregaBeneficio: true,
+          },
         },
       },
       orderBy: { fecha: "desc" },
@@ -171,6 +241,7 @@ export async function historialDePersona(
       funcionario: detallado ? a.funcionario : null,
       contactoNombre: detallado ? a.contactoNombre : null,
       contactoFono: detallado ? a.contactoFono : null,
+      atencionSocial: a.atencionSocial ? resumirAtencion(a.atencionSocial, detallado) : null,
     };
   });
 
@@ -194,6 +265,9 @@ export async function historialDePersona(
       funcionario: detallado ? t.responsable : null,
       contactoNombre: null,
       contactoFono: null,
+      // Un compromiso del tubo no es un caso social: son dos hechos distintos
+      // de la misma persona y mezclarlos falsearía el historial.
+      atencionSocial: null,
     };
   });
 

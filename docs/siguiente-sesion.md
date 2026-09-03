@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque A3 — endurecimiento de las rutas heredadas)
+**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque B4 — atención social y sus tres gestiones)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -13,14 +13,14 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 18/18 verificaciones · **rutas endurecidas** (Bloque A3): `version` → 409 y auditoría en `/tareas`, `/unidades` y `/categorias` |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** (Bloques A, A2, A3 y B3) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento, **ficha del vecino** y las **rutas heredadas endurecidas** — 132/132 |
-| API pendiente del modelo v2 | ⬜ `Ajuste`, `AtencionSocial` (**las 3 gestiones, lo único que le falta a CA-04**), `Comentario`, `Ausencia`, catálogos y parámetros |
+| **API del modelo v2** (Bloques A, A2, A3, B3 y B4) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento, **ficha del vecino**, **atención social con sus 3 gestiones** y las rutas heredadas endurecidas — 156/156 |
+| API pendiente del modelo v2 | ⬜ `Ajuste`, `Comentario`, `Ausencia`, CRUD de catálogos y de parámetros |
 | Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas y **ficha del vecino**; faltan las de administración (períodos, cargos, catálogos) |
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **17 ✅ · 14 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). **CA-08 y CA-09 quedaron en ✅** con el Bloque A3; RF-016 bajó de ✅ a 🟡 al comprobar que el campo INT/EXT no es alcanzable (Bloque B5). El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
+Cumplimiento contra los 38 RF oficiales: **18 ✅ · 13 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). **CA-04, CA-08 y CA-09 quedaron en ✅**: el A3 cerró los dos de concurrencia y auditoría, y el B4 cerró el caso social con sus tres gestiones. RF-016 bajó de ✅ a 🟡 al comprobar que el campo INT/EXT no es alcanzable (Bloque B5). El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -122,6 +122,22 @@ Lo que decidió y conviene no reabrir:
 
 ⚠ **Lo que dejó abierto**: `TareaHistorial` sigue sin usarse. RF-018 pide un **historial de transición** y la auditoría no lo reemplaza (es interna, no una vista para la persona usuaria). Junto con la alerta, es lo que le falta a CA-03.
 
+### ~~Bloque B4 — La atención social y sus tres gestiones~~ ✅ TERMINADO (`v0.12.0-atencion-social`)
+
+**CA-04 queda cerrado de punta a punta** — el criterio de aceptación más caro de la especificación. La entidad `AtencionSocial` existía desde el modelo v2 con las nueve columnas de la planilla; lo que faltaba era abrirla sin perder por el camino la única propiedad que CA-04 exige: que la secuencia esté **garantizada**. Contrato en [estado-proyecto §3.1](estado-proyecto.md), pantallas en [§6.2 y §6.5](estado-proyecto.md), y la decisión en **[ADR-013](decisiones-tecnicas.md)**.
+
+Lo que decidió y conviene no reabrir:
+
+- **El servidor decide en qué casillero cae cada gestión, no el cliente.** `POST /atenciones-sociales/:id/gestiones` recibe el valor y sus fechas, nunca el número. Es lo que impide saltarse la primera, registrar una cuarta o llenar las tres de una vez. Si el cliente eligiera el casillero, la secuencia sería una promesa y no un hecho demostrable.
+- **Cada gestión solo admite sus propias fechas.** Una fecha en el campo equivocado es un dato falso que después nadie sabe interpretar.
+- **La atención es 1:1 con la actividad y exige un vecino identificado.** Una segunda atención sobre la misma actividad es un duplicado (409), no un avance; sin `personaUsuariaId` no hay caso que seguir ni duplicidad que detectar (422, RN-012).
+- **La observación se anexa, no se pisa.** La planilla tiene una sola columna para todo el caso; sobrescribirla borraría el relato que explica por qué el caso avanzó como avanzó.
+- **`proyectar()` es la única forma en que la atención sale del backend** —del alta, del avance y de dentro de una actividad—. Dos formas del mismo concepto obligan a la pantalla a saber de dónde vino cada una.
+- **Alcance por rol (ADR-013, hereda ADR-012)**: `verificador` y `consulta` reciben 403 con el motivo escrito; desde otra delegación viaja el **avance** del caso pero no su contenido. Abrir un caso se audita como `consultar` y avanzarlo como `cambiar_estado`.
+- **El seed arma el caso a propósito**: 45 atenciones repartidas en las tres etapas, 4 completas, y la misma vecina con caso social en Centro y en Rural. Los datos de demostración son parte del entregable.
+
+⚠ **Lo que dejó abierto**: **corregir una gestión ya registrada** no está resuelto — el `PATCH` solo toca la cabecera. Si el cliente lo pide, habrá que decidir entre corregirla con bloqueo optimista o anular la actividad y registrar otra, como con las validaciones aprobadas (consulta abierta nº 8). Y no se exige que el ítem de la actividad sea del área SOCIAL: la especificación no lo dice y no se inventó (regla 16).
+
 ### Bloque B5 — La solicitud del vecino en el tubo (RF-016, RF-017, CA-04)
 
 **Hallazgo del 3 de septiembre de 2026, mientras se auditaba la pantalla de nueva tarea.** No es una mejora deseable: es un **agujero de trazabilidad** que hace parecer roto algo que funciona.
@@ -156,7 +172,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
-**Orden acordado el 1 de septiembre, actualizado el 3**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), después la ficha del vecino (Bloque B3, ✅) y el endurecimiento de las rutas heredadas (Bloque A3, ✅). **Ahora**: Bloque B4 (atención social) y, a continuación, el **Bloque B5** (la solicitud del vecino en el tubo), que no es opcional: sin él la trazabilidad que construyó el Bloque B3 solo funciona con los datos del seed. Después, el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
+**Orden acordado el 1 de septiembre, actualizado el 3**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), después la ficha del vecino (Bloque B3, ✅) y el endurecimiento de las rutas heredadas (Bloque A3, ✅). El Bloque B4 (atención social) quedó ✅ el 3 de septiembre y con él **CA-04**. **Ahora**: el **Bloque B5** (la solicitud del vecino en el tubo), que no es opcional — sin él la trazabilidad que construyeron los Bloques B3 y B4 solo funciona con los datos del seed. Después, el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
@@ -173,7 +189,8 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
 | Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
 | ~~Sin endpoint de búsqueda de `PersonaUsuaria`~~ → **resuelto** en el Bloque B3: `/vecinos` con búsqueda por RUT y nombre, historial cruzado, aviso de duplicidad y rectificación de datos | — | ✅ |
-| **Las 3 gestiones de `AtencionSocial`** (RF-015, HU-03): es lo único que le falta a CA-04, ahora que la secuencia ya es consultable | backend y frontend | Alta |
+| ~~**Las 3 gestiones de `AtencionSocial`** (RF-015, HU-03)~~ → **resueltas** en el Bloque B4: API, modal del caso en la ficha personal y el caso con su avance en el historial del vecino. **CA-04 cerrado** | — | ✅ |
+| **Corregir una gestión ya registrada** no está resuelto: el `PATCH` solo toca la cabecera del caso. Decisión pendiente entre corregir con bloqueo optimista o anular y registrar de nuevo (ADR-013, consulta abierta nº 8) | `atenciones-sociales.routes.ts` | Media |
 | El historial del vecino no pagina: trae hasta 500 hechos y la pantalla los pinta todos. Misma lección que la bandeja | `vecinos.routes.ts`, `VecinosPage.tsx` | Media |
 | El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `frontend/src/lib/dashboard.ts` | Media |
 | `Comentario` y `Ajuste` sin API ni pantalla | backend y frontend | Media |

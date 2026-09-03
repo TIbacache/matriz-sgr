@@ -1,0 +1,191 @@
+/* Caso social y sus tres gestiones — RF-015 · CA-04 · DESIGN §3.3, §8.2.
+   Es ZONA DE DATOS: nada de --marca ni --acento. Lo hecho se marca con el
+   verde de estado (es un hecho consumado, no una selección) y lo que toca
+   registrar con --seleccion, que es como el sistema dice "esto es lo activo"
+   dentro de una tabla. El rojo institucional no entra aquí. */
+
+.modal--ancho {
+  max-width: 620px;
+}
+
+/* ---- Cabecera del caso ---- */
+
+.caso-cabecera {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--esp-3) var(--esp-4);
+  margin: var(--esp-4) 0;
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--fondo-2);
+  border-radius: var(--radio-control);
+}
+
+.caso-cabecera dt {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-3);
+  margin-bottom: 2px;
+}
+
+.caso-cabecera dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--tinta);
+}
+
+/* ---- La escalera de tres peldaños ----
+   Se ve de un vistazo en qué gestión va el caso y cuántas quedan, que es
+   justo lo que CA-04 pide poder consultar. Nunca solo color (RNF-012): el
+   peldaño hecho lleva ✓ y su texto lo dice. */
+
+.caso-escalera {
+  list-style: none;
+  margin: 0 0 var(--esp-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.caso-peldano {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  padding: var(--esp-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background: var(--superficie);
+}
+
+.caso-peldano-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--borde-fuerte);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tinta-3);
+}
+
+.caso-peldano-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  min-width: 0;
+}
+
+.caso-peldano-texto strong {
+  color: var(--tinta);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.caso-peldano-valor {
+  color: var(--tinta);
+}
+
+.caso-peldano-fecha {
+  color: var(--tinta-3);
+  font-size: 0.75rem;
+}
+
+.caso-peldano--hecha {
+  background: var(--estado-verde-bg);
+  border-color: var(--estado-verde);
+}
+
+.caso-peldano--hecha .caso-peldano-num {
+  background: var(--estado-verde);
+  border-color: var(--estado-verde);
+  color: var(--texto-sobre-estado);
+}
+
+.caso-peldano--siguiente {
+  background: var(--seleccion-bg);
+  border-color: var(--seleccion);
+}
+
+.caso-peldano--siguiente .caso-peldano-num {
+  border-color: var(--seleccion);
+  color: var(--tinta);
+}
+
+/* ---- Relato y formulario ---- */
+
+.caso-observacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  margin: 0 0 var(--esp-4);
+  padding: var(--esp-3);
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.caso-cerrado {
+  margin: 0 0 var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--estado-verde-bg);
+  border-left: 3px solid var(--estado-verde);
+  border-radius: var(--radio-control);
+  font-size: 0.8125rem;
+  color: var(--estado-verde-texto);
+}
+
+.caso-intro {
+  margin: var(--esp-3) 0 var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  max-width: 60ch;
+}
+
+/* Bloque normal, no `display: contents`: en algunos motores eso saca al
+   <form> del árbol de accesibilidad y el diálogo deja de anunciarse entero. */
+.caso-form {
+  display: block;
+}
+
+.caso-form-titulo {
+  margin: var(--esp-4) 0 var(--esp-2);
+  font-size: 0.875rem;
+  color: var(--tinta);
+}
+
+.caso-check {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: var(--esp-3) 0;
+  font-size: 0.8125rem;
+  color: var(--tinta);
+  cursor: pointer;
+}
+
+.caso-check input {
+  accent-color: var(--seleccion);
+  cursor: pointer;
+}
+
+/* ---- Marca del caso en la tabla del registro diario ---- */
+
+.ficha-caso-chip {
+  font-size: 0.6875rem;
+  color: var(--tinta-2);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .caso-cabecera {
+    grid-template-columns: 1fr;
+  }
+}

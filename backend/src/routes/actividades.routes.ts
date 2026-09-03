@@ -14,6 +14,8 @@ import { formatosPermitidos, guardarArchivo, rutaRelativa } from "../services/al
 import { aIso, desdeIso } from "../lib/fechas.js";
 import { normalizarRut } from "../lib/rut.js";
 import { normalizarTelefono } from "../lib/telefono.js";
+import { proyectar, valorDeCatalogo, type FilaAtencion } from "../services/atencion-social.js";
+import { cabeceraSchema } from "./atenciones-sociales.routes.js";
 
 // Registro de actividades — RF-009 · RF-010 · RF-011 · RF-012 · HU-01 · HU-09.
 //
@@ -79,6 +81,54 @@ const incluir = {
     },
   },
 } satisfies Prisma.ActividadInclude;
+
+/** Columnas de la atención social que viajan dentro de la actividad (planilla §4). */
+const incluirAtencion = {
+  select: {
+    id: true,
+    tipoAtencion: true,
+    subAtencion: true,
+    requiereVisita: true,
+    observacion: true,
+    primeraGestion: true,
+    fechaProgramadaVisita: true,
+    segundaGestion: true,
+    fechaVisita: true,
+    fechaEntregaInforme: true,
+    terceraGestion: true,
+    fechaEntregaBeneficio: true,
+    version: true,
+    createdAt: true,
+    updatedAt: true,
+    actividadId: true,
+  },
+} satisfies Prisma.Actividad$atencionSocialArgs;
+
+/**
+ * La atención social viaja SIEMPRE con la misma forma —la de `proyectar()`—
+ * venga del alta, del avance de una gestión o de dentro de una actividad. Dos
+ * formas del mismo concepto obligan a la pantalla a saber de dónde vino cada
+ * una, y ahí es donde aparecen los "a veces sí y a veces no".
+ */
+function conAtencion<T extends object>(a: T) {
+  // Si la clave no viene, es porque este rol no accede al detalle social
+  // (`incluirPara`): entonces se OMITE, que no es lo mismo que traerla nula.
+  if (!("atencionSocial" in a)) return a;
+  const atencion = (a as { atencionSocial?: FilaAtencion | null }).atencionSocial;
+  return { ...a, atencionSocial: atencion ? proyectar(atencion) : null };
+}
+
+/**
+ * ADR-012: el detalle social **no viaja** a los roles que no pueden verlo, ni
+ * siquiera de rebote dentro de una actividad. Hoy `unidadesVisibles` ya les
+ * deja el listado vacío, pero la regla no puede depender de eso: si mañana un
+ * rol de consulta tuviera delegación asignada, la sensibilidad del dato no
+ * cambiaría.
+ */
+function incluirPara(rol: string) {
+  if (rol === "verificador" || rol === "consulta") return incluir;
+  return { ...incluir, atencionSocial: incluirAtencion };
+}
 
 /**
  * Quién puede tocar una actividad: su autor, la jefatura de esa delegación y
@@ -223,27 +273,27 @@ actividadesRouter.get("/", async (req, res) => {
     prisma.actividad.count({ where }),
     prisma.actividad.findMany({
       where,
-      include: incluir,
+      include: incluirPara(auth.rol),
       orderBy: [{ fecha: "desc" }, { codigo: "desc" }],
       take: limite,
       skip: desplazamiento,
     }),
   ]);
-  res.json({ total, limite, desde: desplazamiento, actividades });
+  res.json({ total, limite, desde: desplazamiento, actividades: actividades.map(conAtencion) });
 });
 
 actividadesRouter.get("/:id", async (req, res) => {
   const auth = req.auth!;
   const actividad = await prisma.actividad.findFirst({
     where: { id: String(req.params.id), organizationId: auth.organizationId },
-    include: incluir,
+    include: incluirPara(auth.rol),
   });
   if (!actividad) return res.status(404).json({ error: "No encontrado" });
   const visibles = await unidadesVisibles(auth);
   if (visibles !== null && !visibles.includes(actividad.unidadTerritorialId)) {
     return res.status(404).json({ error: "No encontrado" });
   }
-  res.json(actividad);
+  res.json(conAtencion(actividad));
 });
 
 // POST /actividades — HU-01. La delegación NO viene del cliente: se deriva de
@@ -507,6 +557,105 @@ actividadesRouter.post("/:id/anulacion", async (req, res) => {
   });
   emitEvent(roomUnidad(actividad.unidadTerritorialId), "actividad:anulada", actividad);
   res.json(actividad);
+});
+
+// POST /actividades/:id/atencion-social — RF-015 · RN-012 · CA-04 · HU-03.
+//
+// El detalle social de una actividad ya registrada, 1:1 con ella. Se crea aquí
+// —y no en su propio POST con `actividadId` en el cuerpo— por lo mismo que las
+// evidencias: la atención no existe sin su actividad, y colgarla de la URL hace
+// imposible crear una huérfana o apuntarla a la actividad de otra delegación.
+//
+// La primera gestión puede venir en el alta, porque atender a la persona YA es
+// la primera gestión en la planilla del cliente. Las otras dos se avanzan por
+// `POST /atenciones-sociales/:id/gestiones`.
+actividadesRouter.post("/:id/atencion-social", async (req, res) => {
+  const parsed = cabeceraSchema
+    .extend({
+      primeraGestion: z.string().min(1).max(120).optional(),
+      fechaProgramadaVisita: z.string().regex(ISO_DIA).nullable().optional(),
+    })
+    .safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Datos inválidos", detalle: parsed.error.issues });
+  const auth = req.auth!;
+  const id = String(req.params.id);
+
+  if (["verificador", "consulta"].includes(auth.rol)) {
+    return res.status(403).json({ error: "Sin permisos para registrar atenciones sociales" });
+  }
+
+  const actividad = await prisma.actividad.findFirst({
+    where: { id, organizationId: auth.organizationId },
+    include: { periodo: { select: { estado: true } }, atencionSocial: { select: { id: true } } },
+  });
+  if (!actividad) return res.status(404).json({ error: "No encontrado" });
+  const visibles = await unidadesVisibles(auth);
+  if (visibles !== null && !visibles.includes(actividad.unidadTerritorialId)) {
+    return res.status(404).json({ error: "No encontrado" });
+  }
+  if (!(await puedeEditarActividad(auth, actividad))) {
+    return res.status(403).json({ error: "Sin permisos sobre esta actividad" });
+  }
+  if (actividad.anulada) return res.status(422).json({ error: "La actividad está anulada" });
+  if (actividad.periodo.estado !== "abierto") {
+    return res.status(422).json({ error: "El período está cerrado (RN-013)" });
+  }
+  // 1:1 con la actividad: una segunda atención no es un avance, es un
+  // duplicado. Las gestiones son el mecanismo para que el caso siga.
+  if (actividad.atencionSocial) {
+    return res.status(409).json({
+      error: "Esta actividad ya tiene su atención social. Para que el caso avance, registra una gestión",
+      atencionSocialId: actividad.atencionSocial.id,
+    });
+  }
+  // RN-012 · CA-04: sin la persona identificada no hay caso social que seguir
+  // ni duplicidad que detectar entre delegaciones (ADR-008).
+  if (!actividad.personaUsuariaId) {
+    return res.status(422).json({
+      error: "Una atención social se registra a nombre de un vecino: la actividad no tiene persona usuaria asociada",
+    });
+  }
+
+  const datos = parsed.data;
+  if (!(await valorDeCatalogo(auth.organizationId, "tipo_atencion", datos.tipoAtencion))) {
+    return res.status(422).json({ error: `"${datos.tipoAtencion}" no es un tipo de atención vigente (RF-004)` });
+  }
+  if (datos.subAtencion && !(await valorDeCatalogo(auth.organizationId, "sub_atencion", datos.subAtencion))) {
+    return res.status(422).json({ error: `"${datos.subAtencion}" no es una sub-atención vigente (RF-004)` });
+  }
+  if (datos.primeraGestion && !(await valorDeCatalogo(auth.organizationId, "gestion_1", datos.primeraGestion))) {
+    return res.status(422).json({ error: `"${datos.primeraGestion}" no es una primera gestión vigente (RF-004)` });
+  }
+  if (datos.fechaProgramadaVisita && !datos.primeraGestion) {
+    return res.status(422).json({
+      error: "La fecha programada de visita pertenece a la primera gestión: regístrala junto con ella",
+    });
+  }
+
+  const atencion = await prisma.atencionSocial.create({
+    data: {
+      organizationId: auth.organizationId,
+      actividadId: actividad.id,
+      tipoAtencion: datos.tipoAtencion,
+      subAtencion: datos.subAtencion ?? null,
+      requiereVisita: datos.requiereVisita ?? false,
+      observacion: datos.observacion ?? null,
+      primeraGestion: datos.primeraGestion ?? null,
+      fechaProgramadaVisita: datos.fechaProgramadaVisita ? desdeIso(datos.fechaProgramadaVisita) : null,
+    },
+  });
+
+  await auditarDesde(auth, req)({
+    accion: "crear",
+    entidad: "atencion_social",
+    entidadId: atencion.id,
+    valorNuevo: atencion,
+  });
+  emitEvent(roomUnidad(actividad.unidadTerritorialId), "atencion_social:creada", {
+    ...proyectar(atencion),
+    unidadTerritorialId: actividad.unidadTerritorialId,
+  });
+  res.status(201).json(proyectar(atencion));
 });
 
 // POST /actividades/:id/evidencias — RF-012 · RNF-017 · HU-09.

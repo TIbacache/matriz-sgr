@@ -1163,6 +1163,197 @@
 .tubo-conflicto .btn-tabla {
   margin-left: auto;
 }
+</style><style type="text/css" data-vite-dev-id="C:/Users/zgf/Documents/Scripts/matriz-sgr/frontend/src/components/ficha/caso-social.css">/* Caso social y sus tres gestiones — RF-015 · CA-04 · DESIGN §3.3, §8.2.
+   Es ZONA DE DATOS: nada de --marca ni --acento. Lo hecho se marca con el
+   verde de estado (es un hecho consumado, no una selección) y lo que toca
+   registrar con --seleccion, que es como el sistema dice "esto es lo activo"
+   dentro de una tabla. El rojo institucional no entra aquí. */
+
+.modal--ancho {
+  max-width: 620px;
+}
+
+/* ---- Cabecera del caso ---- */
+
+.caso-cabecera {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--esp-3) var(--esp-4);
+  margin: var(--esp-4) 0;
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--fondo-2);
+  border-radius: var(--radio-control);
+}
+
+.caso-cabecera dt {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-3);
+  margin-bottom: 2px;
+}
+
+.caso-cabecera dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--tinta);
+}
+
+/* ---- La escalera de tres peldaños ----
+   Se ve de un vistazo en qué gestión va el caso y cuántas quedan, que es
+   justo lo que CA-04 pide poder consultar. Nunca solo color (RNF-012): el
+   peldaño hecho lleva ✓ y su texto lo dice. */
+
+.caso-escalera {
+  list-style: none;
+  margin: 0 0 var(--esp-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.caso-peldano {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  padding: var(--esp-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background: var(--superficie);
+}
+
+.caso-peldano-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--borde-fuerte);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tinta-3);
+}
+
+.caso-peldano-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  min-width: 0;
+}
+
+.caso-peldano-texto strong {
+  color: var(--tinta);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.caso-peldano-valor {
+  color: var(--tinta);
+}
+
+.caso-peldano-fecha {
+  color: var(--tinta-3);
+  font-size: 0.75rem;
+}
+
+.caso-peldano--hecha {
+  background: var(--estado-verde-bg);
+  border-color: var(--estado-verde);
+}
+
+.caso-peldano--hecha .caso-peldano-num {
+  background: var(--estado-verde);
+  border-color: var(--estado-verde);
+  color: var(--texto-sobre-estado);
+}
+
+.caso-peldano--siguiente {
+  background: var(--seleccion-bg);
+  border-color: var(--seleccion);
+}
+
+.caso-peldano--siguiente .caso-peldano-num {
+  border-color: var(--seleccion);
+  color: var(--tinta);
+}
+
+/* ---- Relato y formulario ---- */
+
+.caso-observacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  margin: 0 0 var(--esp-4);
+  padding: var(--esp-3);
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.caso-cerrado {
+  margin: 0 0 var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--estado-verde-bg);
+  border-left: 3px solid var(--estado-verde);
+  border-radius: var(--radio-control);
+  font-size: 0.8125rem;
+  color: var(--estado-verde-texto);
+}
+
+.caso-intro {
+  margin: var(--esp-3) 0 var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  max-width: 60ch;
+}
+
+/* Bloque normal, no `display: contents`: en algunos motores eso saca al
+   <form> del árbol de accesibilidad y el diálogo deja de anunciarse entero. */
+.caso-form {
+  display: block;
+}
+
+.caso-form-titulo {
+  margin: var(--esp-4) 0 var(--esp-2);
+  font-size: 0.875rem;
+  color: var(--tinta);
+}
+
+.caso-check {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: var(--esp-3) 0;
+  font-size: 0.8125rem;
+  color: var(--tinta);
+  cursor: pointer;
+}
+
+.caso-check input {
+  accent-color: var(--seleccion);
+  cursor: pointer;
+}
+
+/* ---- Marca del caso en la tabla del registro diario ---- */
+
+.ficha-caso-chip {
+  font-size: 0.6875rem;
+  color: var(--tinta-2);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .caso-cabecera {
+    grid-template-columns: 1fr;
+  }
+}
 </style><style type="text/css" data-vite-dev-id="C:/Users/zgf/Documents/Scripts/matriz-sgr/frontend/src/pages/ficha.css">/* Ficha personal (RF-008) — DESIGN §8.2.
    Tres bloques verticales: identidad, ítems medidos, registro diario.
    Todo con tokens; ni un color ni una medida fuera de las escalas. */
@@ -2651,6 +2842,41 @@
     left: calc(var(--esp-4) * -1 - 4px);
   }
 }
+
+/* Caso social dentro del hito — RF-015 · CA-04 · DESIGN §3.3.
+   Zona de datos: nada de --marca ni --acento. El caso es un HECHO del
+   historial, no una selección, así que se apoya en el fondo hundido y en el
+   borde neutro; el énfasis lo pone el número de gestión, no el color. */
+.vecinos-hito-caso {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  margin: var(--esp-2) 0 0;
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+}
+
+/* En flex un SVG cede antes que un párrafo: sin esto el icono se aplasta a un
+   hilo en móvil, como ya pasó con el aviso de duplicidad. */
+.vecinos-hito-caso svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--tinta-3);
+}
+
+.vecinos-hito-caso strong {
+  color: var(--tinta);
+}
+
+.vecinos-hito-gestiones {
+  flex-basis: 100%;
+  color: var(--tinta-3);
+}
 </style><style type="text/css" data-vite-dev-id="C:/Users/zgf/Documents/Scripts/matriz-sgr/frontend/src/styles/base.css">/* Tokens de DESIGN.md v1.4 — normativo. Dos capas: :root define el tema claro
    completo; [data-theme="oscuro"] SOLO redefine lo que cambia. Ningún color
    se usa fuera de estas variables.
@@ -3576,6 +3802,32 @@ td,
 .tubo-skeleton > div { height: 320px; }
 .tubo-conflicto { display: flex; align-items: center; gap: var(--esp-3); flex-wrap: wrap; background: var(--estado-amarillo-bg); border-left: 3px solid var(--estado-amarillo); border-radius: var(--radio-control); padding: var(--esp-3) var(--esp-4); margin-bottom: var(--esp-4); font-size: 0.8125rem; color: var(--estado-amarillo-texto); }
 .tubo-conflicto .btn-tabla { margin-left: auto; }
+.modal--ancho { max-width: 620px; }
+.caso-cabecera { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--esp-3) var(--esp-4); margin: var(--esp-4) 0; padding: var(--esp-3) var(--esp-4); background: var(--fondo-2); border-radius: var(--radio-control); }
+.caso-cabecera dt { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tinta-3); margin-bottom: 2px; }
+.caso-cabecera dd { margin: 0px; font-size: 0.875rem; color: var(--tinta); }
+.caso-escalera { list-style: none; margin: 0 0 var(--esp-4); padding: 0px; display: flex; flex-direction: column; gap: var(--esp-2); }
+.caso-peldano { display: flex; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-3); border: 1px solid var(--borde); border-radius: var(--radio-control); background: var(--superficie); }
+.caso-peldano-num { flex-shrink: 0; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--borde-fuerte); font-size: 0.75rem; font-weight: 600; color: var(--tinta-3); }
+.caso-peldano-texto { display: flex; flex-direction: column; gap: 2px; font-size: 0.8125rem; color: var(--tinta-2); min-width: 0px; }
+.caso-peldano-texto strong { color: var(--tinta); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.caso-peldano-valor { color: var(--tinta); }
+.caso-peldano-fecha { color: var(--tinta-3); font-size: 0.75rem; }
+.caso-peldano--hecha { background: var(--estado-verde-bg); border-color: var(--estado-verde); }
+.caso-peldano--hecha .caso-peldano-num { background: var(--estado-verde); border-color: var(--estado-verde); color: var(--texto-sobre-estado); }
+.caso-peldano--siguiente { background: var(--seleccion-bg); border-color: var(--seleccion); }
+.caso-peldano--siguiente .caso-peldano-num { border-color: var(--seleccion); color: var(--tinta); }
+.caso-observacion { display: flex; flex-direction: column; gap: var(--esp-1); margin: 0 0 var(--esp-4); padding: var(--esp-3); background: var(--fondo-2); border-left: 3px solid var(--borde-fuerte); border-radius: var(--radio-control); font-size: 0.8125rem; color: var(--tinta-2); }
+.caso-cerrado { margin: 0 0 var(--esp-3); padding: var(--esp-3) var(--esp-4); background: var(--estado-verde-bg); border-left: 3px solid var(--estado-verde); border-radius: var(--radio-control); font-size: 0.8125rem; color: var(--estado-verde-texto); }
+.caso-intro { margin: var(--esp-3) 0 var(--esp-4); font-size: 0.8125rem; color: var(--tinta-2); max-width: 60ch; }
+.caso-form { display: block; }
+.caso-form-titulo { margin: var(--esp-4) 0 var(--esp-2); font-size: 0.875rem; color: var(--tinta); }
+.caso-check { display: flex; align-items: center; gap: var(--esp-2); margin: var(--esp-3) 0; font-size: 0.8125rem; color: var(--tinta); cursor: pointer; }
+.caso-check input { accent-color: var(--seleccion); cursor: pointer; }
+.ficha-caso-chip { font-size: 0.6875rem; color: var(--tinta-2); white-space: nowrap; }
+@media (max-width: 720px) {
+  .caso-cabecera { grid-template-columns: 1fr; }
+}
 .ficha { padding: var(--esp-5); max-width: 1440px; margin: 0px auto; }
 .ficha-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--esp-4); flex-wrap: wrap; margin-bottom: var(--esp-5); }
 .ficha-header-sub { font-size: 0.8125rem; color: var(--tinta-2); margin-top: var(--esp-1); max-width: 60ch; }
@@ -3806,6 +4058,10 @@ td,
   .vecinos-linea { padding-left: var(--esp-4); }
   .vecinos-hito-punto { left: calc(var(--esp-4) * -1 - 4px); }
 }
+.vecinos-hito-caso { display: flex; align-items: flex-start; flex-wrap: wrap; gap: var(--esp-2); margin: var(--esp-2) 0 0; padding: var(--esp-2) var(--esp-3); background: var(--fondo-2); border-left: 3px solid var(--borde-fuerte); border-radius: var(--radio-control); font-size: 0.75rem; color: var(--tinta-2); }
+.vecinos-hito-caso svg { flex-shrink: 0; margin-top: 1px; color: var(--tinta-3); }
+.vecinos-hito-caso strong { color: var(--tinta); }
+.vecinos-hito-gestiones { flex-basis: 100%; color: var(--tinta-3); }
 :root { --estado-verde: #1f7a3d; --estado-verde-bg: #e3f2e8; --estado-amarillo: #b87e00; --estado-amarillo-bg: #fcf0d4; --estado-rojo: #c0392b; --estado-rojo-bg: #fadbd7; --estado-verde-texto: #1f7a3d; --estado-amarillo-texto: #8a5e00; --estado-rojo-texto: #a52e20; --texto-sobre-estado: #ffffff; --tubo-1: #cfcac4; --tubo-2: #857f79; --tubo-3: #1a1a1a; --cat-1: #3b6b8f; --cat-2: #5b7a1f; --cat-3: #8f4a2b; --cat-4: #5a4f8a; --cat-5: #6b4a2b; --cat-6: #2e6f6a; --tinta: #1a1a1a; --tinta-2: #5b6166; --tinta-3: #8a9094; --fondo: #f4f4f2; --fondo-2: #ededeb; --superficie: #ffffff; --borde: #dddfe0; --borde-fuerte: #b9bdbf; --marca: #db0032; --marca-profundo: #8a0007; --marca-oscuro: #971a3a; --acento: #db0032; --acento-hover: #8a0007; --acento-suave: rgba(219, 0, 50, 0.1); --btn-bg: #db0032; --btn-bg-hover: #8a0007; --btn-texto: #ffffff; --seleccion: #1a1a1a; --seleccion-bg: #e9e8e4; --barra-fondo: #8a0007; --barra-texto: #ffffff; --barra-texto-2: rgba(255, 255, 255, 0.74); --barra-borde: rgba(255, 255, 255, 0.18); --barra-hover-bg: rgba(255, 255, 255, 0.08); --barra-activo-bg: rgba(255, 255, 255, 0.14); --font-titulo: "Libre Franklin", "Franklin Gothic Medium", system-ui, sans-serif; --font-cuerpo: "General Sans", "Public Sans", system-ui, sans-serif; --font-documento: Arial, "Liberation Sans", Helvetica, sans-serif; --esp-1: 4px; --esp-2: 8px; --esp-3: 12px; --esp-4: 16px; --esp-5: 24px; --esp-6: 32px; --esp-7: 48px; --esp-8: 64px; --radio-tarjeta: 8px; --radio-kanban: 6px; --radio-control: 4px; --sombra-1: 0 1px 2px rgba(26, 26, 26, 0.08); --sombra-2: 0 4px 12px rgba(26, 26, 26, 0.12); --sombra-3: 0 12px 32px rgba(26, 26, 26, 0.18); --ease-expo: cubic-bezier(0.16, 1, 0.3, 1); --dur-1: 150ms; --dur-2: 240ms; --dur-3: 420ms; }
 [data-theme="oscuro"] { --estado-verde: #62b980; --estado-verde-bg: rgba(31, 122, 61, 0.22); --estado-amarillo: #d9a430; --estado-amarillo-bg: rgba(184, 126, 0, 0.2); --estado-rojo: #e2695b; --estado-rojo-bg: rgba(192, 57, 43, 0.22); --estado-verde-texto: #62b980; --estado-amarillo-texto: #d9a430; --estado-rojo-texto: #ea7c70; --tubo-1: #4a4f52; --tubo-2: #969da2; --tubo-3: #e6e9ea; --cat-1: #7fb0d4; --cat-2: #a4c25a; --cat-3: #d98a63; --cat-4: #a79bd6; --cat-5: #c49a6c; --cat-6: #63b8b1; --tinta: #e6e9ea; --tinta-2: #a2abaf; --tinta-3: #6d777b; --fondo: #0f1214; --fondo-2: #1d2224; --superficie: #171b1d; --borde: #272d30; --borde-fuerte: #3a4246; --marca: #ff4d6d; --marca-profundo: #6b0006; --acento: #ff4d6d; --acento-hover: #ff7a92; --acento-suave: rgba(255, 77, 109, 0.14); --btn-bg: #db0032; --btn-bg-hover: #b8002a; --btn-texto: #ffffff; --seleccion: #e6e9ea; --seleccion-bg: rgba(255, 255, 255, 0.07); --barra-fondo: #6b0006; --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.45); --sombra-2: 0 4px 12px rgba(0, 0, 0, 0.5); --sombra-3: 0 12px 32px rgba(0, 0, 0, 0.6); }
 *, ::before, ::after { box-sizing: border-box; margin: 0px; }

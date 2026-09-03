@@ -6,6 +6,7 @@ import { useUnidadSocket } from "../lib/useUnidadSocket";
 import { avisoParametros } from "../lib/ficha";
 import type {
   Actividad,
+  AtencionSocial,
   CatalogoItem,
   CumplimientoRespuesta,
   Evidencia,
@@ -18,6 +19,7 @@ import { FilaNuevaActividad } from "../components/ficha/FilaNuevaActividad";
 import { TablaActividades } from "../components/ficha/TablaActividades";
 import { ModalAnular } from "../components/ficha/ModalAnular";
 import { VistaEvidencia } from "../components/ficha/VistaEvidencia";
+import { ModalCasoSocial } from "../components/ficha/ModalCasoSocial";
 import "./ficha.css";
 
 const CATALOGO_FORMATOS = "formato_evidencia";
@@ -45,6 +47,7 @@ export function FichaPage() {
   const [alerta, setAlerta] = useState<string | null>(null);
   const [anulando, setAnulando] = useState<Actividad | null>(null);
   const [viendo, setViendo] = useState<{ actividad: Actividad; evidencia: Evidencia } | null>(null);
+  const [casoSocial, setCasoSocial] = useState<Actividad | null>(null);
 
   // --- Carga inicial: períodos, delegaciones y formatos aceptados -----------
   useEffect(() => {
@@ -277,6 +280,7 @@ export function FichaPage() {
             }
             onVerEvidencia={(actividad, evidencia) => setViendo({ actividad, evidencia })}
             onAnular={setAnulando}
+            onCasoSocial={setCasoSocial}
             onError={mostrarError}
           />
         )}
@@ -289,6 +293,23 @@ export function FichaPage() {
           onAnulada={(a) => {
             setActividades((prev) => prev.map((x) => (x.id === a.id ? a : x)));
             cargarCumplimiento();
+          }}
+        />
+      )}
+
+      {casoSocial && (
+        <ModalCasoSocial
+          /* Remontar al cambiar de actividad: los catálogos que ofrece
+             dependen de la etapa en la que va ESE caso. */
+          key={casoSocial.id}
+          actividad={casoSocial}
+          puedeGestionar={puedeGestionar && periodoElegido?.estado === "abierto" && !casoSocial.anulada}
+          onCerrar={() => setCasoSocial(null)}
+          onCambiado={(actividadId, atencion) => {
+            const aplicar = (a: Actividad) =>
+              a.id === actividadId ? { ...a, atencionSocial: atencion } : a;
+            setActividades((prev) => prev.map(aplicar));
+            setCasoSocial((prev) => (prev ? aplicar(prev) : prev));
           }}
         />
       )}

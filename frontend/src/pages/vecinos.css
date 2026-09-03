@@ -492,3 +492,38 @@
     left: calc(var(--esp-4) * -1 - 4px);
   }
 }
+
+/* Caso social dentro del hito — RF-015 · CA-04 · DESIGN §3.3.
+   Zona de datos: nada de --marca ni --acento. El caso es un HECHO del
+   historial, no una selección, así que se apoya en el fondo hundido y en el
+   borde neutro; el énfasis lo pone el número de gestión, no el color. */
+.vecinos-hito-caso {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  margin: var(--esp-2) 0 0;
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  font-size: 0.75rem;
+  color: var(--tinta-2);
+}
+
+/* En flex un SVG cede antes que un párrafo: sin esto el icono se aplasta a un
+   hilo en móvil, como ya pasó con el aviso de duplicidad. */
+.vecinos-hito-caso svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--tinta-3);
+}
+
+.vecinos-hito-caso strong {
+  color: var(--tinta);
+}
+
+.vecinos-hito-gestiones {
+  flex-basis: 100%;
+  color: var(--tinta-3);
+}
