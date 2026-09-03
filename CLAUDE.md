@@ -14,7 +14,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 ## Leer antes de trabajar
 
 - **[docs/estado-proyecto.md](docs/estado-proyecto.md)** — estado por fase, contrato de API y Socket.io, deuda técnica. Actualizar al cerrar cada fase.
-- **[docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md)** — 12 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, tipo/dirección de ítems, tipografía, los dos rojos, y **quién consulta la ficha del vecino (ADR-012)**.
+- **[docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md)** — 13 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, tipo/dirección de ítems, tipografía, los dos rojos, **quién consulta la ficha del vecino (ADR-012)** y **las tres gestiones como avance (ADR-013)**.
 - **[docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md)** — HU ↔ requisito ↔ commit ↔ prueba. **Exigida por los profesores.**
 - **[DESIGN.md](DESIGN.md)** — normativo para todo el frontend. Un PR que viole su §8 se rechaza.
 - **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** — qué sigue, con su orden y sus trampas.
@@ -22,7 +22,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 
 ## Estado del código (3 de septiembre de 2026)
 
-**Construido y verificado** (171 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
+**Construido y verificado** (195 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
 - **Identidad visual de La Serena (Bloques D0 y D1, DESIGN §10 y §3.6)**: tokens en los dos temas, barra heráldica con una escena de La Serena (San Francisco, jarro pato diaguita, La Recova, El Miliciano, papayo, faro, camanchaca, greca), login con el Faro Monumental en SVG —dibujado a partir del real— que gira e ilumina el mar, Libre Franklin + General Sans (ADR-010), los dos rojos separados por rol, zona y forma (ADR-011), frase del producto, **dos regímenes de movimiento** (ambiente solo en login y barra; estado en los datos) y hover en todo lo clickeable. Verificada con `npm run verificar:contraste` y con capturas de las seis cuentas (`scripts/capturas.mjs`).
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
@@ -33,13 +33,13 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
 - **Bandeja del verificador `/verificacion`** (RF-013, HU-11): cola, foto grande, tres decisiones con observación obligatoria y teclado `J`/`K`/`Enter`. Solo la ven verificador, supervisor y admin.
 - **Ficha del vecino `/vecinos`** (ADR-008, ADR-012, RF-032, CA-04, HU-29): búsqueda por RUT o nombre, historial **cruzando delegaciones** y aviso ámbar de posible atención duplicada. Es el control que el cliente vino a buscar. Su alcance por rol es una decisión legal (ADR-012): `verificador` y `consulta` reciben 403 con el motivo, y para `gerente` y `usuario` el detalle de una atención ajena viaja reducido. Abrir una ficha se **audita** (acción `consultar`).
+- **Atención social y sus tres gestiones (Bloque B4)** — `/atenciones-sociales` (RF-015, HU-03, CA-04, ADR-013). La atención se crea colgada de su actividad (1:1) y **avanza**: el cliente manda la gestión y el servidor decide el casillero, así que no se puede saltar la primera ni registrar una cuarta. Tipos, sub-atenciones y las tres gestiones salen de `CatalogoItem`. Aparece en la ficha personal como caso con su escalera de tres peldaños y en el historial del vecino cruzando delegaciones. **CA-04 queda cerrado de punta a punta.** Alcance por rol: `verificador` y `consulta` reciben 403 con el motivo; desde otra delegación viaja el avance, no el contenido.
 - **Rutas heredadas endurecidas (Bloque A3)**: `/tareas`, `/unidades` y `/categorias` aplican `version` → 409 y auditan todo write, igual que el modelo v2. **CA-08 y CA-09 quedaron completos.** El tubo avisa el conflicto en pantalla en vez de revertir en silencio, y `DELETE /unidades/:id` **desactiva** en vez de borrar (RF-001, que estaba incumplido).
 - **Configuración de metas `/metas`** (RF-006, RF-007, HU-05): totalizador de RN-001 siempre visible, todos los ítems del cargo, guardado del conjunto con `PUT`, reparto en partes iguales y protección de lo que ya sumó puntaje. Solo la editan admin y supervisor.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
 - Seed 100% ficticio con 1.126 actividades validadas.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
-- **Las tres gestiones de `AtencionSocial`** (RF-015, HU-03): la entidad existe y la trazabilidad de la persona ya funciona; falta la API. Es lo único que le queda a CA-04.
 - 🔴 **El formulario del tubo no captura al solicitante** (RF-016, RF-017, Bloque B5): `interesExterno`, `solicitante`, `territorio`, `areaApoyo` y `personaUsuariaId` están en el esquema y los llena el seed, pero el `tareaSchema` no los acepta. Como `services/vecinos.ts` **sí** lee `tarea.personaUsuariaId`, una tarea externa creada desde la aplicación no aparece en la ficha del vecino: la trazabilidad parece rota sin estarlo. **No pedir RUT en el tubo** — la planilla real no lo tiene ahí (estructura-planilla-real §6).
 - API de `Ajuste`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - El dashboard aún usa la **vista materializada v1** (por delegación, con umbrales fijos en SQL), no el motor v2 por funcionario.
@@ -60,7 +60,7 @@ npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 18 verificaciones de integración (server corriendo)
 npm run verificar:calculo     # 21 verificaciones del motor de cálculo
-npm run verificar:api         # 132 verificaciones de la API v2 (server corriendo)
+npm run verificar:api         # 156 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo

@@ -39,6 +39,20 @@ export interface HechoHistorial {
   funcionario: { id: string; nombre: string } | null;
   contactoNombre: string | null;
   contactoFono: string | null;
+  /**
+   * RF-015 · CA-04: el caso social de esa atención, si lo tiene. El AVANCE
+   * viaja siempre —es lo que permite a la otra delegación saber que el caso ya
+   * está en curso y no volver a empezarlo—; el contenido (tipo, sub-atención,
+   * gestiones) solo cuando `detallado` (ADR-012).
+   */
+  atencionSocial: {
+    id: string;
+    gestionesRegistradas: number;
+    estado: "abierta" | "cerrada";
+    tipoAtencion: string | null;
+    subAtencion: string | null;
+    gestiones: { numero: number; valor: string; fecha: string | null }[];
+  } | null;
 }
 
 export interface AvisoDuplicidad {

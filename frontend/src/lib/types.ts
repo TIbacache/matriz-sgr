@@ -175,8 +175,40 @@ export interface Actividad {
   unidad: { id: string; nombre: string };
   personaUsuaria: { id: string; rut: string | null; nombres: string; apellidoPaterno: string } | null;
   evidencias: Evidencia[];
+  /**
+   * RF-015: el caso social de esta actividad, 1:1 con ella. La clave llega
+   * ausente para los roles que no acceden al detalle social (ADR-012) y `null`
+   * cuando la actividad simplemente no tiene caso: no son lo mismo.
+   */
+  atencionSocial?: AtencionSocial | null;
   /** Solo en la respuesta del alta: ADR-008, la persona ya fue atendida en otra delegación */
   alertaTrazabilidad?: { mensaje: string; delegaciones: string[] } | null;
+}
+
+/**
+ * Atención social con sus hasta 3 gestiones — RF-015 · CA-04. Espejo de
+ * `proyectar()` del backend: el avance ya viene calculado, la pantalla no lo
+ * deduce. `siguienteGestion` es null cuando el caso está cerrado.
+ */
+export interface AtencionSocial {
+  id: string;
+  actividadId: string;
+  tipoAtencion: string;
+  subAtencion: string | null;
+  requiereVisita: boolean;
+  observacion: string | null;
+  gestiones: {
+    numero: 1 | 2 | 3;
+    valor: string;
+    fechaProgramadaVisita?: string | null;
+    fechaVisita?: string | null;
+    fechaEntregaInforme?: string | null;
+    fechaEntregaBeneficio?: string | null;
+  }[];
+  gestionesRegistradas: 0 | 1 | 2 | 3;
+  siguienteGestion: 1 | 2 | 3 | null;
+  estado: "abierta" | "cerrada";
+  version: number;
 }
 
 export interface ListaActividades {

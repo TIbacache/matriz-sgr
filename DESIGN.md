@@ -1,7 +1,8 @@
 # DESIGN.md — Especificación visual SGR
 
-**Versión**: 1.6 · **Fecha**: 3 de septiembre de 2026
+**Versión**: 1.7 · **Fecha**: 3 de septiembre de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.7**: §8.2 suma los criterios del **caso social** (RF-015): escalera de tres peldaños en vez de formulario plano, sin selector de número de gestión, y en modal para no romper la tabla densa del registro diario.
 **v1.6**: §8.2 suma la regla del **aviso de conflicto** (CA-08), general para toda pantalla con bloqueo optimista: releer en vez de revertir, aviso persistente y nombrar el registro. §3 anota que los dos tratamientos del aviso (`--seleccion` y ámbar) todavía no están unificados.
 **v1.5**: §3.6 pasa a tener dos regímenes de movimiento —**estado** en las zonas de datos y **ambiente** en las zonas de identidad— y una regla de feedback para todo lo clickeable. Decisión del equipo del 2 de septiembre: "la app se mueve sin que la toquen". §8.9 se reescribe en consecuencia.
 **v1.4**: §10 ejecutado — identidad de la Municipalidad de La Serena en tokens, barra y login (ADR-010 tipografía, ADR-011 los dos rojos). §2 y §3 actualizadas a lo implementado; §8 suma la regla 11; nace §10.7 con la verificación por script.
@@ -281,7 +282,7 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
 
-**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ✅ ficha del vecino (`frontend/src/pages/VecinosPage.tsx`, 03-09-2026) · ✅ aviso de conflicto del tubo (03-09-2026) · ⬜ configuración de parámetros.
+**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ✅ ficha del vecino (`frontend/src/pages/VecinosPage.tsx`, 03-09-2026) · ✅ aviso de conflicto del tubo · ✅ caso social y sus tres gestiones (03-09-2026) · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
@@ -303,6 +304,16 @@ Regla general para **cualquier** pantalla que escriba con bloqueo optimista:
 2. **El aviso es persistente, no un toast.** Un mensaje de 5 segundos puede perderse, y perder de vista que un cambio no se guardó es exactamente lo que CA-08 prohíbe. Lleva `role="alert"` y se cierra a mano.
 3. **Nombra el registro concreto** ("«Solicitud de máquina…»: otra persona la movió"), no la categoría. Misma lección que el aviso de duplicidad del vecino: un aviso que marca de más deja de avisar.
 4. Es **zona de datos**: ni `--marca` ni `--acento` (§3.3). Un choque de ediciones es estado.
+
+### Caso social y sus tres gestiones (RF-015, CA-04) ✅ construido
+
+Va en **modal desde la fila** del registro diario, no como columnas: el registro es una tabla densa a propósito y las nueve columnas de la planilla la volverían ilegible. El caso, en cambio, es infrecuente y se mira de a uno.
+
+1. **Escalera de tres peldaños**, no un formulario plano. Se ve de un vistazo en cuál va y cuántas quedan, que es justo lo que CA-04 pide poder consultar.
+2. **Nunca solo color** (RNF-012): el peldaño hecho lleva ✓ y su texto lo dice («Es la que toca registrar», «Pendiente»).
+3. Es **zona de datos** (§3.3): lo hecho usa el verde de estado —es un hecho consumado— y lo que toca, `--seleccion`. El rojo institucional no entra.
+4. **No hay selector de número de gestión.** El servidor decide el casillero (ADR-013) y el formulario cambia de campos según la etapa. Ofrecerlo sería la forma de dejar que alguien rompa la secuencia.
+5. El botón de la fila **dice el avance**: «Caso 2/3». El número es lo que la persona necesita saber sin abrir nada.
 
 ### Formularios de registro (RF-009, RF-010)
 

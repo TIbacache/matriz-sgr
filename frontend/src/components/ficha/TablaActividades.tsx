@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import { Ban, Camera, Image as ImagenIcono } from "lucide-react";
+import { Ban, Camera, HeartHandshake, Image as ImagenIcono } from "lucide-react";
 import { subirArchivo } from "../../lib/api";
 import type { Actividad, Evidencia } from "../../lib/types";
 import { PRESENTACION_ESTADO, estadoDeActividad, fechaCl, mb, ultimaObservacion } from "../../lib/ficha";
@@ -14,6 +14,8 @@ interface Props {
   onEvidenciaSubida: (actividadId: string, evidencia: Evidencia) => void;
   onVerEvidencia: (actividad: Actividad, evidencia: Evidencia) => void;
   onAnular: (actividad: Actividad) => void;
+  /** RF-015: abre el caso social de esa actividad, o el formulario para crearlo. */
+  onCasoSocial: (actividad: Actividad) => void;
   onError: (mensaje: string) => void;
 }
 
@@ -31,6 +33,7 @@ export function TablaActividades({
   onEvidenciaSubida,
   onVerEvidencia,
   onAnular,
+  onCasoSocial,
   onError,
 }: Props) {
   const [subiendo, setSubiendo] = useState<string | null>(null);
@@ -144,6 +147,28 @@ export function TablaActividades({
                           aria-label={`Subir evidencia de ${a.codigo}`}
                         />
                       </label>
+                    )}
+                    {/* RF-015: el caso social solo existe si hay un vecino
+                        identificado detrás (RN-012), así que el botón aparece
+                        justo donde puede usarse y no en todas las filas. El
+                        texto dice el avance —"Caso 2/3"— porque el número es
+                        lo que la persona necesita saber sin abrir nada. */}
+                    {a.personaUsuaria && "atencionSocial" in a && (
+                      <button
+                        type="button"
+                        className="btn-tabla"
+                        onClick={() => onCasoSocial(a)}
+                        aria-label={
+                          a.atencionSocial
+                            ? `Ver el caso social de ${a.codigo}, gestión ${a.atencionSocial.gestionesRegistradas} de 3`
+                            : `Abrir el caso social de ${a.codigo}`
+                        }
+                      >
+                        <HeartHandshake size={14} strokeWidth={1.5} aria-hidden="true" />
+                        {a.atencionSocial
+                          ? `Caso ${a.atencionSocial.gestionesRegistradas}/3`
+                          : "Caso social"}
+                      </button>
                     )}
                     {puedeGestionar && !a.anulada && (
                       <button

@@ -2,8 +2,8 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 3 de septiembre de 2026 · `main` en la etiqueta `v0.10.0-ficha-vecino`
-**Bloque que abre**: B4 — las tres gestiones de la atención social (RF-015, HU-03), que es lo único que le falta a CA-04.
+**Última actualización**: 3 de septiembre de 2026 · `main` en la etiqueta `v0.12.0-atencion-social`
+**Bloque que abre**: B5 — la solicitud del vecino en el tubo (RF-016, RF-017). No es una mejora: es un agujero de trazabilidad que hace parecer roto algo que funciona.
 
 ---
 
@@ -16,73 +16,82 @@ entidades ya existen sin API o sin pantalla, y duplicar algo sería el error
 más caro):
 
 1. CLAUDE.md — reglas del proyecto y estado real del código.
-2. docs/siguiente-sesion.md — qué sigue, cabos sueltos y trampas del entorno.
-3. docs/requerimientos-oficiales.md — la especificación que se evalúa: RF-015
-   (atención social con hasta 3 gestiones), RF-004 (catálogos), CA-04 (la
-   secuencia completa del caso del vecino) y HU-03. Su §10 son las 12
-   consultas abiertas al docente: NO inventar esas respuestas.
-4. docs/estructura-planilla-real.md §4 — las columnas REALES de la atención
-   social en la planilla del cliente. La entidad AtencionSocial se modeló
-   desde ahí; antes de agregar un campo, comprobar que no exista.
+2. docs/siguiente-sesion.md — §3 tiene el Bloque B5 con su plan completo, y
+   §4 y §6 los cabos sueltos y las trampas del entorno.
+3. docs/requerimientos-oficiales.md — la especificación que se evalúa:
+   RF-016 (compromisos internos o externos), RF-017 (solicitante, territorio,
+   responsable, área de apoyo, fecha comprometida), RF-018 a RF-021 y CA-03.
+   Su §10 son las 12 consultas abiertas al docente: NO inventar esas
+   respuestas.
+4. docs/estructura-planilla-real.md §6 — las columnas REALES del tubo. Fíjate
+   en lo que NO tienen: no hay columna RUT. SOLICITANTE es texto libre y
+   muchos compromisos son internos.
 5. docs/decisiones-tecnicas.md — ADR-008 (la persona usuaria es única por
-   organización), ADR-012 (quién consulta la ficha del vecino y con qué
-   detalle: la atención social hereda ese criterio), ADR-006 (auditoría) y
-   ADR-007 (nada de valores de negocio en el código).
-6. DESIGN.md — §8.2 tiene los criterios de las pantallas; la ficha del vecino
-   ya está construida y la atención social se cuelga de ahí. §3.3 dice dónde
-   puede y dónde no puede ir el rojo institucional; §10.7, cómo se verifica.
+   organización), ADR-012 y ADR-013 (quién ve qué de un vecino y con qué
+   detalle), ADR-005 (concurrencia) y ADR-007 (nada de valores de negocio en
+   el código).
+6. DESIGN.md — §8.2 tiene los criterios de las pantallas construidas; §3.3
+   dice dónde puede y dónde no puede ir el rojo institucional; §10.7, cómo se
+   verifica.
 7. docs/estado-proyecto.md — cuentas y roles (§1), contrato de la API (§3),
-   las pantallas y por qué son así (§6), las 39 decisiones tomadas (§7) y lo
-   que aprendimos probando (§8).
+   las pantallas y por qué son así (§6), las decisiones tomadas (§7) y lo que
+   aprendimos probando (§8).
 
 Verifica el estado real con Docker arriba (docker compose up -d):
       cd backend && npm run build && npm run verificar:calculo
       npm run dev   (en otra terminal)
       npm run smoke && npm run verificar:api
       cd frontend && npm run build && npm run verificar:contraste
-Deben dar 234 comprobaciones en verde (17 + 21 + 113 + 83). Si algo falla,
-repórtalo antes de avanzar. Si `npm run dev` no arranca, revisa si el 4000 o
-el 5173 los tiene un proceso huérfano (receta en siguiente-sesion.md §6), y
-si Prisma no conecta, lo más probable es que el contenedor de Postgres esté
-detenido: `docker compose up -d` y esperar a que responda `pg_isready`.
+Deben dar 278 comprobaciones en verde (18 + 21 + 156 + 83). Si algo falla,
+repórtalo antes de avanzar. Si `npm run dev` muere con EADDRINUSE mientras
+`curl localhost:4000/health` responde 200, hay un `tsx watch` huérfano: matar
+al hijo NO basta, el vigilante lo respawnea — hay que subir al proceso padre
+(receta exacta en siguiente-sesion.md §6). Si Prisma no conecta, lo más
+probable es que el contenedor de Postgres esté detenido.
 
-TAREA — Bloque B4: la atención social y sus tres gestiones.
+TAREA — Bloque B5: la solicitud del vecino en el tubo.
 
-  CA-04 pide "caso social con 3 gestiones y secuencia consultable". La
-  secuencia ya es consultable (Bloque B3, pantalla /vecinos). Falta el caso.
-  Piezas:
-   1. API de AtencionSocial. LA ENTIDAD YA EXISTE en el esquema con todas sus
-      columnas (tipo, sub-atención, requiere visita, primera/segunda/tercera
-      gestión, fechas de visita, informe y entrega de beneficio). Es 1:1 con
-      Actividad. Lo que falta es la ruta: alta, edición con `version` → 409,
-      y las tres gestiones como avance, no como tres registros sueltos.
-      Los tipos y sub-atenciones salen de CatalogoItem (tipo_atencion,
-      sub_atencion, gestion_1, gestion_2, gestion_3), nunca de una lista en
-      el código.
-   2. Que la atención social aparezca en el historial del vecino (/vecinos):
-      hoy la línea de tiempo muestra actividades y compromisos. Una atención
-      social con sus gestiones es lo que cierra CA-04 de punta a punta.
-   3. Pantalla o bloque en la ficha personal para registrar y avanzar las
-      gestiones, con la identidad de DESIGN §3.3 (zona de datos: nada de
-      --acento ni --marca; lo seleccionado es --seleccion).
-   4. Verificaciones en backend/scripts/verificar-api-v2.ts (incluida la de
+  EL HECHO: `backend/src/services/vecinos.ts` ya LEE `tarea.personaUsuariaId`
+  y la línea de tiempo del vecino muestra sus compromisos del tubo. Pero
+  NINGUNA PANTALLA PUEDE CREAR ESE VÍNCULO: ni el `tareaSchema` de
+  `tareas.routes.ts` ni `NuevaTareaModal.tsx` aceptan un solo campo del
+  solicitante. Solo el seed los llena. Si el docente crea una tarea externa
+  desde la aplicación y después busca a ese vecino, el compromiso no aparece,
+  y la conclusión razonable sería que la trazabilidad no funciona. Funciona;
+  falta el formulario que la alimenta.
+
+  LO QUE NO HAY QUE HACER: pedir RUT obligatorio en el tubo. Contradiría la
+  planilla real (fuente 2) y trabaría el registro rápido que el cliente pidió.
+
+  Piezas (todo el modelo YA EXISTE — comprobarlo antes de crear nada):
+   1. `INT/EXT` como interruptor (`Tarea.interesExterno`, ya modelado) →
+      RF-016.
+   2. Si es interna, nada más: el formulario no crece para el caso frecuente.
+   3. Si es externa: `solicitante` (texto libre, obligatorio), `territorio`
+      (del catálogo `territorio`, YA SEMBRADO, nunca de una lista en el
+      código) y `areaApoyo` → RF-017.
+   4. Buscador OPCIONAL de vecino que reutiliza `GET /vecinos?q=` del Bloque
+      B3 para enlazar `personaUsuariaId`. Opcional a propósito: un
+      solicitante puede ser una organización, y forzar la ficha convertiría
+      el tubo en un registro de personas que la ley no pide (regla 18).
+   5. Extender el `tareaSchema`, exponer los campos en el `GET`, mostrarlos
+      en la tarjeta y en el detalle, y VERIFICAR QUE UN COMPROMISO CREADO POR
+      API APARECE EN LA FICHA DEL VECINO. Esa es la comprobación que cierra
+      el agujero, no la de que el campo se guarda.
+   6. Verificaciones en backend/scripts/verificar-api-v2.ts (incluida la de
       los seis roles), captura con las seis cuentas, y la fila en
       docs/matriz-trazabilidad.md.
 
-  ALTERNATIVA, si el equipo prefiere otro orden: endurecer las rutas
-  heredadas (/tareas, /unidades, /categorias) con `version` → 409 y
-  auditoría. Está marcada como prioridad Alta desde hace dos bloques y es lo
-  que le falta a CA-08 y CA-09 para pasar de 🟡 a ✅. Preguntar antes de
-  elegir; no decidirlo en silencio.
+  ALTERNATIVA, si el equipo prefiere otro orden: el Bloque C (migrar el
+  dashboard al motor v2 y eliminar la vista materializada v1, para que no
+  queden dos verdades). Preguntar antes de elegir; no decidirlo en silencio.
 
 Reglas no negociables (están en CLAUDE.md, se repiten porque son las que más
 se olvidan):
 - Ningún valor de negocio en el código: todo sale de `parametro` o de
   `CatalogoItem`. Prohibido fijar 90/91 días.
 - Marco legal chileno: Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719
-  de datos personales. La atención social es la información MÁS sensible del
-  sistema (situación socioeconómica de un vecino): finalidad, mínimo
-  privilegio y el criterio ya fijado en ADR-012.
+  de datos personales. Finalidad, proporcionalidad y mínimo privilegio.
 - Todo PATCH aplica bloqueo optimista con `version` y responde 409; todo
   write crítico audita; todo write emite su evento. Endpoint mudo = bug.
 - Multi-tenant: toda query filtra por organizationId del JWT; recurso ajeno
@@ -94,8 +103,6 @@ se olvidan):
 - Todo cambio de color pasa por `npm run verificar:contraste`.
 - Al terminar la pantalla, regenerar los entregables visuales:
       cd frontend && npm run mockups && npm run verificar:mockups
-  (regla 19: lo que no está en Planner no se evalúa, y el frontend además
-  debe verse en GitHub).
 - Documentar al cerrar el bloque en el archivo que corresponda (CLAUDE.md,
   DESIGN.md, README.md, docs/*, memoria). No dejarlo para el final.
 - Flujo de git: rama por bloque → verificar en verde → documentar →
@@ -110,16 +117,20 @@ Contexto que NO hay que volver a derivar:
   General Sans, los dos rojos separados por rol/zona/forma, faro en SVG que
   gira e ilumina el mar, la escena de La Serena en la barra, la frase
   «Lo que se atiende, se registra; lo que se registra, avanza», y dos
-  regímenes de movimiento (DESIGN §3.6): ambiente solo en login y barra,
-  estado en los datos, hover en todo lo clickeable. No reabrir. Sin Tailwind.
-- La ficha del vecino está cerrada (Bloque B3) y su alcance por rol es una
-  decisión LEGAL, no de comodidad: ADR-012. `verificador` y `consulta` no
-  entran; para `gerente` y `usuario` el detalle de una atención de otra
-  delegación viaja reducido; abrir una ficha se audita con la acción
-  `consultar`. No ampliarlo sin que el docente responda la consulta nº 12.
-- "v1" no significa obsoleto. /tareas (el tubo, EP-04), /unidades (RF-001) y
-  /categorias sostienen requisitos vigentes y hay que endurecerlas. Las que
-  mueren son /metas v1 y /kpis/cumplimiento (con el Bloque C).
+  regímenes de movimiento (DESIGN §3.6). No reabrir. Sin Tailwind.
+- CA-04 está CERRADO (Bloque B4): el caso social con sus tres gestiones
+  existe, avanza y se consulta cruzando delegaciones. La regla que lo
+  sostiene es ADR-013: el servidor decide en qué casillero cae cada gestión,
+  no el cliente. No agregar un selector de "número de gestión".
+- CA-08 y CA-09 están CERRADOS (Bloque A3): las tres rutas heredadas
+  (/tareas, /unidades, /categorias) comparan `version` → 409 y auditan. El
+  tubo avisa el conflicto en pantalla en vez de revertir en silencio.
+- El alcance de los datos de un vecino es una decisión LEGAL, no de
+  comodidad: ADR-012 y ADR-013. `verificador` y `consulta` no entran; desde
+  otra delegación viaja el hecho y el avance, no el contenido. No ampliarlo
+  sin que el docente responda la consulta nº 12.
+- "v1" no significa obsoleto. Las que mueren son /metas v1 y
+  /kpis/cumplimiento, con el Bloque C.
 - El docente dijo que SOLO revisará el Planner. El plan de 58 tareas sigue
   sin cargar y eso es bloqueante para la evaluación, no deuda técnica.
 - La entrega del 15 de septiembre (mockups, MER, modelo de datos, diagrama de

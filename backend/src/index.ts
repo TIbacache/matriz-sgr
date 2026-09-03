@@ -21,6 +21,7 @@ import { evidenciasRouter } from "./routes/evidencias.routes.js";
 import { cumplimientoRouter } from "./routes/cumplimiento.routes.js";
 import { catalogosRouter } from "./routes/catalogos.routes.js";
 import { vecinosRouter } from "./routes/vecinos.routes.js";
+import { atencionesSocialesRouter } from "./routes/atenciones-sociales.routes.js";
 
 const app = express();
 app.use(cors({ origin: env.corsOrigin }));
@@ -81,6 +82,7 @@ app.use("/actividades", actividadesRouter);
 app.use("/evidencias", evidenciasRouter);
 app.use("/cumplimiento", cumplimientoRouter);
 app.use("/catalogos", catalogosRouter);
+app.use("/atenciones-sociales", atencionesSocialesRouter);
 // Ficha del vecino: la pantalla con más datos personales. Su alcance por rol
 // es una decisión legal, no de comodidad (ADR-012).
 app.use("/vecinos", vecinosRouter);

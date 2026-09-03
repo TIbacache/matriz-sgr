@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, ShieldAlert, Lock, Pencil, X } from "lucide-react";
+import { Search, ShieldAlert, Lock, Pencil, X, HeartHandshake } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
@@ -372,6 +372,28 @@ export function VecinosPage() {
                       </p>
                       {h.detallado && h.descripcion && (
                         <p className="vecinos-hito-detalle">{h.descripcion}</p>
+                      )}
+                      {/* RF-015 · CA-04: el caso social y su avance. Es lo que
+                          cierra la secuencia consultable: desde otra
+                          delegación se ve cuántas gestiones lleva —para no
+                          duplicar la ayuda— pero no de qué se trata. */}
+                      {h.atencionSocial && (
+                        <p className="vecinos-hito-caso">
+                          <HeartHandshake size={13} strokeWidth={1.6} aria-hidden="true" />
+                          <span>
+                            <strong>Caso social</strong> · gestión{" "}
+                            <span className="tnum">{h.atencionSocial.gestionesRegistradas}</span> de 3
+                            {h.atencionSocial.estado === "cerrada" ? " · cerrado" : " · en curso"}
+                            {h.atencionSocial.tipoAtencion && ` · ${h.atencionSocial.tipoAtencion}`}
+                          </span>
+                          {h.atencionSocial.gestiones.length > 0 && (
+                            <span className="vecinos-hito-gestiones">
+                              {h.atencionSocial.gestiones
+                                .map((g) => `${g.numero}. ${g.valor}`)
+                                .join(" → ")}
+                            </span>
+                          )}
+                        </p>
                       )}
                       <p className="vecinos-hito-pie">
                         {h.codigo && <span className="tnum">{h.codigo}</span>}

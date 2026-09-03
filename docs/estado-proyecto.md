@@ -1,7 +1,7 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.11.0-rutas-endurecidas`
-**Verificación**: 254 comprobaciones automatizadas en verde — backend 171 (18 smoke + 21 cálculo + 132 API) y frontend 83 (contraste)
+**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.12.0-atencion-social`
+**Verificación**: 278 comprobaciones automatizadas en verde — backend 195 (18 smoke + 21 cálculo + 156 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
 Lo vigente está arriba; el registro histórico de las fases, al final.
@@ -53,7 +53,7 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 17 ✅ · 14 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B3 cerró RF-032 y dejó RF-015 y CA-04 en 🟡: la **secuencia del caso ya es consultable**, faltan las tres gestiones de `AtencionSocial`. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 **bajó** de ✅ a 🟡 el 3 de septiembre: estaba marcado como completo con una nota que decía que le faltaba el campo INT/EXT, y la nota tenía razón.
+**Contra los 38 RF oficiales: 18 ✅ · 13 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 **bajó** de ✅ a 🟡 el 3 de septiembre: estaba marcado como completo con una nota que decía que le faltaba el campo INT/EXT, y la nota tenía razón.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -93,6 +93,10 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 | `GET /vecinos?q=&limite=` | admin, supervisor, gerente, usuario | Busca por **RUT** (exacto, en cualquier formato) o por **nombre** (parcial, sobre la expresión indexada de ADR-003). Menos de 3 caracteres devuelve vacío. Cada resultado trae `atenciones` y en cuántas `delegaciones`. `verificador` y `consulta` → **403 con el motivo** (ADR-012) |
 | `GET /vecinos/:id` | ídem | Ficha: `persona`, `alcance`, `resumen`, `aviso` y `historial` cruzando delegaciones. Para `gerente` y `usuario`, los hechos de otra delegación llegan **reducidos** (`detallado: false`, sin descripción ni contacto). Queda **auditado** con la acción `consultar`. UUID mal formado → 400; de otro tenant → 404 |
 | `PATCH /vecinos/:id` | nivel central, o quien la atendió en su delegación | Rectificación de datos personales (Ley 19.628 art. 6). Exige `version` → 409. RUT ya usado por otra persona → 409. Emite `vecino:actualizado` |
+| `POST /actividades/:id/atencion-social` | quien registra la actividad, su jefatura o el nivel central | RF-015. Cuelga de la actividad (1:1), como la evidencia. Cuerpo: `tipoAtencion`, `subAtencion`, `requiereVisita`, `observacion` y opcionalmente `primeraGestion` + `fechaProgramadaVisita`. Valores del catálogo → 422 si no; sin `personaUsuariaId` → 422 (RN-012); si ya tiene atención → **409** (eso es duplicado, no avance) |
+| `GET /atenciones-sociales/:id` | admin, supervisor, gerente, usuario | El caso con su avance ya calculado (`gestiones`, `gestionesRegistradas`, `siguienteGestion`, `estado`). `verificador` y `consulta` → **403 con el motivo escrito** (ADR-013). Caso de otra delegación → 404. Queda **auditado** como `consultar`. UUID mal formado → 400 |
+| `POST /atenciones-sociales/:id/gestiones` | ídem escritura | **El corazón del bloque.** Recibe `{gestion, version}` y las fechas de esa etapa — **no su número**: el servidor decide el casillero. Fecha que no corresponde → 422; valor fuera del catálogo de *esa* gestión → 422; versión consumida → 409; una cuarta → 422. La observación se **anexa**. Audita `cambiar_estado` |
+| `PATCH /atenciones-sociales/:id` | ídem | Corrige solo la **cabecera** (tipo, sub-atención, visita, observación). Exige `version` → 409. Las gestiones no se corrigen por aquí (ADR-013, consecuencia abierta) |
 
 ### 3.2 Rutas heredadas del modelo v1
 
@@ -116,7 +120,7 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 
 | Room | Eventos |
 |---|---|
-| `unidad:<id>` | `tarea:creada/actualizada/eliminada`, `presencia:actualizada`, `actividad:creada/actualizada/anulada`, `evidencia:creada`, `validacion:registrada`, `meta_item:creada/actualizada/eliminada` |
+| `unidad:<id>` | `tarea:creada/actualizada/eliminada`, `presencia:actualizada`, `actividad:creada/actualizada/anulada`, `evidencia:creada`, `validacion:registrada`, `meta_item:creada/actualizada/eliminada`, `atencion_social:creada/actualizada` |
 | `org:<id>` | `unidad:*`, `categoria:*`, `meta:actualizada/eliminada`, `periodo:creado/actualizado/cerrado/reabierto`, `cargo:*`, `item:*`, `evidencia:pendiente`, `cumplimiento:cambiado`, `cumplimiento:recalculado`, `vecino:actualizado` |
 
 Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` **en la raíz**: es lo único que el oyente necesita para saber si le toca releer.
@@ -204,6 +208,7 @@ La pantalla más importante: la "pestaña personal" de la planilla. Tres bloques
 - Formatos aceptados y tamaño máximo se anuncian **antes** de elegir el archivo.
 - La evidencia no se enlaza con un `src` directo: el endpoint exige JWT, así que se descarga por fetch y se muestra desde un object URL que se revoca al cerrar.
 - Al llegar `validacion:registrada` recarga cumplimiento y actividades **juntos**, para que la cifra de arriba y el estado de la fila nunca cuenten cosas distintas.
+- **Caso social (Bloque B4, RF-015)**: la fila que tiene un vecino identificado ofrece un botón que dice el avance —«Caso 2/3»— y abre un modal con la **escalera de tres peldaños**: lo hecho en verde con ✓, lo que toca en `--seleccion`, lo pendiente en neutro. El formulario cambia de campos según la etapa y **no tiene selector de número de gestión**: eso sería la forma de dejar que alguien rompa la secuencia que CA-04 pide demostrar (ADR-013). Va en modal y no en la fila porque el registro diario es una tabla densa a propósito y catorce columnas más la volverían ilegible.
 
 ### 6.3 Bandeja del verificador (`/verificacion`) — RF-013, HU-11
 
@@ -237,6 +242,7 @@ Es el control que el cliente vino a buscar: la misma persona atendida en varias 
 - **Lo reservado se dice, no se esconde**: para un funcionario, las atenciones de otra delegación muestran fecha, delegación, tipo y estado, con la etiqueta «Detalle reservado» y «Consultar a la delegación X». Arriba, una línea cuenta cuántas son y por qué.
 - **Corregir datos** en línea, con bloqueo optimista y aviso de conflicto. El RUT no se edita ahí: es la llave del historial.
 - **El verificador y el rol de consulta ven la pantalla con el motivo escrito**, no un 404 mudo, y no tienen la entrada en el menú.
+- **El caso social en el hito (Bloque B4, CA-04)**: la atención que tiene caso lo muestra bajo su descripción —«Caso social · gestión 2 de 3 · en curso»— con la cadena de gestiones registradas. Desde otra delegación **viaja el avance pero no el contenido**: el número de gestiones y si está cerrado, sin el tipo ni las gestiones. Saber que el caso ya está en curso es lo que evita duplicar la ayuda; saber que pidió una caja de alimentos no hace falta para eso (ADR-013).
 - La URL guarda `?q=` e `?id=`: un enlace a la ficha de un vecino se pega en un correo interno sin explicar cómo llegar. Es además lo que permite que la captura y el mockup muestren algo.
 
 ### 6.6 Dashboard (`/dashboard`) — EP-05
@@ -363,7 +369,8 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | `TareaHistorial` sigue sin usarse: RF-018 pide **historial de transición** visible, y hoy el recorrido de una tarjeta solo está en la bitácora de auditoría (que es interna). Es lo que le falta a CA-03 junto con la alerta | `tareas.routes.ts`, entidad ya modelada | Media |
 | Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
 | ~~Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria`~~ ✅ **resuelto el 03-09-2026** (Bloque B3): `GET /vecinos`, `GET /vecinos/:id`, `PATCH /vecinos/:id` y la pantalla `/vecinos` | — | ✅ |
-| La ficha del vecino no muestra las **tres gestiones** de `AtencionSocial` (RF-015, HU-03): la entidad existe, la API no. Es lo único que le falta a CA-04 | backend | Alta |
+| ~~La ficha del vecino no muestra las **tres gestiones** de `AtencionSocial`~~ ✅ **resuelto el 03-09-2026** (Bloque B4): `/atenciones-sociales`, el modal del caso en la ficha personal y el caso con su avance en el historial del vecino. CA-04 cerrado | — | ✅ |
+| **Corregir una gestión ya registrada no está resuelto**: el `PATCH` solo toca la cabecera del caso. Si el cliente lo pide, la decisión será si se corrige con bloqueo optimista o si se anula la actividad y se registra otra, como con las validaciones aprobadas (consulta abierta nº 8). Anotado en ADR-013, no inventado | `atenciones-sociales.routes.ts` | Media |
 | El historial del vecino trae hasta 500 hechos de una vez y la pantalla los pinta todos: falta paginar, como ya se hizo en la bandeja | `vecinos.routes.ts`, `VecinosPage.tsx` | Media |
 | API de `Ajuste`, `Comentario`, `Ausencia` y CRUD de catálogos y parámetros | backend | Media |
 | Pantallas de administración: períodos, cargos, catálogos | frontend | Media |
