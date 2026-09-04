@@ -165,3 +165,8 @@ git reset --hard v0.2.0-modelo-v2       # vuelve al estado anterior (solo si aú
 | `v0.8.1-vida-en-pantalla` | Dos regímenes de movimiento (DESIGN §3.6): el faro gira e ilumina el mar, marcador del menú deslizante, cifras que cuentan y hover en todo lo clickeable |
 | `v0.8.2-faro-y-escena` | El faro redibujado a partir del real (ventanas encendidas, galería, linterna, torreones) sin recorte, y la escena de La Serena en la barra: San Francisco, jarro pato, La Recova, El Miliciano, papayo, faro, camanchaca y greca diaguita |
 | `v0.8.3-mar-completo` | Corrección: el mar del login llega a los bordes del panel en cualquier ancho (escritorio ancho, normal y móvil) |
+| `v0.10.0-ficha-vecino` | Ficha del vecino (`/vecinos`): búsqueda por RUT y nombre, historial cruzando delegaciones, aviso de posible atención duplicada y alcance por rol como decisión legal (ADR-012) |
+| `v0.11.0-rutas-endurecidas` | `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría (CA-08 y CA-09), y RF-001: dar de baja una delegación la desactiva en vez de borrarla |
+| `v0.12.0-atencion-social` | Atención social con sus tres gestiones (RF-015, ADR-013): el servidor decide el casillero, no el cliente. **CA-04 cerrado de punta a punta** |
+| `v0.13.0-solicitud-en-el-tubo` | La solicitud del vecino en el tubo (RF-016, RF-017): INT/EXT, solicitante, territorio, área de apoyo y el vínculo opcional con la ficha. **EP-01 completa** |
+| `v0.14.0-dashboard-v2` | El tablero sobre el motor por funcionario (RF-029, ADR-014) y **la eliminación del cálculo v1**: vista materializada, tabla `metas`, `/metas`, `/kpis/cumplimiento` y el cron. RF-024 y RF-027 cerrados; CA-06 verificado |
