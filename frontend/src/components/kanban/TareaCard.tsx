@@ -39,6 +39,20 @@ export function TareaCard({ tarea, colorCategoria, arrastrable, indice = 0, enOv
       }}
     >
       <h4 className="tarea-card-titulo">{tarea.titulo}</h4>
+      {/* RF-016 · RF-017: de quién viene y dónde. Solo en las EXTERNAS: en una
+          interna no hay solicitante y la línea sobraría en todas las tarjetas.
+          El vínculo con la ficha del vecino se marca con un punto, no con el
+          RUT: el tubo lo mira todo el equipo y el RUT no hace falta aquí
+          (mínimo privilegio, ADR-012). */}
+      {tarea.interesExterno && tarea.solicitante && (
+        <p className="tarea-card-solicitud">
+          {tarea.personaUsuaria && (
+            <span className="tarea-card-vecino" title="Enlazada a la ficha de este vecino" aria-hidden="true" />
+          )}
+          <span className="tarea-card-solicitante">{tarea.solicitante}</span>
+          {tarea.territorio && <span className="tarea-card-territorio"> · {tarea.territorio}</span>}
+        </p>
+      )}
       <div className="tarea-card-meta">
         {tarea.categoria && <span className="tarea-card-categoria">{tarea.categoria.nombre}</span>}
         {tarea.fechaCompromiso && (

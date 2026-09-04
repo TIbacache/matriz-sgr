@@ -66,8 +66,8 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 
 | ID | Requerimiento | Estado | Nota |
 |---|---|---|---|
-| RF-016 | Crear compromisos derivados de solicitudes internas o externas | 🟡 | Estaba marcado ✅ con una nota que decía lo contrario; corregido el 03-09-2026. `Tarea.interesExterno` está **modelado y sembrado**, pero ni la API ni el formulario lo aceptan: toda tarea creada desde la aplicación nace con el valor por defecto, así que hoy no se distingue una solicitud interna de una externa |
-| RF-017 | Asignar solicitante, territorio, responsable, área de apoyo, fecha comprometida | 🟡 | Solo responsable y fecha comprometida. `solicitante`, `territorio`, `areaApoyo` y `personaUsuariaId` existen en el esquema y los llena el seed, pero **el `tareaSchema` no los acepta**: por eso un compromiso externo creado desde la aplicación no llega a la ficha del vecino, aunque `/vecinos` sí sabe leerlo (Bloque B5) |
+| RF-016 | Crear compromisos derivados de solicitudes internas o externas | ✅ | Bloque B5: INT/EXT es una elección explícita en el alta, y una solicitud externa exige decir quién la pidió (422 si no). Sin eso el campo no significaba nada |
+| RF-017 | Asignar solicitante, territorio, responsable, área de apoyo, fecha comprometida | ✅ | Bloque B5: los cinco campos. `territorio` y `areaApoyo` salen de `CatalogoItem` (RF-004); `solicitante` es texto libre porque puede ser una organización, y el vínculo con la ficha del vecino es **opcional** — es lo que lleva el compromiso a su historial (ADR-008) |
 | RF-018 | Estados **Ingresado → Pendiente → En proceso → Realizado** con transiciones controladas | 🟡 | Tenemos 3 estados; falta "Ingresado" e **historial de transición** |
 | RF-019 | Controlar plazos: próximos a vencer, vencidos, realizados fuera de plazo | 🟡 | Marcamos vencidos; faltan "próximo a vencer" y "fuera de plazo" |
 | RF-020 | El cierre de compromisos alimenta el indicador **una sola vez** | ⬜ | Es el ítem "Soluciones al ingreso al tubo" |
@@ -100,7 +100,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
 | RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 18 ✅ · 13 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅)
+**Resumen: 38 RF → 20 ✅ · 11 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅)
 
 ---
 

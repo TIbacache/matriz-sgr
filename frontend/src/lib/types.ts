@@ -56,6 +56,27 @@ export interface Tarea {
   // Bloqueo optimista (CA-08, ADR-005): el PATCH la exige y el servidor
   // responde 409 si otra persona movió la tarjeta mientras tanto.
   version: number;
+
+  // --- La solicitud, columnas reales del tubo (planilla §6) — RF-016, RF-017.
+  /** INT/EXT: `true` = la pidió un vecino; `false` = trabajo interno. */
+  interesExterno: boolean;
+  fechaSolicitud: string | null;
+  /** Texto libre: puede ser una junta de vecinos, no necesariamente una persona. */
+  solicitante: string | null;
+  personaUsuariaId: string | null;
+  /** Vínculo OPCIONAL con la ficha del vecino: es lo que lleva el compromiso a su historial (ADR-008). */
+  personaUsuaria: {
+    id: string;
+    rut: string | null;
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string | null;
+  } | null;
+  territorio: string | null;
+  areaApoyo: string | null;
+  observaciones: string | null;
+  /** Solo en la respuesta del alta: ADR-008, la persona ya registra hechos en otra delegación. */
+  alertaTrazabilidad?: { mensaje: string; delegaciones: string[] } | null;
 }
 
 export interface Conectado {

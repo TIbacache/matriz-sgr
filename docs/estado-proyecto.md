@@ -1,7 +1,7 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.12.0-atencion-social`
-**Verificación**: 278 comprobaciones automatizadas en verde — backend 195 (18 smoke + 21 cálculo + 156 API) y frontend 83 (contraste)
+**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.13.0-solicitud-en-el-tubo`
+**Verificación**: 290 comprobaciones automatizadas en verde — backend 207 (18 smoke + 21 cálculo + 168 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
 Lo vigente está arriba; el registro histórico de las fases, al final.
@@ -53,7 +53,7 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 18 ✅ · 13 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 **bajó** de ✅ a 🟡 el 3 de septiembre: estaba marcado como completo con una nota que decía que le faltaba el campo INT/EXT, y la nota tenía razón.
+**Contra los 38 RF oficiales: 20 ✅ · 11 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 bajó de ✅ a 🟡 el 3 de septiembre al comprobar que el campo INT/EXT no era alcanzable, y el **Bloque B5** lo cerró junto con RF-017.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -104,7 +104,7 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 
 | Endpoint | Veredicto | Por qué |
 |---|---|---|
-| `GET/POST/PATCH/DELETE /tareas` | **Se queda — ✅ endurecida** | Es el tubo de trabajo: EP-04, RF-016 a RF-021, HU-12 a HU-15. Desde el Bloque A3 el `PATCH` exige `version` y responde 409, y todo write se audita (`crear`, `cambiar_estado`, `actualizar`, `eliminar`). Sigue pendiente `TareaHistorial` (RF-018) |
+| `GET/POST/PATCH/DELETE /tareas` | **Se queda — ✅ endurecida y completada** | Es el tubo de trabajo: EP-04, RF-016 a RF-021, HU-12 a HU-15. Desde el Bloque A3 el `PATCH` exige `version` → 409 y todo write se audita. Desde el **Bloque B5** acepta la solicitud completa: `interesExterno`, `fechaSolicitud`, `solicitante`, `personaUsuariaId`, `territorio`, `areaApoyo` y `observaciones`. Una solicitud externa **sin solicitante → 422**; territorio y área de apoyo se validan contra `CatalogoItem` al crear y al corregir → 422; persona inexistente → 404. El alta devuelve `alertaTrazabilidad` si esa persona ya registra hechos en otra delegación (ADR-008). Sigue pendiente `TareaHistorial` (RF-018) |
 | `GET/POST/PATCH/DELETE /unidades` | **Se queda — ✅ endurecida** | Delegaciones, RF-001. Desde el Bloque A3: `version` → 409, auditoría, y el `DELETE` **desactiva** en vez de borrar (`?incluirInactivas=1` para verlas) |
 | `GET/POST/PATCH/DELETE /categorias` | **Se queda — ✅ endurecida** | Clasificación del tubo. Desde el Bloque A3: `version` → 409 y auditoría. Podría converger a `CatalogoItem` más adelante |
 | `GET/PUT/PATCH /metas` (unidad × categoría × trimestre) | **Muere — borrar** | Reemplazada por `/metas-item`. **El frontend ya no la llama.** No se puede borrar todavía porque la vista materializada v1 depende de la tabla `Meta` |
@@ -195,6 +195,8 @@ Todas siguen los criterios que **DESIGN §8.2 fijó antes** de construirlas, y d
 ### 6.1 Tubo de trabajo (`/`) — EP-04
 
 Kanban con dnd-kit, tiempo real y presencia. Actualización optimista con reversión y aviso si el PATCH falla. Permisos espejo del backend (que sigue siendo la autoridad). El libro es **privado por delegación**; el verificador no tiene libro y ve un vacío que lo explica.
+
+**La solicitud (Bloque B5, RF-016 y RF-017)**: el alta pregunta el origen —**Interna o Externa**, dos opciones explícitas y no una casilla, porque «no marcado» no es lo mismo que «es trabajo interno»— y solo al marcar Externa aparecen los cuatro campos de la solicitud: quién la pidió (obligatorio), territorio y área de apoyo (del catálogo) y un **buscador opcional de vecino** que reutiliza `GET /vecinos?q=`. **No se pide RUT**: la planilla del cliente no tiene esa columna en el tubo y muchos compromisos no tienen persona detrás. La tarjeta muestra solicitante y territorio solo en las externas, y marca con un punto las que están enlazadas a una ficha —no con el RUT, que el tubo entero no necesita ver (ADR-012). Al crear una enlazada, el mismo aviso ámbar de trazabilidad que da la ficha personal.
 
 **Conflicto de concurrencia (Bloque A3, CA-08)**: el PATCH viaja con la `version` que tenía la tarjeta al arrastrarla. Si alguien la movió en el intervalo, el servidor responde 409 y la pantalla **no revierte a ciegas** —eso inventaría un estado que ya no es el vigente—: recarga el libro y muestra un aviso ámbar persistente que nombra la tarjeta (`.tubo-conflicto`). Persistente a propósito: un toast de 5 segundos puede perderse, y perder de vista que tu cambio no se guardó es justo lo que CA-08 prohíbe. Es zona de datos, así que usa el ámbar de **estado**, no `--marca` ni `--acento` (DESIGN §3.3).
 
@@ -365,7 +367,8 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | El nombre de la organización se trunca en la barra de 240px ("Municipalidad Demo (datos fi…") | `layout.css` | Baja |
 | Las evidencias del seed no tienen archivo en disco: la bandeja muestra "No se pudo abrir el archivo (410)" con datos demo | seed | Baja (solo demo) |
 | ~~Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría~~ ✅ **resuelto el 03-09-2026** (Bloque A3), junto con RF-001 (la baja de una delegación la desactiva) y el aviso de conflicto en el tubo | — | ✅ |
-| 🔴 **El tubo no puede enlazar al vecino** (RF-016, RF-017): `services/vecinos.ts` lee `tarea.personaUsuariaId` y la línea de tiempo del vecino muestra compromisos, pero **nada en la aplicación crea ese vínculo** — el `tareaSchema` no acepta `interesExterno`, `solicitante`, `territorio`, `areaApoyo` ni `personaUsuariaId`, y el modal tampoco los pide. Solo el seed los llena. Una tarea externa creada desde la aplicación **no aparece en la ficha del vecino**. Plan en [siguiente-sesion §3, Bloque B5](siguiente-sesion.md) | `tareas.routes.ts`, `NuevaTareaModal.tsx` | **Alta** |
+| ~~🔴 **El tubo no puede enlazar al vecino** (RF-016, RF-017)~~ ✅ **resuelto el 03-09-2026** (Bloque B5): INT/EXT, solicitante, territorio, área de apoyo y el vínculo opcional con la ficha del vecino, con la verificación que comprueba que el compromiso **aparece en el historial** | — | ✅ |
+| **No se declara `color-scheme`**: los controles nativos (radios, casillas, selectores de fecha) se pintan en claro también en el tema oscuro. El Bloque B5 lo rodeó marcando la opción elegida en el contenedor, no solo en el punto del radio, pero la causa sigue ahí y afecta a todos los formularios | `tokens.css` | Media |
 | `TareaHistorial` sigue sin usarse: RF-018 pide **historial de transición** visible, y hoy el recorrido de una tarjeta solo está en la bitácora de auditoría (que es interna). Es lo que le falta a CA-03 junto con la alerta | `tareas.routes.ts`, entidad ya modelada | Media |
 | Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
 | ~~Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria`~~ ✅ **resuelto el 03-09-2026** (Bloque B3): `GET /vecinos`, `GET /vecinos/:id`, `PATCH /vecinos/:id` y la pantalla `/vecinos` | — | ✅ |

@@ -27,6 +27,7 @@ export function TuboPage() {
   const [cargandoUnidades, setCargandoUnidades] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [conflicto, setConflicto] = useState<string | null>(null);
+  const [avisoVecino, setAvisoVecino] = useState<string | null>(null);
 
   const terminoUnidad = terminologia.unidad ?? "unidad";
 
@@ -198,6 +199,20 @@ export function TuboPage() {
         </p>
       )}
 
+      {avisoVecino && (
+        <p className="tubo-aviso-vecino" role="note">
+          {avisoVecino}
+          <button
+            type="button"
+            className="btn-tabla"
+            onClick={() => setAvisoVecino(null)}
+            aria-label="Cerrar el aviso de trazabilidad"
+          >
+            Entendido
+          </button>
+        </p>
+      )}
+
       {cargandoUnidades || cargando ? (
         <div className="tubo-skeleton" aria-hidden="true">
           <div className="skeleton" />
@@ -240,9 +255,13 @@ export function TuboPage() {
           unidadNombre={unidadActual.nombre}
           categorias={categorias}
           onCerrar={() => setModalAbierto(false)}
-          onCreada={(t) =>
-            setTareas((prev) => (prev.some((x) => x.id === t.id) ? prev : [...prev, t]))
-          }
+          onCreada={(t) => {
+            setTareas((prev) => (prev.some((x) => x.id === t.id) ? prev : [...prev, t]));
+            // ADR-008 · CA-04: el mismo aviso que da el alta de una actividad.
+            // Un compromiso y una atención son dos hechos de la misma persona,
+            // y el control solo sirve si avisa en los dos sitios.
+            setAvisoVecino(t.alertaTrazabilidad?.mensaje ?? null);
+          }}
         />
       )}
     </div>
