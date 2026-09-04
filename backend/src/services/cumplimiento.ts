@@ -29,6 +29,10 @@ export interface CumplimientoFuncionario {
   funcionarioId: string;
   nombre: string;
   cargo: string | null;
+  cargoId: string | null;
+  /// Área del cargo ("SOCIAL", "T OO CC"…). Es el eje con el que la planilla
+  /// real agrupa a las personas, y por eso el del tablero consolidado.
+  area: string | null;
   unidadTerritorialId: string | null;
   items: CumplimientoItem[];
   /** Suma de los ponderados de los ítems */
@@ -216,6 +220,8 @@ export async function calcularPeriodo(
       funcionarioId,
       nombre: miembro?.user.nombre ?? "",
       cargo: miembro?.cargoRef?.nombre ?? miembro?.cargo ?? null,
+      cargoId: miembro?.cargoId ?? null,
+      area: miembro?.cargoRef?.area ?? null,
       unidadTerritorialId: miembro?.unidadTerritorialId ?? null,
       items,
       cumplimientoTotal,
@@ -237,4 +243,208 @@ export async function calcularPeriodo(
   }
 
   return resultado.sort((a, b) => b.avanceRelativo - a.avanceRelativo);
+}
+
+// ===========================================================================
+// CONSOLIDACIÓN POR DELEGACIÓN — RF-029 · ADR-014 (Bloque C)
+//
+// El tablero de gestión mira delegaciones, pero la especificación mide
+// personas. Esta es la única forma en que el sistema pasa de una cosa a la
+// otra, y reemplaza a la vista materializada v1 (`cumplimiento_ponderado_vista`),
+// que calculaba por delegación con umbrales y tope escritos en SQL.
+//
+// Las tres decisiones que la sostienen están en ADR-014:
+//   1. La delegación es el PROMEDIO SIMPLE del cumplimiento de sus
+//      funcionarios. Cada plan personal ya suma 100% de sus ponderadores
+//      (RN-001), así que las personas son comparables entre sí; ponderar por
+//      cantidad de ítems premiaría a quien tiene más ítems, no a quien cumple.
+//   2. El objetivo al día de la delegación también es el promedio de los de su
+//      gente, porque cada persona descuenta SUS ausencias (RN-007).
+//   3. Una delegación sin funcionarios con meta NO cumple 0%: no tiene
+//      medición, y eso se informa aparte. Pintarla en rojo sería inventar un
+//      dato y, además, taparía el aviso que interesa (nadie configurado).
+// ===========================================================================
+
+/** Etiqueta del eje cuando el cargo no declara área (o no hay cargo). */
+export const SIN_AREA = "Sin área";
+
+export interface CumplimientoArea {
+  area: string;
+  funcionarios: number;
+  cumplimiento: number;
+  objetivoAlDia: number;
+  /** RN-008: el área también se juzga contra su objetivo, no contra un 100%
+   *  crudo. Es lo que hace que el mapa de calor diga lo mismo que el semáforo. */
+  avanceRelativo: number;
+  semaforo: ColorSemaforo;
+}
+
+export interface CumplimientoUnidad {
+  unidadTerritorialId: string;
+  nombre: string;
+  activa: boolean;
+  funcionarios: number;
+  /** Promedio del cumplimiento final de sus funcionarios */
+  cumplimiento: number;
+  objetivoAlDia: number;
+  avanceRelativo: number;
+  semaforo: ColorSemaforo;
+  /** A ritmo actual, con el tope del parámetro (nunca un 150 escrito aquí) */
+  proyeccion: number;
+  diasComputables: number;
+  diasTranscurridosComputables: number;
+  porArea: CumplimientoArea[];
+}
+
+export interface ConsolidadoPeriodo {
+  delegaciones: CumplimientoUnidad[];
+  /** Delegaciones activas sin una sola persona con meta configurada */
+  sinMedicion: { unidadTerritorialId: string; nombre: string }[];
+  /** Ejes del mapa de calor, en orden estable */
+  areas: string[];
+  totales: {
+    funcionarios: number;
+    /** Con meta configurada pero sin delegación: no caben en ninguna columna */
+    funcionariosSinDelegacion: number;
+    delegacionesConMedicion: number;
+    promedioCumplimiento: number;
+    porSemaforo: Record<ColorSemaforo, number>;
+  };
+}
+
+/** Promedio simple, redondeado a un decimal. 0 elementos → 0. */
+function promedio(valores: number[]): number {
+  if (valores.length === 0) return 0;
+  return Math.round((valores.reduce((s, v) => s + v, 0) / valores.length) * 10) / 10;
+}
+
+/**
+ * Proyección al cierre a ritmo actual: si en D días transcurridos se lleva X%,
+ * al final del período se llegaría a X × (díasComputables / D).
+ * El techo es el tope de cumplimiento configurado (ADR-007): el 150% no se
+ * escribe aquí ni en el frontend, que es donde estaba antes.
+ */
+export function proyectarCumplimiento(
+  cumplimiento: number,
+  transcurridos: number,
+  computables: number,
+  tope: number
+): number {
+  if (transcurridos <= 0) return cumplimiento;
+  const proyectado = (cumplimiento / transcurridos) * computables;
+  return Math.round(Math.min(proyectado, tope * 100) * 10) / 10;
+}
+
+/**
+ * Consolida el período por delegación y por área del cargo.
+ * Es lo que consume el dashboard (`GET /cumplimiento/:periodoId/consolidado`).
+ */
+export async function consolidarPeriodo(
+  organizationId: string,
+  periodoId: string,
+  funcionarios?: CumplimientoFuncionario[]
+): Promise<ConsolidadoPeriodo> {
+  const [gente, parametros, unidades] = await Promise.all([
+    funcionarios ? Promise.resolve(funcionarios) : calcularPeriodo(organizationId, periodoId),
+    obtenerParametros(organizationId, periodoId),
+    prisma.unidadTerritorial.findMany({
+      where: { organizationId },
+      select: { id: true, nombre: true, activo: true },
+      orderBy: { nombre: "asc" },
+    }),
+  ]);
+
+  const tope = parametros[CLAVES.topeCumplimientoItem]?.valor ?? 1.5;
+  const umbralVerde = parametros[CLAVES.semaforoVerde]?.valor ?? 1.0;
+  const umbralNaranjo = parametros[CLAVES.semaforoNaranjo]?.valor ?? 0.6;
+
+  const porUnidad = new Map<string, CumplimientoFuncionario[]>();
+  let sinDelegacion = 0;
+  for (const f of gente) {
+    if (!f.unidadTerritorialId) {
+      sinDelegacion += 1;
+      continue;
+    }
+    const lista = porUnidad.get(f.unidadTerritorialId) ?? [];
+    lista.push(f);
+    porUnidad.set(f.unidadTerritorialId, lista);
+  }
+
+  // Orden estable de las áreas: alfabético, con "Sin área" siempre al final
+  // para que no se cuele entre las áreas reales del municipio.
+  const areas = [...new Set(gente.map((f) => f.area ?? SIN_AREA))].sort((a, b) => {
+    if (a === SIN_AREA) return 1;
+    if (b === SIN_AREA) return -1;
+    return a.localeCompare(b, "es");
+  });
+
+  const delegaciones: CumplimientoUnidad[] = [];
+  for (const u of unidades) {
+    const suGente = porUnidad.get(u.id);
+    if (!suGente || suGente.length === 0) continue;
+
+    const cumplimiento = promedio(suGente.map((f) => f.cumplimientoFinal));
+    const objetivoAlDia = promedio(suGente.map((f) => f.objetivoAlDia));
+    const diasComputables = promedio(suGente.map((f) => f.diasComputables));
+    const transcurridos = promedio(suGente.map((f) => f.diasTranscurridosComputables));
+    // RN-008: antes de que el período empiece no hay nada exigible todavía.
+    const avanceRelativo =
+      objetivoAlDia > 0 ? Math.round((cumplimiento / objetivoAlDia) * 1000) / 10 : 100;
+
+    const porArea: CumplimientoArea[] = [];
+    for (const area of areas) {
+      const delArea = suGente.filter((f) => (f.area ?? SIN_AREA) === area);
+      if (delArea.length === 0) continue;
+      const cumplArea = promedio(delArea.map((f) => f.cumplimientoFinal));
+      const objetivoArea = promedio(delArea.map((f) => f.objetivoAlDia));
+      const relativoArea =
+        objetivoArea > 0 ? Math.round((cumplArea / objetivoArea) * 1000) / 10 : 100;
+      porArea.push({
+        area,
+        funcionarios: delArea.length,
+        cumplimiento: cumplArea,
+        objetivoAlDia: objetivoArea,
+        avanceRelativo: relativoArea,
+        semaforo: calcularSemaforo(relativoArea, umbralVerde, umbralNaranjo),
+      });
+    }
+
+    delegaciones.push({
+      unidadTerritorialId: u.id,
+      nombre: u.nombre,
+      activa: u.activo,
+      funcionarios: suGente.length,
+      cumplimiento,
+      objetivoAlDia,
+      avanceRelativo,
+      semaforo: calcularSemaforo(avanceRelativo, umbralVerde, umbralNaranjo),
+      proyeccion: proyectarCumplimiento(cumplimiento, transcurridos, diasComputables, tope),
+      diasComputables,
+      diasTranscurridosComputables: transcurridos,
+      porArea,
+    });
+  }
+
+  delegaciones.sort((a, b) => b.avanceRelativo - a.avanceRelativo);
+
+  return {
+    delegaciones,
+    // Solo las activas: una delegación dada de baja (RF-001) no es un hueco
+    // de configuración que alguien deba ir a llenar.
+    sinMedicion: unidades
+      .filter((u) => u.activo && !porUnidad.has(u.id))
+      .map((u) => ({ unidadTerritorialId: u.id, nombre: u.nombre })),
+    areas,
+    totales: {
+      funcionarios: gente.length,
+      funcionariosSinDelegacion: sinDelegacion,
+      delegacionesConMedicion: delegaciones.length,
+      promedioCumplimiento: promedio(gente.map((f) => f.cumplimientoFinal)),
+      porSemaforo: {
+        verde: gente.filter((f) => f.semaforo === "verde").length,
+        naranjo: gente.filter((f) => f.semaforo === "naranjo").length,
+        rojo: gente.filter((f) => f.semaforo === "rojo").length,
+      },
+    },
+  };
 }

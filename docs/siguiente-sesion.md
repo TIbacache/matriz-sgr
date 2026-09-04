@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque B5 — la solicitud del vecino en el tubo)
+**Actualizado**: 4 de septiembre de 2026 (cierre del Bloque C — el dashboard sobre el motor v2)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -13,14 +13,15 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Backend v1 (auth, tubo, KPIs, tiempo real) | ✅ Funcionando, 18/18 verificaciones · **rutas endurecidas** (Bloque A3): `version` → 409 y auditoría en `/tareas`, `/unidades` y `/categorias` |
 | **Modelo de datos v2** (16 entidades) | ✅ Migrado y verificado, 21/21 |
-| **API del modelo v2** (Bloques A, A2, A3, B3 y B4) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento, **ficha del vecino**, **atención social con sus 3 gestiones** y las rutas heredadas endurecidas — 156/156 |
+| **API del modelo v2** (Bloques A, A2, A3, B3, B4 y C) | ✅ Períodos, cargos, ítems, **metas por funcionario**, actividades, evidencias, validación, cumplimiento **y su consolidado por delegación**, **ficha del vecino**, **atención social con sus 3 gestiones** y las rutas heredadas endurecidas |
 | API pendiente del modelo v2 | ⬜ `Ajuste`, `Comentario`, `Ausencia`, CRUD de catálogos y de parámetros |
-| Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas y **ficha del vecino**; faltan las de administración (períodos, cargos, catálogos) |
+| Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas, **ficha del vecino** y **dashboard**; faltan las de administración (períodos, cargos, catálogos) |
+| **Cálculo único** | ✅ El Bloque C eliminó la vista materializada v1, la tabla `metas`, `/metas`, `/kpis/cumplimiento` y el cron. Ya no hay dos verdades |
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **20 ✅ · 11 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
+Cumplimiento contra los 38 RF oficiales: **22 ✅ · 9 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -153,9 +154,22 @@ Lo que decidió y conviene no reabrir:
 
 ⚠ **Lo que dejó abierto**: `zod` 4 rechaza los UUID que no cumplen la versión y variante de la RFC (`1111…1111` da 400, no 404). Es correcto —mal formado es 400— pero conviene saberlo al escribir pruebas. Y apareció un cabo suelto real: **no se declara `color-scheme`**, así que los controles nativos se pintan en claro también en el tema oscuro; aquí se rodeó marcando la opción elegida en el contenedor, pero la causa afecta a todos los formularios.
 
-### Bloque C — Migrar el dashboard al cálculo v2
+### ~~Bloque C — Migrar el dashboard al cálculo v2~~ ✅ TERMINADO
 
-Hoy el dashboard lee la **vista materializada v1** (por delegación, con umbrales y tope fijos en SQL). Debe pasar a consumir el motor por funcionario. Al terminar, **eliminar la vista v1** para que no queden dos verdades.
+El dashboard consume `GET /cumplimiento/:periodoId/consolidado` y **la v1 ya no existe**: se eliminaron la vista materializada, la tabla `metas`, el modelo `Meta`, las rutas `/metas`, `/kpis/cumplimiento` y `/kpis/recalcular`, y el cron de recálculo (migración `20260903230000_eliminar_cumplimiento_v1`). Contrato en [estado-proyecto §3.1](estado-proyecto.md), pantalla en [§6.6](estado-proyecto.md), decisión en **[ADR-014](decisiones-tecnicas.md)**.
+
+Lo que decidió y conviene no reabrir:
+
+- **La delegación es el promedio simple de sus funcionarios.** Cada plan personal ya suma el 100% de sus ponderadores (RN-001), así que las personas son comparables; ponderar por cantidad de ítems premiaría a quien tiene más ítems asignados, que es configuración y no mérito.
+- **Sin medición no es 0%.** Una delegación sin nadie con metas viaja en `sinMedicion` y la pantalla la nombra. Pintarla de rojo inventaría un incumplimiento y taparía el aviso que importa: que ahí no hay nadie configurado. Es además la primera pieza del «quién **no** ha ingresado» de RF-030.
+- **El segundo eje es el área del cargo, no la categoría del tubo.** `CategoriaGestion` (Seguridad, DISERCO, Social…) clasifica compromisos del tubo y no tiene relación con lo que se le mide a una persona: el mapa cruzaba dos cosas distintas. Ahora es `Cargo.area`, como agrupa la planilla real.
+- **La celda del mapa se juzga contra su propio objetivo del día**, igual que el gauge de al lado. Antes el gauge se coloreaba contra el objetivo y la celda contra un 100% fijo: dos formas de la misma pantalla podían contradecirse.
+- **La proyección al cierre se calcula en el backend con el tope del parámetro.** Estaba en el frontend con un `Math.min(…, 150)` escrito a mano: un valor de negocio en la capa de presentación (prohibido por la regla 3 y ADR-007).
+- **Se elimina, no se depreca.** Mientras las dos fuentes existan, cualquiera puede leer la equivocada y ninguna prueba lo detecta. Es exactamente lo que pasó: ver abajo.
+
+⚠ **Lo que destapó la auditoría, y es la lección del bloque**: el dashboard llevaba semanas mostrando **24 filas fósiles**. La tabla `metas` no la poblaba ningún seed desde que se reescribió, y su columna `avance` no la actualizaba ningún proceso. También seguían vivas en la base las **10 cuentas `@demo.cl`** que la documentación daba por borradas desde la Fase 2 —el seed las creaba con `upsert`, así que dejar de nombrarlas nunca las quitó—, y una comprobación del smoke pasaba **gracias a ellas** (buscaba el cargo «Territorial 1», que solo existía ahí). El seed ahora borra a quien no esté en su lista `EQUIPO`.
+
+⚠ **Lo que dejó abierto**: `GET /cumplimiento/:periodoId` sigue devolviendo el detalle por funcionario a todos los roles. El consolidado del tablero no lo necesita, pero el detalle individual roza la **consulta abierta nº 11** (si un funcionario ve las cifras de sus pares). Anotado, no cambiado en silencio.
 
 ### Bloque D — Pruebas formales y CI
 
@@ -167,7 +181,16 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
-**Orden acordado el 1 de septiembre, actualizado el 3**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), después la ficha del vecino (Bloque B3, ✅) y el endurecimiento de las rutas heredadas (Bloque A3, ✅). Los Bloques B4 (atención social) y B5 (la solicitud en el tubo) quedaron ✅ el 3 de septiembre, y con ellos **CA-04** y **EP-01**. **Ahora**: el **Bloque C** — migrar el dashboard al motor v2 y eliminar la vista materializada v1, para que no queden dos verdades. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
+**Orden acordado el 1 de septiembre, actualizado el 3**: primero el rediseño (Bloques D0 y D1, ✅ el 2 de septiembre), después la ficha del vecino (B3, ✅), el endurecimiento de las rutas heredadas (A3, ✅), la atención social (B4, ✅), la solicitud en el tubo (B5, ✅) y el **Bloque C** (✅), que dejó un solo cálculo en el sistema.
+
+**Lo que sigue, en este orden** (acordado el 3 de septiembre al cerrar el Bloque C):
+
+1. 🔴 **El Planner** — bloqueante y no depende de nada del código. El docente dijo que **solo** revisará el Planner: lo que no esté adjunto ahí no se evalúa, por mucho que esté en el repositorio. Receta lista en [guia-cargar-planner.md](guia-cargar-planner.md) y `scripts/cargar-plan-planner.ps1`.
+2. **Entrega del 15 de septiembre** — mockups, MER, modelo de datos, diagrama de clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en [Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx). Tiene fecha encima y el dashboard nuevo hay que volver a capturar (`npm run mockups`).
+3. **Panel de actividad de usuarios** (RF-030, HU-19) — pedido explícitamente por el docente en clase. Las piezas existen y el Bloque C dejó la primera: el tablero ya nombra a las delegaciones sin nadie medido. Falta el «quién no ha ingresado» por persona y la presencia a nivel de organización.
+4. **Bloque D — pruebas formales y CI**, y después el **Bloque E — despliegue**.
+
+Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo que los contiene, no como bloque propio.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
@@ -180,23 +203,25 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 | ~~`PUT /metas-item` no aplica bloqueo optimista~~ → **resuelto** en el Bloque B2: cada meta existente debe traer su `version` | — | ✅ |
 | ~~Falta la prueba visual de `/metas` con las seis cuentas~~ → **hecha**: encontró tres cosas, la mayor que un funcionario veía las metas de sus pares. Detalle en [estado-proyecto.md](estado-proyecto.md) | — | ✅ |
 | **Ley 21.663 de ciberseguridad y Leyes 19.628 / 21.719 de datos personales**: reflejadas ya en **ADR-012**, en la consulta nº 12 y en el código de `/vecinos` (alcance por rol, detalle reducido, auditoría del acceso, rectificación). Falta llevarlas a los **RNF** del documento de requerimientos y al resto de las rutas | documentación y RNF | Media |
-| Dos cálculos conviviendo (vista v1 y motor v2) | `jobs/cumplimiento.ts` vs `services/cumplimiento.ts` | Alta |
-| **Auditar si hay más columnas del modelo v2 que ninguna ruta usa.** El Bloque A3 encontró `UnidadTerritorial.activo` modelada y contradicha por su propio `DELETE`: el esquema decía una cosa y la API otra, y ninguna prueba lo veía | `schema.prisma` contra `src/routes/` | Media |
+| ~~Dos cálculos conviviendo (vista v1 y motor v2)~~ → **resuelto** en el Bloque C: la vista, la tabla `metas`, `/metas`, `/kpis/cumplimiento`, `/kpis/recalcular` y el cron se eliminaron. `GET /kpis/tubo` se queda: nunca dependió de ese cálculo | — | ✅ |
+| **Auditar si hay más columnas del modelo v2 que ninguna ruta usa.** El A3 encontró `UnidadTerritorial.activo` contradicha por su propio `DELETE`; el **Bloque C** encontró lo simétrico: una tabla entera (`metas`) que ninguna escritura mantenía. **Buscar tablas y columnas sin dueño, no solo sin lector** | `schema.prisma` contra `src/routes/` y `prisma/seed.ts` | Media |
 | ~~El frontend no consume el modelo v2~~ → la ficha ya consume períodos, cumplimiento, actividades, evidencias y catálogos | `frontend/src/pages/FichaPage.tsx` | ✅ |
-| Dos tablas con el mismo propósito: `.tabla-detalle` (dashboard) y `.tabla-sgr` (sistema) | `pages/dashboard.css` vs `styles/base.css` | Media |
+| ~~Dos tablas con el mismo propósito: `.tabla-detalle` y `.tabla-sgr`~~ → **resuelto** en el Bloque C: el dashboard usa `.tabla-sgr`, y `.tabla-orden`, `.tabla-fila--activa` y `.tabla-clickeable` pasaron a `base.css` como modificadores suyos | — | ✅ |
 | ~~Sin endpoint de búsqueda de `PersonaUsuaria`~~ → **resuelto** en el Bloque B3: `/vecinos` con búsqueda por RUT y nombre, historial cruzado, aviso de duplicidad y rectificación de datos | — | ✅ |
 | ~~**Las 3 gestiones de `AtencionSocial`** (RF-015, HU-03)~~ → **resueltas** en el Bloque B4: API, modal del caso en la ficha personal y el caso con su avance en el historial del vecino. **CA-04 cerrado** | — | ✅ |
 | **Corregir una gestión ya registrada** no está resuelto: el `PATCH` solo toca la cabecera del caso. Decisión pendiente entre corregir con bloqueo optimista o anular y registrar de nuevo (ADR-013, consulta abierta nº 8) | `atenciones-sociales.routes.ts` | Media |
 | El historial del vecino no pagina: trae hasta 500 hechos y la pantalla los pinta todos. Misma lección que la bandeja | `vecinos.routes.ts`, `VecinosPage.tsx` | Media |
-| El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `frontend/src/lib/dashboard.ts` | Media |
+| ~~El dashboard filtra por el string `2026-Q3`, no por `periodoId`~~ → **resuelto** en el Bloque C | — | ✅ |
 | `Comentario` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
-| **Panel de control de actividad de usuarios** (RF-030, HU-19): quién ingresó, **quién no** y quién está trabajando ahora, para admin y coordinador. Precisado por el docente en clase; detalle y la ambigüedad de "ingresar" en [requerimientos-oficiales §9.ter](requerimientos-oficiales.md). Las piezas existen (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario` y presencia por socket): falta la vista que las junta y una presencia a nivel de organización | frontend y backend | Alta |
+| **Panel de control de actividad de usuarios** (RF-030, HU-19): quién ingresó, **quién no** y quién está trabajando ahora, para admin y coordinador. Precisado por el docente en clase; detalle y la ambigüedad de "ingresar" en [requerimientos-oficiales §9.ter](requerimientos-oficiales.md). Las piezas existen (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario` y presencia por socket) y el Bloque C dejó la primera en pantalla (las delegaciones **sin medición** se nombran): falta el «quién no ha ingresado» por persona y la presencia a nivel de organización | frontend y backend | Alta |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
 | ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |
 | 🔴 **El plan del Planner no está cargado, y el docente dijo que SOLO revisará el Planner** (clase del 1-09-2026). Lo que no esté adjunto ahí no se evalúa, por mucho que esté en el repositorio. Receta lista en [guia-cargar-planner.md](guia-cargar-planner.md) | `scripts/cargar-plan-planner.ps1` | **Bloqueante** |
 | **Entrega del 15 de septiembre**: mockups, MER, modelo de datos, diagrama de clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en [Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx) | documentación | Alta |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
+| **`GET /cumplimiento/:periodoId` entrega el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11. Detectado en el Bloque C, anotado y no cambiado en silencio | `cumplimiento.routes.ts` | Media |
+| **El seed tarda ~15 minutos**: genera y escribe ~2.400 PNG de evidencia uno por uno. Se arregla escribiendo en paralelo; no bloquea nada, pero conviene saberlo antes de correrlo | `prisma/seed.ts` | Baja |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
 ## 5. Las 12 consultas al docente
@@ -238,6 +263,8 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **`scripts/capturas.mjs` usa `playwright-core` con `channel: "msedge"`**: no descarga navegador (costo cero) y necesita los dos servidores arriba. Se corre desde `frontend/` (un script en otra carpeta no resuelve el paquete). Las capturas van a una carpeta fuera del repo: **no se commitean** (pesan y podrían mostrar datos).
 - **Un elemento `position: absolute` "oculto" (`.sr-only`) sin ancestro `relative` ensancha el documento** aunque esté dentro de una envoltura con scroll. Se ve solo en móvil y solo midiendo: la captura sale más ancha que el viewport.
 - **Un aviso que marca de más deja de avisar.** El de duplicidad marcaba por nombre de delegación y, como las dos estaban implicadas, pintaba 21 de 35 hitos: una señal que cubre media pantalla se lee como fondo. Ahora el backend devuelve las claves de los hechos implicados. Vale para cualquier resaltado: **señalar el hecho, no la categoría a la que pertenece**.
+- **Un dato que nadie regenera es peor que un dato que falta.** El dashboard mostró durante semanas 24 filas de la tabla `metas` que ningún seed poblaba y ninguna escritura mantenía, y las cuentas `@demo.cl` seguían en la base meses después de que la documentación las diera por borradas (el seed las creaba con `upsert`: dejar de nombrarlas no las quita). Peor todavía, **una comprobación del smoke pasaba gracias a esos fósiles**. Al auditar, comprobar contra la base, no contra el documento: `SELECT count(*)` cuesta diez segundos.
+- **`tsx watch` deja huérfanos que se acumulan.** Al abrir el Bloque C había **cinco** vigilantes vivos de sesiones anteriores peleando por el 4000, ninguno escuchando. Antes de levantar el servidor, listar los `node.exe` y matar el árbol completo, no solo al que escucha.
 - **Los datos de demostración son parte del entregable.** El caso que la especificación pide demostrar (CA-04) hay que armarlo a propósito en el seed, con su reparto y sus fechas pensados. La primera versión asignaba el vecino en `n % 12 === 0` y, como `n` es el día del período, todas las primeras atenciones caían el mismo día: la línea de tiempo era un muro de «1 jul 2026». No lo habría visto ninguna prueba de API.
 - **En flex, un SVG cede antes que un párrafo.** El icono del aviso se aplastaba a un hilo en móvil. `flex-shrink: 0` en todo icono que acompañe a un texto largo.
 - **Una pantalla que nace vacía necesita una URL que la llene** para poder capturarla o generar su mockup. `/vecinos` acepta `?q=` y `?id=`, que además sirven para compartir el enlace de una ficha.

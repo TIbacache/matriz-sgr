@@ -5,12 +5,10 @@ import { Server } from "socket.io";
 import { env } from "./config/env.js";
 import { registrarIo } from "./services/broadcast.js";
 import { configurarSockets } from "./sockets/index.js";
-import { programarCronCumplimiento } from "./jobs/cumplimiento.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { unidadesRouter } from "./routes/unidades.routes.js";
 import { categoriasRouter } from "./routes/categorias.routes.js";
 import { tareasRouter } from "./routes/tareas.routes.js";
-import { metasRouter } from "./routes/metas.routes.js";
 import { kpisRouter } from "./routes/kpis.routes.js";
 import { usuariosRouter } from "./routes/usuarios.routes.js";
 import { periodosRouter } from "./routes/periodos.routes.js";
@@ -40,10 +38,7 @@ app.get("/", (_req, res) =>
         "GET|POST|PATCH|DELETE /unidades",
         "GET|POST|PATCH|DELETE /categorias",
         "GET|POST|PATCH|DELETE /tareas",
-        "GET|PUT|PATCH|DELETE /metas",
-        "GET /kpis/cumplimiento",
         "GET /kpis/tubo",
-        "POST /kpis/recalcular",
         "GET /usuarios",
       ],
       modeloV2: [
@@ -55,7 +50,7 @@ app.get("/", (_req, res) =>
         "POST /actividades/:id/evidencias (cuerpo = archivo crudo)",
         "GET /evidencias?estado=pendiente · GET /evidencias/:id/archivo",
         "POST /evidencias/:id/validacion",
-        "GET /cumplimiento/:periodoId",
+        "GET /cumplimiento/:periodoId · GET /cumplimiento/:periodoId/consolidado",
         "GET /catalogos?catalogo=formato_evidencia",
         "GET /vecinos?q= · GET|PATCH /vecinos/:id (ficha del vecino, ADR-008)",
       ],
@@ -68,15 +63,14 @@ app.use("/auth", authRouter);
 app.use("/unidades", unidadesRouter);
 app.use("/categorias", categoriasRouter);
 app.use("/tareas", tareasRouter);
-app.use("/metas", metasRouter);
 app.use("/kpis", kpisRouter);
 app.use("/usuarios", usuariosRouter);
 // Modelo v2 — el eje actividad → código → evidencia → validación → puntaje.
 app.use("/periodos", periodosRouter);
 app.use("/cargos", cargosRouter);
 app.use("/items", itemsRouter);
-// Ojo: `/metas` (arriba) es el modelo v1 por unidad × categoría; `/metas-item`
-// es el del modelo v2, por funcionario × ítem × período (RF-007).
+// Metas por funcionario × ítem × período (RF-007). El `/metas` v1 (unidad ×
+// categoría) murió con el Bloque C, junto con la vista materializada.
 app.use("/metas-item", metasItemRouter);
 app.use("/actividades", actividadesRouter);
 app.use("/evidencias", evidenciasRouter);
@@ -102,7 +96,6 @@ const io = new Server(httpServer, {
 
 registrarIo(io);
 configurarSockets(io);
-programarCronCumplimiento();
 
 httpServer.listen(env.port, () => {
   console.log(`Matriz SGR backend escuchando en http://localhost:${env.port}`);

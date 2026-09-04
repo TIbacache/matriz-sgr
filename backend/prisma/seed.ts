@@ -106,6 +106,21 @@ const EQUIPO = [
   { email: "planificacion.centro@sgr.demo", nombres: "Elena", paterno: "Tapia", materno: "Godoy", rut: "9876543-3", rol: "usuario", cargo: "Planificación y Control", delegacion: "Centro" },
   { email: "territorial.rural@sgr.demo", nombres: "Ignacio", paterno: "Bustos", materno: "Farías", rut: "20123456-5", rol: "usuario", cargo: "Territorial OO.CC. 1", delegacion: "Rural" },
   { email: "social.rural@sgr.demo", nombres: "Marcela", paterno: "Rojas", materno: "Leiva", rut: "16543210-K", rol: "usuario", cargo: "Gestor Social 1", delegacion: "Rural" },
+  // --- Delegaciones incorporadas en el Bloque C ------------------------------
+  // El tablero consolidado mide PERSONAS: con solo Centro y Rural configurados,
+  // cuatro de las seis delegaciones salían sin medición. Se pueblan tres y se
+  // deja "La Pampa" a propósito sin nadie con meta, para que el dashboard
+  // demuestre ese estado — que además es la señal que pide RF-030: quién no
+  // está registrando trabajo.
+  { email: "delegado.antena@sgr.demo", nombres: "Rocío", paterno: "Vergara", materno: "Cortez", rut: "21345678-4", rol: "gerente", cargo: null, delegacion: "La Antena" },
+  { email: "territorial.antena@sgr.demo", nombres: "Matías", paterno: "Cepeda", materno: "Aravena", rut: "22456789-8", rol: "usuario", cargo: "Territorial OO.CC. 1", delegacion: "La Antena" },
+  { email: "apoyo.antena@sgr.demo", nombres: "Ninoska", paterno: "Ibarra", materno: "Ossandón", rut: "17888444-1", rol: "usuario", cargo: "Apoyo Administrativo", delegacion: "La Antena" },
+  { email: "delegado.avmar@sgr.demo", nombres: "Sebastián", paterno: "Pizarro", materno: "Alfaro", rut: "18999555-5", rol: "gerente", cargo: null, delegacion: "Avenida del Mar" },
+  { email: "social.avmar@sgr.demo", nombres: "Fernanda", paterno: "Zepeda", materno: "Carvajal", rut: "19777333-2", rol: "usuario", cargo: "Gestor Social 1", delegacion: "Avenida del Mar" },
+  { email: "planificacion.avmar@sgr.demo", nombres: "Álvaro", paterno: "Riquelme", materno: "Donoso", rut: "20888111-6", rol: "usuario", cargo: "Planificación y Control", delegacion: "Avenida del Mar" },
+  { email: "delegado.companias@sgr.demo", nombres: "Constanza", paterno: "Barraza", materno: "Pastén", rut: "16777888-7", rol: "gerente", cargo: null, delegacion: "Las Compañías" },
+  { email: "territorial.companias@sgr.demo", nombres: "Hernán", paterno: "Olivares", materno: "Trigo", rut: "15888999-4", rol: "usuario", cargo: "Territorial OO.CC. 1", delegacion: "Las Compañías" },
+  { email: "diserco.companias@sgr.demo", nombres: "Yasna", paterno: "Peralta", materno: "Salgado", rut: "14999111-5", rol: "usuario", cargo: "Coordinador DISERCO", delegacion: "Las Compañías" },
 ] as const;
 
 // Vecinos ficticios (para trazabilidad por RUT — ADR-008)
@@ -346,6 +361,53 @@ async function main() {
   await prisma.tareaHistorial.deleteMany({ where: { organizationId: org.id } });
   await prisma.tarea.deleteMany({ where: { organizationId: org.id } });
 
+  // --- Miembros que ya no están en el seed (Bloque C) ------------------------
+  // Esta organización es de DEMOSTRACIÓN y este archivo es su definición: quien
+  // no esté en EQUIPO sobra. No es una precaución teórica — las cuentas
+  // `@demo.cl` de las Fases 2 y 3 seguían vivas en la base meses después de que
+  // la documentación las diera por borradas (el seed las creaba con upsert, así
+  // que dejar de nombrarlas nunca las quitó), y una comprobación del smoke
+  // pasaba gracias a un cargo que solo existía en ellas.
+  // Va DESPUÉS de la limpieza transaccional: para entonces ya no quedan
+  // actividades, evidencias ni tareas colgando de esas personas.
+  {
+    const emailsDelSeed = new Set<string>(EQUIPO.map((e) => e.email));
+    const sobrantes = (
+      await prisma.organizationMember.findMany({
+        where: { organizationId: org.id },
+        select: { id: true, userId: true, user: { select: { email: true } } },
+      })
+    ).filter((m) => !emailsDelSeed.has(m.user.email));
+
+    if (sobrantes.length > 0) {
+      const ids = sobrantes.map((m) => m.userId);
+      await prisma.metaItem.deleteMany({ where: { organizationId: org.id, funcionarioId: { in: ids } } });
+      await prisma.ausencia.deleteMany({ where: { organizationId: org.id, funcionarioId: { in: ids } } });
+      await prisma.ajuste.deleteMany({
+        where: {
+          organizationId: org.id,
+          OR: [{ funcionarioId: { in: ids } }, { registradoPorId: { in: ids } }],
+        },
+      });
+      await prisma.comentario.deleteMany({ where: { organizationId: org.id, autorId: { in: ids } } });
+      await prisma.unidadTerritorial.updateMany({
+        where: { organizationId: org.id, responsableId: { in: ids } },
+        data: { responsableId: null },
+      });
+      await prisma.organizationMember.deleteMany({ where: { id: { in: sobrantes.map((m) => m.id) } } });
+      // La persona solo se borra si no quedó en ninguna otra organización: en
+      // multi-tenant, borrarla igual sería sacarla de un tenant ajeno.
+      const huerfanos = await prisma.user.findMany({
+        where: { id: { in: ids }, memberships: { none: {} } },
+        select: { id: true },
+      });
+      await prisma.user.deleteMany({ where: { id: { in: huerfanos.map((u) => u.id) } } });
+      console.log(
+        `Limpieza: ${sobrantes.length} miembros fuera del seed, ${huerfanos.length} usuarios eliminados`
+      );
+    }
+  }
+
   // --- Tubo de trabajo ---
   {
     const ejemplos = [
@@ -445,6 +507,17 @@ async function main() {
       "territorial.centro@sgr.demo": 0.3, // rojo (además tiene licencia)
       "diserco.centro@sgr.demo": 0.25, // rojo
       "social.rural@sgr.demo": 0.15, // rojo
+      // Bloque C: el tablero necesita más de una delegación con medición y los
+      // tres colores repartidos entre ellas, no todos concentrados en Centro.
+      "planificacion.avmar@sgr.demo": 0.85, // verde
+      // La Antena es la delegación que el tablero muestra AL DÍA: para que una
+      // delegación salga verde no basta con una persona buena, porque la
+      // delegación es el promedio de su gente (ADR-014). Las dos van altas.
+      "territorial.antena@sgr.demo": 0.95, // verde
+      "diserco.companias@sgr.demo": 0.6, // naranjo
+      "apoyo.antena@sgr.demo": 0.8, // verde
+      "social.avmar@sgr.demo": 0.45, // naranjo
+      "territorial.companias@sgr.demo": 0.3, // rojo
     };
 
     // Vecinos en el registro diario (ADR-008). El reparto es DETERMINISTA a
@@ -615,7 +688,9 @@ async function main() {
     );
   }
 
-  await prisma.$executeRawUnsafe("REFRESH MATERIALIZED VIEW cumplimiento_ponderado_vista");
+  // Bloque C: aquí se refrescaba `cumplimiento_ponderado_vista`. La vista y su
+  // tabla `metas` se eliminaron: el cumplimiento se calcula al consultarlo, por
+  // funcionario, así que no hay nada que precomputar después de sembrar.
 
   console.log("Seed completado — TODOS LOS DATOS SON FICTICIOS.");
   console.log("  admin        admin@sgr.demo / matriz123");
@@ -624,6 +699,7 @@ async function main() {
   console.log("  consulta     consulta@sgr.demo / matriz123");
   console.log("  delegado     delegado.centro@sgr.demo / matriz123");
   console.log("  funcionario  territorial.centro@sgr.demo / matriz123");
+  console.log("  (las 22 cuentas, con su rol y delegación, en docs/estado-proyecto.md §1)");
 }
 
 main()

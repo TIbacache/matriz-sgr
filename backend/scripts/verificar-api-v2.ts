@@ -535,6 +535,149 @@ check("Multi-tenant: un período inexistente o ajeno responde 404", periodoAjeno
   `status ${periodoAjeno.status}`);
 
 // ===========================================================================
+// 6.bis CONSOLIDADO POR DELEGACIÓN — RF-024 · RF-027 · RF-029 · ADR-014
+//       Lo que consume el dashboard desde el Bloque C. Reemplaza a la vista
+//       materializada v1 (`GET /kpis/cumplimiento`), que calculaba por
+//       delegación con el tope y los umbrales escritos dentro del SQL.
+// ===========================================================================
+
+const consolidado = await C("GET", `/cumplimiento/${periodoActivo.id}/consolidado`);
+const cons = consolidado.datos as {
+  periodo: { diasTotales: number };
+  parametros: Record<string, { valor: number; confirmado: boolean }>;
+  areas: string[];
+  delegaciones: {
+    unidadTerritorialId: string;
+    nombre: string;
+    funcionarios: number;
+    cumplimiento: number;
+    objetivoAlDia: number;
+    avanceRelativo: number;
+    semaforo: string;
+    proyeccion: number;
+    porArea: { area: string; funcionarios: number; avanceRelativo: number }[];
+  }[];
+  sinMedicion: { unidadTerritorialId: string; nombre: string }[];
+  totales: { funcionarios: number; delegacionesConMedicion: number; porSemaforo: Record<string, number> };
+};
+
+check(
+  "RF-029 el tablero de delegación se consolida desde el motor por funcionario",
+  consolidado.status === 200 && cons.delegaciones.length > 1,
+  `${cons.totales?.delegacionesConMedicion} delegaciones, ${cons.totales?.funcionarios} funcionarios`
+);
+
+// El semáforo consolidado lo ve TODO el mundo (cliente, reunión 00:37:11), a
+// diferencia del libro. Se prueban los seis roles, no un solo camino feliz.
+const porRolConsolidado = await Promise.all(
+  [
+    { rol: "admin", cli: A },
+    { rol: "supervisor", cli: S },
+    { rol: "verificador", cli: V },
+    { rol: "consulta", cli: C },
+    { rol: "usuario Centro", cli: G },
+    { rol: "usuario Rural", cli: I },
+  ].map(async (r) => ({ ...r, status: (await r.cli("GET", `/cumplimiento/${periodoActivo.id}/consolidado`)).status }))
+);
+check(
+  "RF-029 los seis roles ven el semáforo consolidado",
+  porRolConsolidado.every((r) => r.status === 200),
+  porRolConsolidado.map((r) => `${r.rol}:${r.status}`).join(" ")
+);
+
+// RF-024 · ADR-007: la proyección se recorta con el tope de la tabla de
+// parámetros. Antes ese 150 estaba escrito a mano en el frontend.
+const tope = cons.parametros["tope_cumplimiento_item"]!.valor;
+check(
+  "RF-024 ninguna proyección supera el tope configurado",
+  cons.delegaciones.every((d) => d.proyeccion <= tope * 100 + 0.01),
+  `tope ${tope * 100}%, máxima proyección ${Math.max(...cons.delegaciones.map((d) => d.proyeccion))}%`
+);
+
+// RF-027: los umbrales del color también salen del parámetro.
+const verdeParam = cons.parametros["semaforo_verde"]!.valor * 100;
+const naranjoParam = cons.parametros["semaforo_naranjo"]!.valor * 100;
+check(
+  "RF-027 el color de cada delegación respeta los umbrales configurados",
+  cons.delegaciones.every((d) =>
+    d.avanceRelativo >= verdeParam
+      ? d.semaforo === "verde"
+      : d.avanceRelativo >= naranjoParam
+        ? d.semaforo === "naranjo"
+        : d.semaforo === "rojo"
+  ),
+  `verde ≥${verdeParam}%, naranjo ≥${naranjoParam}%`
+);
+
+// ADR-014: sin medición no es 0% de cumplimiento. Es la distinción que la
+// vista v1 no podía hacer, porque una delegación sin filas simplemente no salía.
+check(
+  "ADR-014 una delegación sin funcionarios medidos se informa aparte",
+  cons.sinMedicion.every((u) => !cons.delegaciones.some((d) => d.unidadTerritorialId === u.unidadTerritorialId)),
+  cons.sinMedicion.map((u) => u.nombre).join(", ") || "todas tienen medición"
+);
+
+// El eje del mapa de calor es el área del cargo (así agrupa la planilla real),
+// no la categoría del tubo, que no tiene relación con lo que se le mide a nadie.
+check(
+  "El consolidado agrupa por área del cargo",
+  cons.areas.length >= 3 && cons.delegaciones.every((d) => d.porArea.length > 0),
+  cons.areas.join(", ")
+);
+
+const consolidadoAjeno = await A("GET", "/cumplimiento/00000000-0000-0000-0000-0000000000ff/consolidado");
+check(
+  "Multi-tenant: consolidado de un período ajeno o inexistente → 404",
+  consolidadoAjeno.status === 404,
+  `status ${consolidadoAjeno.status}`
+);
+
+// El cálculo v1 murió con este bloque: si alguna de las dos rutas respondiera,
+// el sistema volvería a tener dos verdades para la misma pregunta.
+const kpisV1 = await A("GET", "/kpis/cumplimiento?trimestre=2026-Q3");
+const recalcularV1 = await A("POST", "/kpis/recalcular", {});
+const metasV1 = await A("GET", "/metas");
+check(
+  "Bloque C: /kpis/cumplimiento, /kpis/recalcular y /metas v1 dejaron de existir",
+  kpisV1.status === 404 && recalcularV1.status === 404 && metasV1.status === 404,
+  `${kpisV1.status} / ${recalcularV1.status} / ${metasV1.status}`
+);
+const kpisTubo = await A("GET", "/kpis/tubo");
+check(
+  "GET /kpis/tubo sobrevive: nunca dependió del cálculo v1",
+  kpisTubo.status === 200,
+  `status ${kpisTubo.status}`
+);
+
+// CA-06: «los totales del tablero coinciden con el detalle filtrado». Es la
+// razón de fondo del Bloque C — con dos cálculos conviviendo, el tablero podía
+// decir una cifra y la ficha otra sobre la misma persona. Se comprueba contra
+// la API, no contra el motor: el tablero y la ficha llaman a endpoints
+// distintos y lo que importa es que esos dos coincidan.
+const unaDeleg = cons.delegaciones[0]!;
+const detalleUnidad = (
+  await C("GET", `/cumplimiento/${periodoActivo.id}/consolidado`)
+).datos as typeof cons;
+const detallePersonas = (
+  await C("GET", `/cumplimiento/${periodoActivo.id}?unidad=${unaDeleg.unidadTerritorialId}`)
+).datos as { funcionarios: { cumplimientoFinal: number }[] };
+const promedioDetalle =
+  Math.round(
+    (detallePersonas.funcionarios.reduce((s, f) => s + f.cumplimientoFinal, 0) /
+      Math.max(detallePersonas.funcionarios.length, 1)) *
+      10
+  ) / 10;
+check(
+  "CA-06 el total del tablero coincide con el detalle filtrado de esa delegación",
+  Math.abs(unaDeleg.cumplimiento - promedioDetalle) < 0.05 &&
+    detallePersonas.funcionarios.length === unaDeleg.funcionarios &&
+    detalleUnidad.delegaciones.length === cons.delegaciones.length,
+  `${unaDeleg.nombre}: tablero ${unaDeleg.cumplimiento}% · detalle ${promedioDetalle}% sobre ${detallePersonas.funcionarios.length} personas`
+);
+
+
+
+// ===========================================================================
 // 7. CONTRATO QUE CONSUME LA FICHA PERSONAL — RF-004 · RF-008 · HU-06
 //    La pantalla no calcula nada: se apoya en estas llamadas. Verificarlas es
 //    verificar que la ficha tiene de dónde sacar lo que muestra.

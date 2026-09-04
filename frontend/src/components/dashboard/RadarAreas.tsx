@@ -2,34 +2,37 @@ import { useMemo } from "react";
 import ReactEChartsCore from "echarts-for-react/lib/core";
 import { echarts, baseChart } from "../../lib/echarts";
 import { useTokens } from "../../lib/useTokens";
-import type { FilaKpi, ResumenDelegacion } from "../../lib/dashboard";
-import { pilaresUnicos } from "../../lib/dashboard";
+import { promedio, type ResumenDelegacion } from "../../lib/dashboard";
 
 interface Props {
-  filas: FilaKpi[];
   resumen: ResumenDelegacion[];
+  areas: string[];
   seleccion: string | null;
+  /** Tope de cumplimiento en %, del parámetro: fija la escala del radar */
+  tope: number;
 }
 
-// Radar de pilares en forma de ÉNFASIS (skill: "una serie es el punto, el
-// resto es contexto"): la delegación seleccionada en el acento vs. el promedio
-// de la organización en gris. Nunca las 6 a la vez (spaghetti ilegible).
-export function RadarPilares({ filas, resumen, seleccion }: Props) {
+// Radar de áreas del cargo en forma de ÉNFASIS ("una serie es el punto, el
+// resto es contexto"): la delegación elegida contra el promedio de la
+// organización en gris. Nunca las seis a la vez.
+//
+// El eje es el mismo del mapa de calor y el valor también es el avance
+// relativo, para que las dos formas se puedan leer juntas.
+export function RadarAreas({ resumen, areas, seleccion, tope }: Props) {
   const t = useTokens();
 
   const opcion = useMemo(() => {
-    const pilares = pilaresUnicos(filas);
-    const promedio = pilares.map((p) => {
-      const del = filas.filter((f) => f.categoria_nombre === p);
-      return Math.round(del.reduce((s, f) => s + f.cumplimiento_categoria, 0) / Math.max(del.length, 1));
-    });
-    const elegida = seleccion
-      ? resumen.find((r) => r.unidadId === seleccion)
-      : resumen[0]; // sin selección: la mejor, como referencia
-    const serieElegida = pilares.map(
-      (p) => elegida?.porPilar.find((x) => x.categoria === p)?.cumplimiento ?? 0
+    const valorDe = (r: ResumenDelegacion, area: string) =>
+      r.porArea.find((a) => a.area === area)?.avanceRelativo ?? null;
+
+    // El promedio ignora a quien no tiene esa área: promediar con ceros
+    // inventaría mal desempeño donde solo hay ausencia de personal.
+    const promedioOrg = areas.map((area) =>
+      promedio(resumen.map((r) => valorDe(r, area)).filter((v): v is number => v !== null))
     );
-    const maximo = Math.max(150, ...promedio, ...serieElegida);
+    const elegida = seleccion ? resumen.find((r) => r.unidadId === seleccion) : resumen[0];
+    const serieElegida = areas.map((area) => (elegida ? valorDe(elegida, area) ?? 0 : 0));
+    const maximo = Math.max(tope, ...promedioOrg, ...serieElegida);
 
     return {
       ...baseChart(t),
@@ -41,7 +44,7 @@ export function RadarPilares({ filas, resumen, seleccion }: Props) {
         itemHeight: 3,
       },
       radar: {
-        indicator: pilares.map((p) => ({ name: p, max: maximo })),
+        indicator: areas.map((a) => ({ name: a, max: maximo })),
         radius: "62%",
         center: ["50%", "46%"],
         axisName: { color: t.tinta2, fontSize: 11 },
@@ -56,7 +59,7 @@ export function RadarPilares({ filas, resumen, seleccion }: Props) {
           data: [
             {
               name: "Promedio organización",
-              value: promedio,
+              value: promedioOrg,
               lineStyle: { color: t.tinta3, width: 2 },
               itemStyle: { color: t.tinta3 },
               areaStyle: { color: "transparent" },
@@ -69,7 +72,6 @@ export function RadarPilares({ filas, resumen, seleccion }: Props) {
               // pinta una serie (ADR-011).
               lineStyle: { color: t.tubo3, width: 2 },
               itemStyle: { color: t.tubo3, borderColor: t.superficie, borderWidth: 2 },
-              // Lavado ~10% de opacidad según spec de área de la skill
               areaStyle: { color: t.tubo3, opacity: 0.1 },
               symbolSize: 7,
             },
@@ -77,7 +79,7 @@ export function RadarPilares({ filas, resumen, seleccion }: Props) {
         },
       ],
     };
-  }, [filas, resumen, seleccion, t]);
+  }, [resumen, areas, seleccion, tope, t]);
 
   return <ReactEChartsCore echarts={echarts} option={opcion} style={{ height: 300, width: "100%" }} notMerge />;
 }

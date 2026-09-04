@@ -8,10 +8,18 @@ interface Props {
   onSeleccionar: (unidadId: string | null) => void;
 }
 
-type Columna = "nombre" | "cumplimiento" | "objetivoAlDia" | "avanceRelativo" | "proyeccion" | "vencidas";
+type Columna =
+  | "nombre"
+  | "funcionarios"
+  | "cumplimiento"
+  | "objetivoAlDia"
+  | "avanceRelativo"
+  | "proyeccion"
+  | "vencidas";
 
 const COLUMNAS: { clave: Columna; etiqueta: string; numerica: boolean }[] = [
   { clave: "nombre", etiqueta: "Delegación", numerica: false },
+  { clave: "funcionarios", etiqueta: "Funcionarios", numerica: true },
   { clave: "cumplimiento", etiqueta: "Cumplimiento", numerica: true },
   { clave: "objetivoAlDia", etiqueta: "Objetivo al día", numerica: true },
   { clave: "avanceRelativo", etiqueta: "Avance relativo", numerica: true },
@@ -19,9 +27,13 @@ const COLUMNAS: { clave: Columna; etiqueta: string; numerica: boolean }[] = [
   { clave: "vencidas", etiqueta: "Tareas vencidas", numerica: true },
 ];
 
-// La "table view" que la skill exige como gemela WCAG de los gráficos: todo
-// valor visible sin hover, tabular-nums, ordenable, semáforo con símbolo+texto
-// (nunca solo color). Click en fila = misma selección que gauges/heatmap.
+// La "table view" que acompaña a los gráficos como gemela accesible: todo valor
+// visible sin hover, tabular-nums, ordenable, semáforo con símbolo + texto
+// (nunca solo color). Click en fila = misma selección que gauges y mapa.
+//
+// Bloque C: usa `.tabla-sgr` como el resto del sistema. Tenía una tabla propia
+// (`.tabla-detalle`) casi idéntica, que era deuda declarada: dos estilos para
+// el mismo objeto terminan divergiendo en el primer arreglo que se hace en uno.
 export function TablaDetalle({ resumen, seleccion, onSeleccionar }: Props) {
   const [ordenPor, setOrdenPor] = useState<Columna>("avanceRelativo");
   const [descendente, setDescendente] = useState(true);
@@ -47,11 +59,11 @@ export function TablaDetalle({ resumen, seleccion, onSeleccionar }: Props) {
 
   return (
     <div className="tabla-detalle-envoltura">
-      <table className="tabla-detalle">
+      <table className="tabla-sgr tabla-clickeable">
         <thead>
           <tr>
             {COLUMNAS.map((c) => (
-              <th key={c.clave} className={c.numerica ? "num" : undefined}>
+              <th key={c.clave} scope="col" className={c.numerica ? "num" : undefined}>
                 <button className="tabla-orden" onClick={() => ordenar(c.clave)}>
                   {c.etiqueta}
                   {ordenPor === c.clave && (
@@ -60,7 +72,7 @@ export function TablaDetalle({ resumen, seleccion, onSeleccionar }: Props) {
                 </button>
               </th>
             ))}
-            <th>Semáforo</th>
+            <th scope="col">Semáforo</th>
           </tr>
         </thead>
         <tbody>
@@ -71,6 +83,7 @@ export function TablaDetalle({ resumen, seleccion, onSeleccionar }: Props) {
               onClick={() => onSeleccionar(seleccion === r.unidadId ? null : r.unidadId)}
             >
               <td>{r.nombre}</td>
+              <td className="num">{r.funcionarios}</td>
               <td className="num">{r.cumplimiento.toFixed(1)}%</td>
               <td className="num">{r.objetivoAlDia.toFixed(1)}%</td>
               <td className="num">{r.avanceRelativo.toFixed(1)}%</td>
@@ -84,8 +97,9 @@ export function TablaDetalle({ resumen, seleccion, onSeleccionar }: Props) {
         </tbody>
       </table>
       <p className="tabla-nota">
-        Licencias, vacaciones y compensatorios por funcionario: pendientes de la definición de columnas del
-        cliente — hoy el objetivo al día usa los días calendario del trimestre.
+        La delegación es el promedio de sus funcionarios (ADR-014). El objetivo al día ya descuenta
+        las ausencias registradas de cada persona (RN-007), por eso dos delegaciones del mismo
+        período pueden tener objetivos distintos.
       </p>
     </div>
   );

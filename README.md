@@ -96,16 +96,16 @@ La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-
 
 ## Verificación
 
-Cinco suites automatizadas, **290 comprobaciones** (207 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cinco suites automatizadas, **314 comprobaciones** (231 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
 npm run build              # TypeScript estricto: debe pasar antes de cada commit
-npm run verificar:calculo  # 21 · fórmulas del cálculo, semáforo, parámetros
+npm run verificar:calculo  # 32 · fórmulas del cálculo, semáforo, parámetros y consolidación por delegación
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
-npm run smoke              # 18 · tiempo real, permisos y visibilidad por delegación
-npm run verificar:api      # 168 · registro, evidencia, validación, metas, ficha del vecino, atención social, tubo, concurrencia y auditoría
+npm run smoke              # 21 · tiempo real, permisos, visibilidad por delegación y semáforo consolidado
+npm run verificar:api      # 178 · registro, evidencia, validación, metas, ficha del vecino, atención social, tubo, tablero consolidado, concurrencia y auditoría
 
 cd frontend
 npm run verificar:contraste          # 83 · WCAG AA en los dos temas, los dos rojos separados, sin hex fuera de tokens

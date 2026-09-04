@@ -3657,6 +3657,34 @@ td,
 .tabla-sgr tfoot tr + tr th,
 .tabla-sgr tfoot tr + tr td { border-top: none; }
 
+/* Tabla cuya fila entera selecciona (dashboard). El cursor lo dice antes del
+   click; el hover ya lo da .tabla-sgr. */
+.tabla-sgr.tabla-clickeable tbody tr { cursor: pointer; }
+
+/* Encabezado ordenable: el botón hereda el aspecto del th para que la tabla no
+   parezca tener controles pegados encima. */
+.tabla-orden {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease-expo);
+}
+.tabla-orden:hover { color: var(--tinta); }
+
+/* Fila seleccionada. Está DENTRO de una zona de datos, así que se marca con
+   --seleccion y nunca con el rojo institucional (ADR-011, DESIGN §3.3). */
+.tabla-fila--activa {
+  background: var(--seleccion-bg) !important;
+  box-shadow: inset 3px 0 0 var(--seleccion);
+}
+
 .campo {
   display: block;
   width: 100%;
@@ -4378,6 +4406,10 @@ th, td, .tnum { font-variant-numeric: tabular-nums; }
 .tabla-sgr tfoot th { text-align: right; }
 .tabla-sgr tfoot td.num { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
 .tabla-sgr tfoot tr + tr th, .tabla-sgr tfoot tr + tr td { border-top-width: medium; border-top-style: none; border-top-color: currentcolor; }
+.tabla-sgr.tabla-clickeable tbody tr { cursor: pointer; }
+.tabla-orden { background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; padding: 0px; font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--tinta-2); cursor: pointer; transition: color var(--dur-1) var(--ease-expo); }
+.tabla-orden:hover { color: var(--tinta); }
+.tabla-fila--activa { box-shadow: inset 3px 0 0 var(--seleccion); background: var(--seleccion-bg) !important; }
 .campo { display: block; width: 100%; max-width: 100%; border: 1px solid var(--borde); border-radius: var(--radio-control); padding: var(--esp-2) var(--esp-3); background: var(--superficie); transition: border-color var(--dur-1) var(--ease-expo), box-shadow var(--dur-1) var(--ease-expo); }
 .campo:hover:not(:disabled) { border-color: var(--borde-fuerte); }
 .campo:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }

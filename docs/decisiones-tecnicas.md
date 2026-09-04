@@ -363,3 +363,45 @@ Sobre el punto 6: el verificador es el caso que más se discutió. Necesita ver 
 - `proyectar()` en `backend/src/services/atencion-social.ts` es la **única** forma en que la atención sale del backend —del alta, del avance y de dentro de una actividad—; dos formas del mismo concepto obligarían a la pantalla a saber de dónde vino cada una.
 - La pantalla no tiene selector de "número de gestión", y eso es deliberado: sería la forma de dejar que el usuario rompa la secuencia. Cambia de campos según la etapa (DESIGN §8.2).
 - Corregir una gestión ya registrada **no está resuelto**: `PATCH` solo toca la cabecera. Si el cliente pide corregir una gestión mal escrita, la decisión será si se corrige con bloqueo optimista o si se anula la actividad y se registra otra, como con las validaciones aprobadas (consulta abierta nº 8). Queda anotado, no inventado.
+
+---
+
+## ADR-014 — La delegación es el promedio de su gente, y "sin medición" no es 0%
+
+### Contexto
+El sistema tuvo dos cálculos de cumplimiento conviviendo desde la Fase 3:
+
+1. **`cumplimiento_ponderado_vista`** (v1): una vista materializada que medía **por delegación**, sobre la tabla `metas` (unidad × categoría × trimestre), refrescada por cron. Alimentaba el dashboard. El tope de 150% y los umbrales del semáforo (100 / 60) estaban **escritos dentro del SQL**.
+2. **`services/cumplimiento.ts`** (v2): el motor por **funcionario** (cargo → ítems → metas), que es el que exige la especificación (RF-022 a RF-027) y el que lee los umbrales de la tabla `parametro`.
+
+Convivir tenía un costo que se hizo visible al auditar el Bloque C: la tabla `metas` **no la poblaba ningún seed** desde que se reescribió con datos ficticios, y su columna `avance` no la actualizaba ningún proceso —solo un `PATCH` manual—. El dashboard llevaba semanas mostrando 24 filas fósiles de una versión anterior del seed: cifras que ya no se podían reproducir en una base limpia. Además, el tope y los umbrales dentro del SQL contradicen RF-024, RF-027 y RNF-015, que los exigen configurables.
+
+Migrar el tablero al motor v2 obliga a responder una pregunta que la v1 nunca tuvo que responder, porque medía delegaciones directamente: **¿cómo se pasa de personas a delegación?**
+
+### Decisión (4 de septiembre de 2026)
+
+**1. La delegación es el promedio simple del cumplimiento final de sus funcionarios.** No una suma ponderada por cantidad de ítems, ni por metas, ni por actividades registradas. El plan de cada persona ya suma el 100% de sus propios ponderadores (RN-001), así que las personas son magnitudes comparables entre sí; ponderar por volumen premiaría a quien tiene más ítems asignados, que es una decisión de configuración y no un mérito.
+
+**2. El objetivo al día de la delegación también es el promedio de los de su gente.** Cada persona descuenta **sus** ausencias (RN-007), así que dos delegaciones del mismo período pueden tener objetivos distintos. Usar los días calendario para la delegación —como hacía la v1— borraría justamente el descuento que la planilla real muestra.
+
+**3. Una delegación sin nadie con metas configuradas NO cumple 0%: no tiene medición.** Viaja en `sinMedicion`, separada de `delegaciones`, y la pantalla la nombra. Pintarla de rojo sería inventar un dato —nadie incumplió nada— y, peor, taparía el aviso que de verdad importa: que ahí no hay nadie configurado. Es además la primera pieza del "quién **no** ha ingresado" que pide RF-030.
+
+**4. El segundo eje del tablero es el área del cargo, no la categoría del tubo.** El mapa de calor y el radar cruzan delegación × `Cargo.area` (`T OO CC`, `SOCIAL`, `APOY ADM`, `COSERCO`, `P Y C`), que es como agrupa la planilla real ([estructura-planilla-real §1](estructura-planilla-real.md)). Antes el eje era `CategoriaGestion` —Seguridad, DISERCO, Social (DIDECO)…—, que son las categorías del **tubo de trabajo**: no tienen relación con lo que se le mide a una persona, así que el mapa cruzaba dos cosas distintas y el número de la celda no significaba lo que su fila decía.
+
+**5. Cada celda del mapa se juzga contra su propio objetivo.** El área muestra su **avance relativo** (cumplimiento ÷ objetivo al día × 100), no el cumplimiento crudo, y su color sale de `calcularSemaforo()` con los umbrales del parámetro. Así el mapa dice lo mismo que los gauges; antes la celda se coloreaba contra un 100% fijo mientras el gauge de al lado se coloreaba contra el objetivo del día, y las dos formas podían contradecirse en pantalla.
+
+**6. La proyección al cierre se calcula en el backend, con el tope del parámetro.** Era una función del frontend (`lib/dashboard.ts`) con un `Math.min(…, 150)` escrito a mano: un valor de negocio en la capa de presentación, prohibido por ADR-007 y por la regla 3 del proyecto.
+
+**7. Se elimina la v1 completa**, no se deja en desuso: la vista materializada, la tabla `metas`, el modelo `Meta`, las rutas `GET /kpis/cumplimiento`, `POST /kpis/recalcular` y `/metas`, y el cron que refrescaba la vista (migración `20260903230000_eliminar_cumplimiento_v1`). `GET /kpis/tubo` sobrevive porque nunca dependió de ese cálculo, y `UnidadTerritorial` y `CategoriaGestion` se quedan porque sostienen el tubo (RF-001, EP-04).
+
+### Justificación
+La alternativa al promedio simple era ponderar por el tamaño del equipo o por la carga de metas. Se descartó porque introduce un segundo sistema de ponderadores encima del que ya define RN-001, y porque haría que el número de la delegación cambiara al reconfigurar metas sin que nadie trabaje distinto. El promedio es además el que se puede explicar en una frase a la persona medida, que es el criterio que el cliente usó toda la reunión.
+
+Sobre eliminar en vez de deprecar: mientras las dos existan, cualquiera puede leer la equivocada y ninguna prueba lo detectaría —es exactamente lo que pasó durante semanas con las 24 filas fósiles—. Un cálculo que nadie puede reproducir no es una fuente de respaldo, es una trampa.
+
+### Consecuencias
+- El dashboard filtra por `periodoId` (RF-005) y no por el string `2026-Q3`, que era un formato inventado por la v1 y no correspondía a ninguna entidad.
+- Ya no hay nada que "recalcular": el motor se ejecuta al consultarlo. El botón del tablero pasó a ser **Actualizar**, disponible para todos los roles, y hay aviso en vivo cuando una validación aprobada mueve el puntaje (`cumplimiento:cambiado`).
+- El cálculo pesa más por petición que leer una vista materializada. Con los datos actuales (22 miembros, ~2.000 actividades) la respuesta es inmediata; si el volumen creciera, la solución es cachear el resultado del motor v2, **no** revivir una segunda verdad en SQL.
+- Los datos de demostración tuvieron que crecer: medir personas dejaba cuatro de las seis delegaciones sin nadie configurado. Se sumaron funcionarios a tres de ellas y **La Pampa se deja a propósito sin medición**, para que el estado del punto 3 se pueda mostrar.
+- Queda **fuera de este bloque**: `GET /cumplimiento/:periodoId` sigue devolviendo el detalle por funcionario a todos los roles. El consolidado no lo necesita, pero el detalle individual roza la consulta abierta nº 11 (si un funcionario ve las cifras de sus pares). Se anota, no se cambia en silencio.
