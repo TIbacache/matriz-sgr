@@ -1,6 +1,6 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 3 de septiembre de 2026 · `main` en `v0.13.0-solicitud-en-el-tubo`
+**Actualizado**: 4 de septiembre de 2026 · `main` en `v0.14.0-dashboard-v2`
 **Verificación**: 290 comprobaciones automatizadas en verde — backend 207 (18 smoke + 21 cálculo + 168 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
@@ -29,8 +29,21 @@ Lo vigente está arriba; el registro histórico de las fases, al final.
 | `planificacion.centro` | Elena Tapia Godoy | `usuario` | Funcionario | Planificación y Control | Centro |
 | `territorial.rural` | Ignacio Bustos Farías | `usuario` | Funcionario | Territorial OO.CC. 1 | Rural |
 | `social.rural` | Marcela Rojas Leiva | `usuario` | Funcionario | Gestor Social 1 | Rural |
+| `delegado.antena` | Rocío Vergara Cortez | `gerente` | Delegado | — | La Antena |
+| `territorial.antena` | Matías Cepeda Aravena | `usuario` | Funcionario | Territorial OO.CC. 1 | La Antena |
+| `apoyo.antena` | Ninoska Ibarra Ossandón | `usuario` | Funcionario | Apoyo Administrativo | La Antena |
+| `delegado.avmar` | Sebastián Pizarro Alfaro | `gerente` | Delegado | — | Avenida del Mar |
+| `social.avmar` | Fernanda Zepeda Carvajal | `usuario` | Funcionario | Gestor Social 1 | Avenida del Mar |
+| `planificacion.avmar` | Álvaro Riquelme Donoso | `usuario` | Funcionario | Planificación y Control | Avenida del Mar |
+| `delegado.companias` | Constanza Barraza Pastén | `gerente` | Delegado | — | Las Compañías |
+| `territorial.companias` | Hernán Olivares Trigo | `usuario` | Funcionario | Territorial OO.CC. 1 | Las Compañías |
+| `diserco.companias` | Yasna Peralta Salgado | `usuario` | Funcionario | Coordinador DISERCO | Las Compañías |
 
-Las **siete personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición.
+Las **trece personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición.
+
+⚠ **Las nueve últimas nacieron con el Bloque C.** El tablero consolidado mide personas: con solo Centro y Rural configurados, cuatro de las seis delegaciones aparecían sin medición. Se poblaron tres y **La Pampa se dejó a propósito sin nadie medido**, para poder mostrar ese estado en pantalla ([ADR-014](decisiones-tecnicas.md)).
+
+El mismo bloque **borró de la base las cuentas `@demo.cl`** que seguían vivas desde la Fase 2: el seed las creaba con `upsert`, así que dejar de nombrarlas nunca las quitó. Ahora el seed elimina de la organización demo a quien no esté en su lista `EQUIPO`. No era teórico: una comprobación del smoke pasaba gracias a un cargo que solo existía en esas cuentas.
 
 **Para probar con los seis roles** (regla que ya detectó tres errores reales): `admin@` · `coordinador@` · `verificador@` · `consulta@` · `delegado.centro@` · `territorial.centro@`.
 
@@ -46,14 +59,14 @@ Las **siete personas con cargo** son las únicas que tienen metas y aparecen en 
 | Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, **ficha del vecino**, dashboard |
 | Identidad visual de La Serena (DESIGN §10) | ✅ Tokens, barra, login con el faro, tipografía; verificada por script y con capturas de los seis roles |
 | Tiempo real | ✅ Socket.io con rooms por delegación y organización |
-| Dashboard sobre el motor v2 | 🟡 Aún lee la vista materializada v1 (Bloque C) |
+| Dashboard sobre el motor v2 | ✅ Consolida el motor por funcionario; la vista materializada v1 **se eliminó** (Bloque C) |
 | Pantallas de administración | 🟡 Falta períodos, cargos y catálogos |
 | Ficha del vecino y trazabilidad entre delegaciones | ✅ `/vecinos` con búsqueda por RUT y nombre, historial cruzado y aviso de duplicidad (Bloque B3) |
 | Informes, exportación y alertas | ⬜ |
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 20 ✅ · 11 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 bajó de ✅ a 🟡 el 3 de septiembre al comprobar que el campo INT/EXT no era alcanzable, y el **Bloque B5** lo cerró junto con RF-017.
+**Contra los 38 RF oficiales: 22 ✅ · 9 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027 —el tope y los umbrales dejaron de estar escritos en SQL— y con ellos desapareció la última fuente de cálculo duplicada. El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 bajó de ✅ a 🟡 el 3 de septiembre al comprobar que el campo INT/EXT no era alcanzable, y el **Bloque B5** lo cerró junto con RF-017.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -88,6 +101,7 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 | `GET /evidencias/:id` · `GET /evidencias/:id/archivo` | ídem | El archivo pasa por autorización, no es estático |
 | `POST /evidencias/:id/validacion` | verificador, supervisor, admin | `{decision, observacion}`. Tres decisiones; observación obligatoria si no aprueba; **nadie valida lo propio**; una aprobación no se re-decide |
 | `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
+| `GET /cumplimiento/:periodoId/consolidado` | todos | **Lo que consume el dashboard** (RF-029). Devuelve `delegaciones` (promedio de sus funcionarios, con `porArea`), `sinMedicion` (las que no tienen a nadie con metas: no son 0%), `areas` (el eje del mapa: `Cargo.area`), `totales` y los `parametros` usados. El semáforo consolidado lo ven los seis roles ([ADR-014](decisiones-tecnicas.md)) |
 | `GET /catalogos?catalogo=` | todos | Solo lectura. El CRUD de HU-27 está pendiente |
 | `GET /usuarios[?unidad=]` | todos | Directorio con `cargo` y **`cargoId`** — es lo que dice qué ítems se le miden |
 | `GET /vecinos?q=&limite=` | admin, supervisor, gerente, usuario | Busca por **RUT** (exacto, en cualquier formato) o por **nombre** (parcial, sobre la expresión indexada de ADR-003). Menos de 3 caracteres devuelve vacío. Cada resultado trae `atenciones` y en cuántas `delegaciones`. `verificador` y `consulta` → **403 con el motivo** (ADR-012) |
@@ -107,8 +121,8 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 | `GET/POST/PATCH/DELETE /tareas` | **Se queda — ✅ endurecida y completada** | Es el tubo de trabajo: EP-04, RF-016 a RF-021, HU-12 a HU-15. Desde el Bloque A3 el `PATCH` exige `version` → 409 y todo write se audita. Desde el **Bloque B5** acepta la solicitud completa: `interesExterno`, `fechaSolicitud`, `solicitante`, `personaUsuariaId`, `territorio`, `areaApoyo` y `observaciones`. Una solicitud externa **sin solicitante → 422**; territorio y área de apoyo se validan contra `CatalogoItem` al crear y al corregir → 422; persona inexistente → 404. El alta devuelve `alertaTrazabilidad` si esa persona ya registra hechos en otra delegación (ADR-008). Sigue pendiente `TareaHistorial` (RF-018) |
 | `GET/POST/PATCH/DELETE /unidades` | **Se queda — ✅ endurecida** | Delegaciones, RF-001. Desde el Bloque A3: `version` → 409, auditoría, y el `DELETE` **desactiva** en vez de borrar (`?incluirInactivas=1` para verlas) |
 | `GET/POST/PATCH/DELETE /categorias` | **Se queda — ✅ endurecida** | Clasificación del tubo. Desde el Bloque A3: `version` → 409 y auditoría. Podría converger a `CatalogoItem` más adelante |
-| `GET/PUT/PATCH /metas` (unidad × categoría × trimestre) | **Muere — borrar** | Reemplazada por `/metas-item`. **El frontend ya no la llama.** No se puede borrar todavía porque la vista materializada v1 depende de la tabla `Meta` |
-| `GET /kpis/cumplimiento` · `POST /kpis/recalcular` | **Muere con el Bloque C** | Lee la vista materializada v1, por delegación y con umbrales fijos en SQL |
+| ~~`GET/PUT/PATCH /metas`~~ (unidad × categoría × trimestre) | **✅ Eliminada (Bloque C)** | Con ella se fueron el modelo `Meta` y su tabla. La auditoría del bloque encontró que **ningún seed la poblaba** desde la reescritura y que nada actualizaba su columna `avance`: el tablero mostraba 24 filas fósiles imposibles de reproducir en una base limpia |
+| ~~`GET /kpis/cumplimiento`~~ · ~~`POST /kpis/recalcular`~~ | **✅ Eliminadas (Bloque C)** | Leían y refrescaban la vista materializada v1. Con ellas se fueron la vista, el cron de recálculo y la variable `CRON_CUMPLIMIENTO`: el motor v2 se ejecuta al consultarlo, así que no hay nada que precomputar |
 | `GET /kpis/tubo` | **Se queda** | Conteos agregados del tubo; es independiente del cálculo v1 |
 
 ## 4. Contrato de Socket.io (mismo puerto)
@@ -171,7 +185,9 @@ Lo que Prisma no expresa, agregado por SQL en la migración:
 
 ### 5.3 Seed
 
-100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, 13 personas, 3 vecinos, 16 tareas con historial y **1.126 actividades con evidencia y validación**, de las cuales **94 quedan a nombre de un vecino**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert.
+100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, **22 personas** (13 con cargo medido), 3 vecinos, 16 tareas con historial y **~2.400 actividades con evidencia y validación**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert, y desde el Bloque C **borra a los miembros que ya no están en su lista `EQUIPO`** (así se fueron las cuentas `@demo.cl` fósiles).
+
+Cinco de las seis delegaciones tienen medición y **La Pampa no la tiene a propósito**: es el caso que demuestra que «sin nadie configurado» no es «0% de cumplimiento» ([ADR-014](decisiones-tecnicas.md)). Los factores de cumplimiento están elegidos para que el semáforo por delegación muestre los tres colores; eso se verifica, no se confía.
 
 El reparto de vecinos es **determinista a propósito** (Bloque B3): Centro y Rural comparten el cargo «Territorial OO.CC. 1», así que el mismo ítem le toca al mismo vecino en las dos delegaciones y el caso emblemático del cliente —la misma persona atendida por lo mismo en dos delegaciones— queda armado en los datos de demostración, que es donde tiene que poder mostrarse.
 
@@ -249,15 +265,23 @@ Es el control que el cliente vino a buscar: la misma persona atendida en varias 
 
 ### 6.6 Dashboard (`/dashboard`) — EP-05
 
-ECharts modular con carga perezosa: gauges por delegación, heatmap semántico con escala discreta del semáforo, dumbbell de proyección, radar en énfasis, tubo apilado y tabla ordenable. Filtros cruzados: al hacer clic en cualquier gráfico se filtra todo. Todos los gráficos leen los tokens vivos y cambian con el tema sin recargar.
+ECharts modular con carga perezosa: gauges por delegación, mapa de calor semántico con escala discreta del semáforo, dumbbell de proyección, radar en énfasis, tubo apilado y tabla ordenable. Filtros cruzados: al hacer clic en cualquier gráfico se filtra todo. Todos los gráficos leen los tokens vivos y cambian con el tema sin recargar.
 
-⚠ **Aún lee la vista materializada v1** (por delegación, con umbrales fijos en SQL). Migrarlo al motor v2 es el Bloque C.
+**Bloque C — consume `GET /cumplimiento/:periodoId/consolidado`.** Lo que cambió, además de la fuente:
+
+- **Filtra por período, no por el string `2026-Q3`**, que era un formato inventado por la v1 y no correspondía a ninguna entidad (RF-005).
+- **El segundo eje es el área del cargo** (`T OO CC`, `SOCIAL`, `APOY ADM`…), como agrupa la planilla real. Antes era `CategoriaGestion`, que son las categorías del **tubo**: el mapa cruzaba dos cosas sin relación. `HeatmapPilares` y `RadarPilares` pasaron a ser `HeatmapAreas` y `RadarAreas`.
+- **La celda del mapa muestra el avance relativo del área**, con el mismo criterio que el gauge de al lado. Antes el gauge se coloreaba contra el objetivo del día y la celda contra un 100% fijo: dos formas que podían contradecirse en la misma pantalla.
+- **Los umbrales del color y el tope de la proyección salen de los parámetros** (RF-024, RF-027). El `Math.min(…, 150)` de la proyección estaba escrito a mano en `lib/dashboard.ts`.
+- **Ya no hay botón «Recalcular»** (era de admin y coordinador, y refrescaba la vista). Hay **Actualizar** para todos y un aviso en vivo cuando una validación aprobada mueve el puntaje (`cumplimiento:cambiado`), persistente y no un toast: el tablero es una pantalla que se mira fijo y las cifras no deben saltar solas.
+- **Las delegaciones sin nadie medido se nombran**, en vez de desaparecer o valer 0%.
+- La tabla del detalle usa `.tabla-sgr` como el resto del sistema; su copia `.tabla-detalle` era deuda declarada y se saldó aquí.
 
 ### 6.7 Piezas reutilizables
 
 `ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color) · `MarcaSemaforo` (con `mono` para zonas de identidad) · `FaroSerena` · `.tabla-sgr` · `.btn-peligro` (contorno) · `.btn-tabla` · `useUnidadSocket` · `useOrgSocket` · `useArchivoEvidencia` · `useTokens` (los gráficos leen los tokens vivos; `colorCategoria()` devuelve `var(--cat-N)`).
 
-⚠ Deuda: `.tabla-detalle` del dashboard y `.tabla-sgr` son dos tablas con el mismo propósito. Convergen en el Bloque C.
+`.tabla-orden` (encabezado ordenable), `.tabla-fila--activa` (fila seleccionada, con `--seleccion` y nunca con el rojo institucional) y `.tabla-clickeable` viven en `base.css` como modificadores de `.tabla-sgr` desde el Bloque C, cuando el dashboard dejó su tabla propia.
 
 ---
 
@@ -361,16 +385,15 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 |---|---|---|
 | 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner | `scripts/cargar-plan-planner.ps1` | Bloqueante |
 | ~~Las evidencias del seed daban 410~~ ✅ **resuelto el 02-09-2026** | El seed inventaba `archivoRuta` (`/evidencias/COD.jpg`) en un formato que `rutaRelativa()` no resuelve, y nunca escribía el archivo. Ahora usa el mismo helper que el alta real y escribe 1.126 ilustraciones sintéticas (`prisma/imagen-demo.ts`, PNG generado sin dependencias) | — |
-| Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1** | `jobs/cumplimiento.ts`, `dashboard.ts` | Alta |
+| ~~Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1**~~ ✅ **resuelto el 04-09-2026**: se eliminaron la vista, la tabla `metas`, el modelo `Meta`, `/metas`, `/kpis/cumplimiento`, `/kpis/recalcular` y el cron. Ya no hay dos verdades | — | ✅ |
 | La ficha del rol consulta dice "usa la fila de arriba para registrar" y no hay fila (ese rol no registra): el vacío debe explicar su causa, no señalar algo que no existe | `FichaPage.tsx` | Media |
 | El rol se muestra con el nombre técnico ("Supervisor", "Gerente") en la barra; el municipio dice "Coordinador" y "Delegado". La terminología por tenant ya existe (`configuracionTerminologia`) | `Layout.tsx` `ROL_LABEL` | Media |
 | El nombre de la organización se trunca en la barra de 240px ("Municipalidad Demo (datos fi…") | `layout.css` | Baja |
-| Las evidencias del seed no tienen archivo en disco: la bandeja muestra "No se pudo abrir el archivo (410)" con datos demo | seed | Baja (solo demo) |
 | ~~Endurecer `/tareas`, `/unidades` y `/categorias` con `version` → 409 y auditoría~~ ✅ **resuelto el 03-09-2026** (Bloque A3), junto con RF-001 (la baja de una delegación la desactiva) y el aviso de conflicto en el tubo | — | ✅ |
 | ~~🔴 **El tubo no puede enlazar al vecino** (RF-016, RF-017)~~ ✅ **resuelto el 03-09-2026** (Bloque B5): INT/EXT, solicitante, territorio, área de apoyo y el vínculo opcional con la ficha del vecino, con la verificación que comprueba que el compromiso **aparece en el historial** | — | ✅ |
 | **No se declara `color-scheme`**: los controles nativos (radios, casillas, selectores de fecha) se pintan en claro también en el tema oscuro. El Bloque B5 lo rodeó marcando la opción elegida en el contenedor, no solo en el punto del radio, pero la causa sigue ahí y afecta a todos los formularios | `tokens.css` | Media |
 | `TareaHistorial` sigue sin usarse: RF-018 pide **historial de transición** visible, y hoy el recorrido de una tarjeta solo está en la bitácora de auditoría (que es interna). Es lo que le falta a CA-03 junto con la alerta | `tareas.routes.ts`, entidad ya modelada | Media |
-| Borrar `/metas` v1 y su tabla `Meta` (bloqueado por la vista v1) | `metas.routes.ts` | Media, tras el Bloque C |
+| ~~Borrar `/metas` v1 y su tabla `Meta`~~ ✅ **resuelto el 04-09-2026** (Bloque C), en la misma migración que la vista | — | ✅ |
 | ~~Ficha del vecino: falta el endpoint de búsqueda de `PersonaUsuaria`~~ ✅ **resuelto el 03-09-2026** (Bloque B3): `GET /vecinos`, `GET /vecinos/:id`, `PATCH /vecinos/:id` y la pantalla `/vecinos` | — | ✅ |
 | ~~La ficha del vecino no muestra las **tres gestiones** de `AtencionSocial`~~ ✅ **resuelto el 03-09-2026** (Bloque B4): `/atenciones-sociales`, el modal del caso en la ficha personal y el caso con su avance en el historial del vecino. CA-04 cerrado | — | ✅ |
 | **Corregir una gestión ya registrada no está resuelto**: el `PATCH` solo toca la cabecera del caso. Si el cliente lo pide, la decisión será si se corrige con bloqueo optimista o si se anula la actividad y se registra otra, como con las validaciones aprobadas (consulta abierta nº 8). Anotado en ADR-013, no inventado | `atenciones-sociales.routes.ts` | Media |
@@ -378,13 +401,15 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | API de `Ajuste`, `Comentario`, `Ausencia` y CRUD de catálogos y parámetros | backend | Media |
 | Pantallas de administración: períodos, cargos, catálogos | frontend | Media |
 | Alternativa por teclado en el arrastrar y soltar (RNF-012) | `KanbanBoard.tsx` | Media |
-| `.tabla-detalle` y `.tabla-sgr`: dos tablas con el mismo propósito | `dashboard.css` vs `base.css` | Media |
-| El dashboard filtra por el string `2026-Q3`, no por `periodoId` | `lib/dashboard.ts` | Media |
+| ~~`.tabla-detalle` y `.tabla-sgr`: dos tablas con el mismo propósito~~ ✅ **resuelto el 04-09-2026** (Bloque C): el dashboard usa `.tabla-sgr` | — | ✅ |
+| ~~El dashboard filtra por el string `2026-Q3`, no por `periodoId`~~ ✅ **resuelto el 04-09-2026** (Bloque C) | — | ✅ |
 | Alertas (RF-037) y exportación de informes (RF-033) | — | Media |
 | Pruebas en marco formal (Jest/RTL) y CI | — | Media |
 | Despliegue: Docker de producción, VPS, Caddy, respaldos | — | Baja hasta la entrega |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 | Warning de Prisma: `package.json#prisma` deprecado → migrar a `prisma.config.ts` | — | Baja |
+| **`GET /cumplimiento/:periodoId` devuelve el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11 (si un funcionario ve las cifras de sus pares). Detectado en el Bloque C y **anotado, no cambiado en silencio** | `cumplimiento.routes.ts` | Media |
+| El seed tarda ~12 minutos: escribe ~2.400 PNG de evidencia uno por uno. Se arregla con escrituras en paralelo, pero no bloquea nada | `prisma/seed.ts` | Baja |
 
 ---
 

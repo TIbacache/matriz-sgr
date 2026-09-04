@@ -7,24 +7,33 @@ import type { ResumenDelegacion } from "../../lib/dashboard";
 interface Props {
   resumen: ResumenDelegacion[];
   seleccion: string | null;
+  /** Tope de cumplimiento en %, del parámetro `tope_cumplimiento_item` */
+  tope: number;
+  /** Umbral mínimo esperado en %, del parámetro `umbral_minimo_colectivo` */
+  umbralMinimo: number;
 }
 
-// Proyección a fin de trimestre, a ritmo actual — forma dumbbell de la skill
-// ("antes → después por ítem: un tono, dos intensidades"): punto claro = hoy,
-// punto oscuro = proyección, unidos por una línea. Referencias verticales en
-// 100% (meta) y 80% (el "ojo" del cliente). Un solo tono petróleo; el estado
-// ya lo dicen los gauges — aquí el trabajo es la analítica, no el color.
-export function ProyeccionChart({ resumen, seleccion }: Props) {
+// Proyección al cierre del período, a ritmo actual — forma dumbbell ("antes →
+// después: un tono, dos intensidades"): punto claro = hoy, punto oscuro =
+// proyección, unidos por una línea. Un solo tono petróleo; el estado ya lo
+// dicen los gauges — aquí el trabajo es la analítica, no el color.
+//
+// Las dos referencias verticales son la meta (100%) y el umbral mínimo del
+// cliente, que **sale del parámetro**: era un 80 escrito aquí, igual que el
+// tope de la proyección era un 150 escrito en `lib/dashboard.ts` (Bloque C).
+export function ProyeccionChart({ resumen, seleccion, tope, umbralMinimo }: Props) {
   const t = useTokens();
 
   const opcion = useMemo(() => {
     const orden = [...resumen].sort((a, b) => a.proyeccion - b.proyeccion);
     const nombres = orden.map((r) => r.nombre);
-    const maxX = Math.max(150, ...orden.map((r) => r.proyeccion)) + 10;
+    const maxX = Math.max(tope, ...orden.map((r) => r.proyeccion)) + 10;
 
     return {
       ...baseChart(t),
-      grid: { left: 8, right: 48, top: 28, bottom: 8, containLabel: true },
+      // `top` da aire para las dos etiquetas de referencia, que van a alturas
+      // distintas porque el 80% y el 100% caen casi juntos en el eje.
+      grid: { left: 8, right: 48, top: 46, bottom: 8, containLabel: true },
       xAxis: {
         type: "value",
         min: 0,
@@ -52,7 +61,7 @@ export function ProyeccionChart({ resumen, seleccion }: Props) {
             `<strong>${r.nombre}</strong><br/>` +
             `Hoy: <strong>${r.cumplimiento}%</strong> (día ${r.diasTranscurridos} de ${r.diasEfectivos})<br/>` +
             `Proyección al cierre: <strong>${r.proyeccion}%</strong><br/>` +
-            `<span style="color:${t.tinta2}">a ritmo actual, tope 150%</span>`
+            `<span style="color:${t.tinta2}">a ritmo actual, tope ${tope}%</span>`
           );
         },
       },
@@ -104,15 +113,26 @@ export function ProyeccionChart({ resumen, seleccion }: Props) {
             silent: true,
             lineStyle: { type: "solid", width: 1 },
             label: { fontSize: 10, color: t.tinta2 },
+            // Las dos referencias van juntas (80 y 100): si las dos etiquetas
+            // se rotulan arriba se pisan y quedan ilegibles ("Ojo 80%Meta
+            // 100%"). La del umbral baja al pie de su línea.
             data: [
-              { xAxis: 100, lineStyle: { color: t.tinta3 }, label: { formatter: "Meta 100%" } },
-              { xAxis: 80, lineStyle: { color: t.amarillo }, label: { formatter: "Ojo 80%" } },
+              {
+                xAxis: 100,
+                lineStyle: { color: t.tinta3 },
+                label: { formatter: "Meta 100%", position: "end", distance: 6 },
+              },
+              {
+                xAxis: umbralMinimo,
+                lineStyle: { color: t.amarillo },
+                label: { formatter: `Ojo ${umbralMinimo}%`, position: "end", distance: 22 },
+              },
             ],
           },
         },
       ],
     };
-  }, [resumen, t]);
+  }, [resumen, tope, umbralMinimo, t]);
 
   // La selección no repinta series (regla: el color sigue a la entidad);
   // la delegación elegida se resalta en la tabla y el radar.

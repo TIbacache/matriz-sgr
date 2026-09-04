@@ -1,7 +1,13 @@
 // Verifica el motor de cálculo por funcionario contra las reglas del PDF.
 // Ejecutar: npx tsx scripts/verificar-cumplimiento.ts
 import { prisma } from "../src/lib/prisma.js";
-import { calcularPeriodo, calcularCumplimientoItem, calcularSemaforo } from "../src/services/cumplimiento.js";
+import {
+  calcularPeriodo,
+  calcularCumplimientoItem,
+  calcularSemaforo,
+  consolidarPeriodo,
+  proyectarCumplimiento,
+} from "../src/services/cumplimiento.js";
 import { obtenerParametros, CLAVES } from "../src/services/parametros.js";
 import { diasDelPeriodo, diasTranscurridos } from "../src/lib/fechas.js";
 
@@ -106,6 +112,104 @@ const delegacionesDelVecino = new Set(vecinoMultiple?.tareas.map((t) => t.unidad
 check("ADR-008 un vecino es rastreable entre delegaciones",
   delegacionesDelVecino.size > 1,
   `${vecinoMultiple?.nombres} ${vecinoMultiple?.apellidoPaterno} aparece en: ${[...delegacionesDelVecino].join(", ")}`);
+
+// --- Consolidación por delegación (Bloque C) — RF-029 · ADR-014 -------------
+// Reemplaza a la vista materializada v1. Lo que hay que demostrar no es que
+// sume, sino que consolide con las MISMAS reglas del cálculo individual.
+
+// Proyección: regla de tres con el TOPE del parámetro, no con un 150 escrito
+// en el código (RF-024, ADR-007). Antes vivía en el frontend, a mano.
+check(
+  "RF-024 la proyección respeta el tope configurado",
+  proyectarCumplimiento(60, 30, 92, 1.5) === 150,
+  `60% en 30 de 92 días → 184% sin tope, ${proyectarCumplimiento(60, 30, 92, 1.5)}% con tope 1,5`
+);
+check("RF-024 un tope distinto da una proyección distinta", proyectarCumplimiento(60, 30, 92, 1.2) === 120);
+check("La proyección sin días transcurridos no divide por cero", proyectarCumplimiento(40, 0, 92, 1.5) === 40);
+
+const consolidado = await consolidarPeriodo(ORG, periodo.id);
+check(
+  "RF-029 el período se consolida por delegación",
+  consolidado.delegaciones.length > 1,
+  `${consolidado.delegaciones.length} con medición, ${consolidado.sinMedicion.length} sin medición`
+);
+
+// ADR-014: la delegación es el PROMEDIO de su gente. Se comprueba recalculándolo
+// a mano sobre el resultado individual del mismo motor.
+const unaDelegacion = consolidado.delegaciones[0]!;
+const suGente = cumplimiento.filter((c) => c.unidadTerritorialId === unaDelegacion.unidadTerritorialId);
+const promedioAMano =
+  Math.round((suGente.reduce((s, c) => s + c.cumplimientoFinal, 0) / suGente.length) * 10) / 10;
+check(
+  "ADR-014 la delegación es el promedio de sus funcionarios",
+  unaDelegacion.cumplimiento === promedioAMano && unaDelegacion.funcionarios === suGente.length,
+  `${unaDelegacion.nombre}: ${unaDelegacion.cumplimiento}% sobre ${suGente.length} personas`
+);
+
+// El color de la delegación sale de la MISMA función que el individual, con los
+// umbrales de la tabla de parámetros. La vista v1 los tenía escritos en SQL.
+check(
+  "RF-027 el semáforo de la delegación usa los umbrales configurados",
+  consolidado.delegaciones.every(
+    (d) =>
+      d.semaforo ===
+      calcularSemaforo(
+        d.avanceRelativo,
+        params[CLAVES.semaforoVerde]!.valor,
+        params[CLAVES.semaforoNaranjo]!.valor
+      )
+  )
+);
+
+// La diferencia que la v1 no sabía hacer: sin medición no es 0%.
+check(
+  "Una delegación sin nadie con meta NO aparece como 0% de cumplimiento",
+  consolidado.sinMedicion.length > 0 &&
+    consolidado.sinMedicion.every(
+      (u) => !consolidado.delegaciones.some((d) => d.unidadTerritorialId === u.unidadTerritorialId)
+    ),
+  consolidado.sinMedicion.map((u) => u.nombre).join(", ") || "ninguna sin medición"
+);
+
+// El eje del mapa de calor es el área del cargo, no la categoría del tubo.
+check(
+  "El consolidado agrupa por área del cargo",
+  consolidado.areas.length >= 3 && consolidado.delegaciones.every((d) => d.porArea.length > 0),
+  consolidado.areas.join(", ")
+);
+
+// Cada área se juzga contra SU objetivo, no contra un 100% crudo.
+const areasMalCalculadas = consolidado.delegaciones.flatMap((d) =>
+  d.porArea.filter(
+    (a) =>
+      a.objetivoAlDia > 0 &&
+      Math.abs(a.avanceRelativo - Math.round((a.cumplimiento / a.objetivoAlDia) * 1000) / 10) > 0.11
+  )
+);
+check(
+  "RN-008 el avance relativo por área es cumplimiento/objetivo",
+  areasMalCalculadas.length === 0,
+  `${consolidado.delegaciones.reduce((s, d) => s + d.porArea.length, 0)} celdas del mapa`
+);
+
+// Nadie se pierde por el camino al consolidar.
+const conDelegacion = cumplimiento.filter((c) => c.unidadTerritorialId !== null).length;
+const sumados = consolidado.delegaciones.reduce((s, d) => s + d.funcionarios, 0);
+check(
+  "Ningún funcionario medido se pierde al consolidar",
+  sumados === conDelegacion && consolidado.totales.funcionarios === cumplimiento.length,
+  `${sumados} en delegaciones + ${consolidado.totales.funcionariosSinDelegacion} sin delegación = ${consolidado.totales.funcionarios}`
+);
+
+// El tablero necesita los tres colores para que el semáforo signifique algo:
+// es una propiedad de los DATOS DE DEMOSTRACIÓN, y por eso se verifica.
+const coloresDelegacion = [...new Set(consolidado.delegaciones.map((d) => d.semaforo))];
+check(
+  "El semáforo por delegación muestra los tres colores",
+  coloresDelegacion.length === 3,
+  coloresDelegacion.join(", ")
+);
+
 
 console.log("\n" + resultados.join("\n"));
 console.log("\n--- Muestra del cálculo ---");

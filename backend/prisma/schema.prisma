@@ -80,18 +80,17 @@ enum AccionAuditoria {
 }
 
 model Organization {
-  id            String           @id @default(uuid())
-  nombre        String
-  tipo          TipoOrganizacion
+  id                        String           @id @default(uuid())
+  nombre                    String
+  tipo                      TipoOrganizacion
   // Terminología configurable por tenant (ej: {"unidad": "sucursal", "autoridad": "gerenta general"})
-  configuracionTerminologia Json @default("{}") @map("configuracion_terminologia")
-  createdAt     DateTime         @default(now()) @map("created_at")
+  configuracionTerminologia Json             @default("{}") @map("configuracion_terminologia")
+  createdAt                 DateTime         @default(now()) @map("created_at")
 
   members    OrganizationMember[]
   unidades   UnidadTerritorial[]
   categorias CategoriaGestion[]
   tareas     Tarea[]
-  metas      Meta[]
 
   // Modelo v2
   periodos           Periodo[]
@@ -117,26 +116,26 @@ model Organization {
 // Usuario GLOBAL: un email puede pertenecer a varias organizaciones.
 // El rol vive en la membresía (OrganizationMember), no aquí.
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
+  id              String   @id @default(uuid())
+  email           String   @unique
+  passwordHash    String   @map("password_hash")
   /// Nombre completo heredado del modelo v1. Se conserva para no romper el
   /// código existente; los campos separados de abajo son la fuente correcta
   /// (ADR-003) y `nombre` se deriva de ellos con lib/persona.ts.
-  nombre       String
+  nombre          String
   /// ADR-003: separados porque separarlos después es inviable.
-  nombres         String? @map("nombres")
-  apellidoPaterno String? @map("apellido_paterno")
-  apellidoMaterno String? @map("apellido_materno")
+  nombres         String?  @map("nombres")
+  apellidoPaterno String?  @map("apellido_paterno")
+  apellidoMaterno String?  @map("apellido_materno")
   /// ADR-001: canónico "17721947-9", validado con módulo 11. Único global.
-  rut          String?  @unique
-  activo       Boolean  @default(true)
-  version      Int      @default(1)
-  createdAt    DateTime @default(now()) @map("created_at")
+  rut             String?  @unique
+  activo          Boolean  @default(true)
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
 
-  memberships        OrganizationMember[]
-  unidadesACargo     UnidadTerritorial[]  @relation("responsable_unidad")
-  tareasResponsable  Tarea[]              @relation("responsable_tarea")
+  memberships       OrganizationMember[]
+  unidadesACargo    UnidadTerritorial[]  @relation("responsable_unidad")
+  tareasResponsable Tarea[]              @relation("responsable_tarea")
 
   // Modelo v2
   metasItem          MetaItem[]       @relation("metas_funcionario")
@@ -153,10 +152,10 @@ model User {
 }
 
 model OrganizationMember {
-  id             String @id @default(uuid())
-  organizationId String @map("organization_id")
-  userId         String @map("user_id")
-  rol            Rol
+  id                  String  @id @default(uuid())
+  organizationId      String  @map("organization_id")
+  userId              String  @map("user_id")
+  rol                 Rol
   // Delegación a la que pertenece la persona. Null para admin/supervisor
   // (nivel central). Define qué libro/tubo puede ver: el cliente confirmó que
   // las delegaciones NO se ven entre ellas, pero cada integrante ve todo el
@@ -164,7 +163,7 @@ model OrganizationMember {
   unidadTerritorialId String? @map("unidad_territorial_id")
   // Cargo textual del organigrama (ej. "Coordinador DISERCO", "Territorial 1").
   // El cliente modela cargo → funciones → metas (reunión 00:59:16).
-  cargo          String?
+  cargo               String?
 
   /// RF-003: vínculo al cargo que define qué ítems se le miden.
   /// `cargo` (texto) se conserva del modelo v1 como respaldo legible.
@@ -193,7 +192,6 @@ model UnidadTerritorial {
   organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   responsable  User?                @relation("responsable_unidad", fields: [responsableId], references: [id], onDelete: SetNull)
   tareas       Tarea[]
-  metas        Meta[]
   integrantes  OrganizationMember[]
   actividades  Actividad[]
 
@@ -213,7 +211,6 @@ model CategoriaGestion {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tareas       Tarea[]
-  metas        Meta[]
 
   @@index([organizationId])
   @@map("categorias_gestion")
@@ -222,35 +219,35 @@ model CategoriaGestion {
 // Estados del tubo: string libre (no enum) porque las columnas del kanban
 // son configurables por organización (Documento Maestro §3.1).
 model Tarea {
-  id                   String    @id @default(uuid())
-  organizationId       String    @map("organization_id")
-  unidadTerritorialId  String    @map("unidad_territorial_id")
-  categoriaId          String    @map("categoria_id")
-  titulo               String
-  descripcion          String?
+  id                  String    @id @default(uuid())
+  organizationId      String    @map("organization_id")
+  unidadTerritorialId String    @map("unidad_territorial_id")
+  categoriaId         String    @map("categoria_id")
+  titulo              String
+  descripcion         String?
   // RF-018: ingresado → pendiente → en_proceso → realizado
-  estado               String    @default("ingresado")
-  fechaCompromiso      DateTime? @map("fecha_compromiso") @db.Date
-  responsableId        String?   @map("responsable_id")
-  createdAt            DateTime  @default(now()) @map("created_at")
-  updatedAt            DateTime  @updatedAt @map("updated_at")
+  estado              String    @default("ingresado")
+  fechaCompromiso     DateTime? @map("fecha_compromiso") @db.Date
+  responsableId       String?   @map("responsable_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
   // --- Campos v2 exigidos por RF-016 y RF-017 (columnas reales del tubo,
   // ver docs/estructura-planilla-real.md §6) ---
   /// Origen de la solicitud: externa (vecino) o interna (trabajo propio)
-  interesExterno   Boolean  @default(true) @map("interes_externo")
-  fechaSolicitud   DateTime? @map("fecha_solicitud") @db.Date
-  solicitante      String?
-  personaUsuariaId String?  @map("persona_usuaria_id")
-  territorio       String?
-  areaApoyo        String?  @map("area_apoyo")
-  observaciones    String?
+  interesExterno    Boolean   @default(true) @map("interes_externo")
+  fechaSolicitud    DateTime? @map("fecha_solicitud") @db.Date
+  solicitante       String?
+  personaUsuariaId  String?   @map("persona_usuaria_id")
+  territorio        String?
+  areaApoyo         String?   @map("area_apoyo")
+  observaciones     String?
   /// RF-019: se marca al cerrar fuera de la fecha comprometida
-  cerradaFueraPlazo Boolean @default(false) @map("cerrada_fuera_plazo")
-  fechaCierre      DateTime? @map("fecha_cierre") @db.Date
+  cerradaFueraPlazo Boolean   @default(false) @map("cerrada_fuera_plazo")
+  fechaCierre       DateTime? @map("fecha_cierre") @db.Date
   /// RF-020: el cierre alimenta el indicador UNA sola vez
-  computadaEnMeta  Boolean  @default(false) @map("computada_en_meta")
-  version          Int      @default(1)
+  computadaEnMeta   Boolean   @default(false) @map("computada_en_meta")
+  version           Int       @default(1)
 
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   unidad         UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
@@ -265,28 +262,13 @@ model Tarea {
   @@map("tareas")
 }
 
-model Meta {
-  id                  String  @id @default(uuid())
-  organizationId      String  @map("organization_id")
-  unidadTerritorialId String  @map("unidad_territorial_id")
-  categoriaId         String  @map("categoria_id")
-  trimestre           String  // formato "2026-Q3"
-  metaTrimestre       Decimal @map("meta_trimestre") @db.Decimal(12, 2)
-  avance              Decimal @default(0) @db.Decimal(12, 2)
-  ponderador          Decimal @db.Decimal(5, 4) // 0..1; deben sumar 1 por unidad+trimestre
-
-  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  unidad       UnidadTerritorial @relation(fields: [unidadTerritorialId], references: [id], onDelete: Cascade)
-  categoria    CategoriaGestion  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
-
-  @@unique([unidadTerritorialId, categoriaId, trimestre])
-  @@index([organizationId, trimestre])
-  @@map("metas")
-}
-
-// NOTA: cumplimiento_ponderado_vista es una VISTA MATERIALIZADA creada por SQL
-// en la migración 'vista_cumplimiento' (Prisma no modela matviews). Se refresca
-// vía cron (src/jobs/cumplimiento.ts) y se consulta con $queryRaw.
+// El modelo v1 `Meta` (unidad × categoría × trimestre) y la vista materializada
+// `cumplimiento_ponderado_vista` que se construía sobre él se ELIMINARON en el
+// Bloque C (migración `20260903230000_eliminar_cumplimiento_v1`). Medían la
+// delegación con el tope y los umbrales escritos en SQL, mientras la
+// especificación mide a la persona; convivir con `MetaItem` dejaba dos verdades
+// para la misma pregunta. Hoy el cálculo vive en `services/cumplimiento.ts` y
+// se consolida por delegación en `GET /cumplimiento/:periodoId/consolidado`.
 
 // ============================================================================
 // MODELO v2 — entidades exigidas por la especificación oficial (PDF INACAP).
@@ -371,19 +353,19 @@ model Cargo {
 
 /// RF-003 · RN-002 · ADR-009: lo que efectivamente se mide.
 model ItemMedicion {
-  id             String        @id @default(uuid())
-  organizationId String        @map("organization_id")
-  cargoId        String        @map("cargo_id")
-  nombre         String // "Atención de usuario teléfono y presencial"
-  tipo           TipoItem      @default(cantidad)
-  direccion      DireccionItem @default(mayor_mejor)
+  id                String        @id @default(uuid())
+  organizationId    String        @map("organization_id")
+  cargoId           String        @map("cargo_id")
+  nombre            String // "Atención de usuario teléfono y presencial"
+  tipo              TipoItem      @default(cantidad)
+  direccion         DireccionItem @default(mayor_mejor)
   // Los compromisos cerrados del tubo alimentan este ítem (RF-020)
-  alimentadoPorTubo Boolean    @default(false) @map("alimentado_por_tubo")
-  orden          Int           @default(0)
-  activo         Boolean       @default(true)
-  version        Int           @default(1)
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
+  alimentadoPorTubo Boolean       @default(false) @map("alimentado_por_tubo")
+  orden             Int           @default(0)
+  activo            Boolean       @default(true)
+  version           Int           @default(1)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   cargo        Cargo        @relation(fields: [cargoId], references: [id], onDelete: Cascade)
@@ -422,18 +404,18 @@ model MetaItem {
 /// delegación — es lo que permite detectar que la misma persona pidió lo mismo
 /// en varias delegaciones (caso del regalo de Navidad).
 model PersonaUsuaria {
-  id               String   @id @default(uuid())
-  organizationId   String   @map("organization_id")
-  rut              String? // canónico "17721947-9"; nulo si aún no se conoce
-  nombres          String
-  apellidoPaterno  String   @map("apellido_paterno")
-  apellidoMaterno  String?  @map("apellido_materno")
-  telefono         String?
-  direccion        String?
-  sector           String?
-  version          Int      @default(1)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  rut             String? // canónico "17721947-9"; nulo si aún no se conoce
+  nombres         String
+  apellidoPaterno String   @map("apellido_paterno")
+  apellidoMaterno String?  @map("apellido_materno")
+  telefono        String?
+  direccion       String?
+  sector          String?
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actividades  Actividad[]
@@ -447,28 +429,28 @@ model PersonaUsuaria {
 /// RF-009: el registro diario del funcionario (la "pestaña personal").
 /// RF-011: `codigo` es único e INMUTABLE — nunca se actualiza.
 model Actividad {
-  id             String   @id @default(uuid())
-  organizationId String   @map("organization_id")
-  periodoId      String   @map("periodo_id")
-  unidadTerritorialId String @map("unidad_territorial_id")
-  funcionarioId  String   @map("funcionario_id")
-  itemId         String?  @map("item_id") // a qué ítem suma
+  id                  String   @id @default(uuid())
+  organizationId      String   @map("organization_id")
+  periodoId           String   @map("periodo_id")
+  unidadTerritorialId String   @map("unidad_territorial_id")
+  funcionarioId       String   @map("funcionario_id")
+  itemId              String?  @map("item_id") // a qué ítem suma
   /// RF-011 · ADR-004: "SOC-20260713-0010". Único e inmutable.
-  codigo         String
-  fecha          DateTime @db.Date
-  descripcion    String // actividad / solicitud / problema
-  accion         String? // acción ejecutada
-  personaUsuariaId String? @map("persona_usuaria_id")
-  contactoNombre String?  @map("contacto_nombre")
-  contactoFono   String?  @map("contacto_fono")
-  ingresoATubo   Boolean  @default(false) @map("ingreso_a_tubo")
-  tareaId        String?  @map("tarea_id") // enlace con la agenda colectiva
+  codigo              String
+  fecha               DateTime @db.Date
+  descripcion         String // actividad / solicitud / problema
+  accion              String? // acción ejecutada
+  personaUsuariaId    String?  @map("persona_usuaria_id")
+  contactoNombre      String?  @map("contacto_nombre")
+  contactoFono        String?  @map("contacto_fono")
+  ingresoATubo        Boolean  @default(false) @map("ingreso_a_tubo")
+  tareaId             String?  @map("tarea_id") // enlace con la agenda colectiva
   /// Anulación: en vez de editar/borrar se anula con motivo (ADR-006)
-  anulada        Boolean  @default(false)
-  motivoAnulacion String? @map("motivo_anulacion")
-  version        Int      @default(1)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  anulada             Boolean  @default(false)
+  motivoAnulacion     String?  @map("motivo_anulacion")
+  version             Int      @default(1)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   periodo        Periodo           @relation(fields: [periodoId], references: [id], onDelete: Restrict)
@@ -532,23 +514,23 @@ model Validacion {
 /// RF-015 · RN-012 · CA-04: el área social registra hasta TRES gestiones para
 /// la misma persona, con fechas diferenciadas por etapa.
 model AtencionSocial {
-  id             String    @id @default(uuid())
-  organizationId String    @map("organization_id")
-  actividadId    String    @unique @map("actividad_id")
-  tipoAtencion   String    @map("tipo_atencion")
-  subAtencion    String?   @map("sub_atencion")
-  requiereVisita Boolean   @default(false) @map("requiere_visita")
-  primeraGestion String?   @map("primera_gestion")
+  id                    String    @id @default(uuid())
+  organizationId        String    @map("organization_id")
+  actividadId           String    @unique @map("actividad_id")
+  tipoAtencion          String    @map("tipo_atencion")
+  subAtencion           String?   @map("sub_atencion")
+  requiereVisita        Boolean   @default(false) @map("requiere_visita")
+  primeraGestion        String?   @map("primera_gestion")
   fechaProgramadaVisita DateTime? @map("fecha_programada_visita") @db.Date
-  observacion    String?
-  segundaGestion String?   @map("segunda_gestion")
-  fechaVisita    DateTime? @map("fecha_visita") @db.Date
-  fechaEntregaInforme DateTime? @map("fecha_entrega_informe") @db.Date
-  terceraGestion String?   @map("tercera_gestion")
+  observacion           String?
+  segundaGestion        String?   @map("segunda_gestion")
+  fechaVisita           DateTime? @map("fecha_visita") @db.Date
+  fechaEntregaInforme   DateTime? @map("fecha_entrega_informe") @db.Date
+  terceraGestion        String?   @map("tercera_gestion")
   fechaEntregaBeneficio DateTime? @map("fecha_entrega_beneficio") @db.Date
-  version        Int       @default(1)
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  version               Int       @default(1)
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actividad    Actividad    @relation(fields: [actividadId], references: [id], onDelete: Cascade)
@@ -586,21 +568,21 @@ model Ausencia {
 /// `parametros`, nunca del código — el PDF menciona −20%/−30%, la planilla
 /// +10% (máx 3)/−20%. Pendiente de definición oficial.
 model Ajuste {
-  id             String   @id @default(uuid())
-  organizationId String   @map("organization_id")
-  periodoId      String   @map("periodo_id")
-  funcionarioId  String   @map("funcionario_id")
-  tipo           String // "felicitacion" | "reclamo"
-  motivo         String
-  canal          String? // whatsapp, correo, libro de reclamos
-  personaNombre  String?  @map("persona_nombre")
-  personaContacto String? @map("persona_contacto")
-  sector         String?
-  fecha          DateTime @db.Date
-  registradoPorId String  @map("registrado_por_id")
-  version        Int      @default(1)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  periodoId       String   @map("periodo_id")
+  funcionarioId   String   @map("funcionario_id")
+  tipo            String // "felicitacion" | "reclamo"
+  motivo          String
+  canal           String? // whatsapp, correo, libro de reclamos
+  personaNombre   String?  @map("persona_nombre")
+  personaContacto String?  @map("persona_contacto")
+  sector          String?
+  fecha           DateTime @db.Date
+  registradoPorId String   @map("registrado_por_id")
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   periodo       Periodo      @relation(fields: [periodoId], references: [id], onDelete: Cascade)

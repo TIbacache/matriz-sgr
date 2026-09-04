@@ -2,7 +2,7 @@
 
 **Exigida por el PDF (§15.1)**: *"Cada equipo deberá mantener una matriz con: HU, requisito relacionado, tarea o commit, caso de prueba, resultado, responsable y enlace a la evidencia. **Una historia no se considera terminada si no puede demostrarse su trazabilidad.**"*
 
-**Actualizada**: 3 de septiembre de 2026 (Bloque B5 — la solicitud del vecino en el tubo) · **Se actualiza en cada cierre de sprint.**
+**Actualizada**: 4 de septiembre de 2026 (Bloque C — el dashboard sobre el motor v2) · **Se actualiza en cada cierre de sprint.**
 
 Estado: ✅ terminada y demostrable · 🟡 implementada sin prueba automatizada · ⬜ no iniciada
 
@@ -53,7 +53,7 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-05 Definición de metas | RF-005…007, RN-001, RN-002 | HU-4.1 | `91e8fcb` `metas.routes.ts` (v1, por unidad) + `b1f3e75` períodos + **`de68901` `backend/src/routes/metas-item.routes.ts`** (meta y ponderador por funcionario) | api:"RF-007 se configura la meta y el ponderador de un funcionario por ítem y período", "RN-002 una meta de 0 se rechaza", "RN-001 los ponderadores no pueden superar el 100%", "RN-001 mientras no llegue al 100% la respuesta lo dice", "RN-001 la carga en lote exige el 100% exacto: 50% se rechaza", "RN-001 la carga en lote deja al funcionario cuadrado en 100%", "RF-007 no se duplica la meta de un mismo ítem, funcionario y período", "RF-007 una meta sin avance validado se puede quitar y la suma se recalcula", "RN-009/CA-01 no se borra la meta de un ítem que ya acumuló avance aprobado", "RN-013/RF-007 un período cerrado no admite cambios de metas", "RNF-005 un funcionario no configura sus propias metas", "Regla 9 las metas de otra delegación no se leen (404)", "RF-008 el funcionario sí ve lo que se le mide, con la suma y cuánto falta", "CA-08/ADR-005 editar una meta con versión vieja → 409", "Multi-tenant: período inexistente → 404", "CA-08 la carga en lote sin las versiones vigentes → 409", "CA-08 la carga en lote con una versión vieja → 409 y no aplica nada", "HU-05 los seis roles cargan la pantalla de metas sin error", "RNF-005 los otros cuatro roles reciben 403 al configurar", "Regla 9 lo que el selector ofrece a cada rol es lo que ese rol puede consultar", "HU-05 lo que se configura en la pantalla es exactamente lo que el motor mide" | PASS (20/20) | A | ✅ API y **pantalla** `frontend/src/pages/MetasPage.tsx` (`b2`); falta prueba de componente (Bloque D) |
 | HU-06 Seguimiento de avance | RF-008, RF-022, RF-023, RF-028 | HU-4.3 | `b1f3e75` `GET /cumplimiento/:periodoId?funcionario=` · **ficha personal** `frontend/src/pages/FichaPage.tsx` | api:"RF-022 el cálculo por funcionario se expone por API", "RF-008 la ficha de una persona trae sus ítems, metas y semáforo", "el registro personal se lee paginado", "las anuladas se ven solo si se piden" | PASS (4/4 sobre el contrato que consume) | A | 🟡 pantalla construida; falta prueba de componente (Bloque D) |
 | HU-07 Cálculo automático de cumplimiento | RF-023…026 | HU-4.2 | `8de89a5` migración `vista_cumplimiento_v2` | smoke-7 | PASS (`objetivo=62 relativo=161.4`) | A | ✅ |
-| HU-08 Desempeño organizacional | RF-029, RF-031 | HU-5.1, HU-5.3 | `b5e7eff` `frontend/src/pages/DashboardPage.tsx` | verificación visual | OK | A | 🟡 falta vista por cargos |
+| HU-08 Desempeño organizacional | RF-029, RF-031 | HU-5.1, HU-5.3 | Bloque C · `GET /cumplimiento/:periodoId/consolidado` + `frontend/src/pages/DashboardPage.tsx` | api:"RF-029 el tablero de delegación se consolida desde el motor por funcionario", "los seis roles ven el semáforo consolidado", "CA-06 el total del tablero coincide con el detalle filtrado"; calculo:"ADR-014 la delegación es el promedio de sus funcionarios" | PASS (4/4) + capturas de los seis roles | A | 🟡 el eje por **área del cargo** llegó con el Bloque C; falta la vista global por cargo (RF-031) |
 | HU-09 Evidencia fotográfica | RF-012, RNF-017 | — | `b1f3e75` `POST /actividades/:id/evidencias` + `services/almacenamiento.ts` · **subida y galería** `components/ficha/TablaActividades.tsx`, `VistaEvidencia.tsx` | api:"RF-012 subir evidencia asociada al código", "formato no permitido (415)", "tamaño máximo (413)", "la ruta la deriva el servidor", "descarga por endpoint controlado", "RF-004 los formatos salen del catálogo" | PASS (6/6) | B | ✅ antivirus declarado fuera de alcance |
 | HU-10 Códigos verificadores | RF-011 | — | `91f1917` `services/codigos.ts` + trigger · `b1f3e75` uso en el alta | api:"RF-011 código no ambiguo" (`TOO-20260715-0004`), "el correlativo avanza"; calculo-19, calculo-20 | PASS | B | ✅ |
 | HU-11 Validación de actividades | RF-013, RF-014, RF-036 | — | `b1f3e75` `backend/src/routes/evidencias.routes.ts` · **bandeja** `frontend/src/pages/BandejaPage.tsx` | api:"la evidencia entra a la bandeja", "rechazar exige observación", "tres decisiones", "no valida su propia evidencia", "el punto se suma solo tras la aprobación", "una aprobada no se re-decide", "la bandeja entrega lo que la pantalla necesita", "lo aprobado sale de la cola", "permite revisar lo ya decidido", "una anulada desaparece", "filtra por delegación" | PASS (11/11) | A | ✅ falta prueba de componente (Bloque D) |
@@ -61,8 +61,8 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 | HU-13 Actualización de estados | RF-018, RF-036 | HU-3.1 | `tareas.routes.ts` PATCH · **`a3`** bloqueo optimista y auditoría del movimiento | smoke-12, smoke-13; api:"CA-08 mover una tarjeta del tubo sin `version` se rechaza (400)", "CA-08 dos personas moviendo la misma tarjeta: la segunda recibe 409, no pisa a la primera", "CA-09 la bitácora del tubo distingue crear, cambiar_estado y actualizar" | PASS | A | 🟡 falta `TareaHistorial` (historial de transición visible para la persona usuaria) |
 | HU-14 Seguimiento de compromisos | RF-019, RF-021, RF-037 | HU-5.1 | `b5e7eff` `GET /kpis/tubo`, vencidas | smoke-15 | PASS (`vencidas=2`) | A | 🟡 faltan "próximo a vencer" y alertas |
 | HU-15 Continuidad operativa | RF-017, RF-036 | — | Lectura del tubo por delegación | smoke-2 | PASS | B | 🟡 falta reasignación con motivo |
-| HU-16 Semáforo de cumplimiento | RF-026, RF-027 | HU-4.2, HU-5.1 | `8de89a5` vista v2 + `b5e7eff` GaugeGrid | smoke-6, smoke-7 | PASS (verde/naranjo/rojo) | A | ✅ |
-| HU-17 Comparación esperado vs real | RF-023, RF-026, RF-027 | HU-5.1 | `b5e7eff` `avance_relativo` + ProyeccionChart | smoke-7 | PASS | A | ✅ |
+| HU-16 Semáforo de cumplimiento | RF-026, RF-027 | HU-4.2, HU-5.1 | Bloque C · `services/cumplimiento.ts` + `consolidarPeriodo()` + GaugeGrid | smoke:"semáforo con verde/naranjo/rojo"; api:"RF-027 el color de cada delegación respeta los umbrales configurados"; calculo:"el semáforo por delegación muestra los tres colores" | PASS | A | ✅ los umbrales salen del parámetro, no del SQL |
+| HU-17 Comparación esperado vs real | RF-023, RF-026, RF-027 | HU-5.1 | Bloque C · `avanceRelativo` por funcionario, delegación y área + ProyeccionChart | smoke:"el consolidado expone objetivo al día y avance relativo"; api:"RF-024 ninguna proyección supera el tope configurado"; calculo:"RF-024 la proyección respeta el tope configurado" | PASS | A | ✅ el tope de la proyección salió del frontend a `parametro` |
 | HU-18 Resumen ejecutivo | RF-028, RF-029, RF-031 | HU-5.1…5.3 | `b5e7eff` DashboardPage completo | visual | OK | A | 🟡 falta tablero personal |
 | HU-19 Control de actividad de usuarios | RF-030, RF-037 | — | — | — | — | B | ⬜ |
 | HU-20 Generación de informes | RF-032, RF-033 | — | Filtros del dashboard | — | — | B | 🟡 falta exportación |
@@ -91,7 +91,7 @@ El modelo de datos (16 entidades, commit `91f1917`) está migrado y verificado. 
 | RF-007 Metas por funcionario | `MetaItem` + API `/metas-item` (`de68901`) + pantalla `/metas` (Bloque B2) | calculo-15; api (25) | — ✅ |
 | RF-009/011 Actividades y código | `Actividad` + `services/codigos.ts` + API (`b1f3e75`) + registro en la ficha | calculo-19, calculo-20; api (16) | — ✅ |
 | RF-012/013/014 Evidencias y validación | `Evidencia`, `Validacion` + API (`b1f3e75`) + bandeja `/verificacion` | calculo-17; api (5 + 13 + 8 de la cola) | antivirus fuera de alcance (declarado, consulta nº 10) |
-| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` + `GET /cumplimiento/:periodoId` | calculo-1 a 10, 16; api (5) | migrar el dashboard del cálculo v1 al v2 (Bloque C) |
+| RF-024/026/027 Cálculo y semáforo | `services/cumplimiento.ts` + `GET /cumplimiento/:periodoId` y su `/consolidado` | calculo (1 a 10, 16 y las 11 del consolidado); api (5 + 10) | — ✅ el Bloque C eliminó la vista v1 y con ella el tope y los umbrales escritos en SQL |
 | RF-025 Ajustes | `Ajuste` + parámetros | calculo-11, calculo-12 | API y pantalla |
 | RF-036 / RNF-008 Auditoría | `Auditoria` + triggers + `auditarDesde()` en los controladores v2 | api (períodos, validación, metas y la regresión de `Decimal`) | auditar las rutas v1; pantalla de consulta |
 | RF-038 Parámetros | `Parametro` con vigencia | calculo-11; api (1) | pantalla de configuración |
@@ -110,9 +110,9 @@ Los RNF de usabilidad y accesibilidad no cuelgan de una historia, pero el PDF lo
 
 ## 3. Verificaciones automatizadas vigentes
 
-**290 comprobaciones, todas en verde** al 03-09-2026: **207 del backend** (18 smoke + 21 cálculo + 168 API) y **83 de contraste del frontend**. Aparte corre `npm run verificar:rut` (16 RUT del seed más los casos de normalización), que no entra en el total porque depende de que la base esté sembrada.
+**314 comprobaciones, todas en verde** al 04-09-2026: **231 del backend** (21 smoke + 32 cálculo + 178 API) y **83 de contraste del frontend**. Aparte corre `npm run verificar:rut` (16 RUT del seed más los casos de normalización), que no entra en el total porque depende de que la base esté sembrada.
 
-### `npm run verificar:calculo` — 21/21
+### `npm run verificar:calculo` — 32/32
 
 Pruebas unitarias de las fórmulas (lo que el PDF §14.3 exige como cobertura mínima) más comprobaciones de integración sobre datos sembrados:
 
@@ -131,14 +131,23 @@ Pruebas unitarias de las fórmulas (lo que el PDF §14.3 exige como cobertura m�
 | 16 | Las ausencias producen objetivo al día distinto por persona | RN-007 |
 | 17 | Solo las actividades con validación aprobada suman | RN-009, RF-014 |
 | 18 | El semáforo produce más de un color con datos reales | RF-027 |
-| 19-20 | 1.126 códigos únicos con formato no ambiguo | RF-011, RN-010 |
+| 19-20 | ~2.000 códigos únicos con formato no ambiguo | RF-011, RN-010 |
 | 21 | Un vecino es rastreable entre delegaciones | ADR-008, CA-04 |
+| 22-24 | **La proyección respeta el tope del parámetro** (150% con tope 1,5 · 120% con tope 1,2) y no divide por cero | RF-024, ADR-007 |
+| 25 | El período se consolida por delegación | RF-029 |
+| 26 | **La delegación es el promedio de sus funcionarios**, recalculado a mano sobre el resultado individual | ADR-014 |
+| 27 | El semáforo de la delegación usa los umbrales configurados | RF-027 |
+| 28 | **Una delegación sin nadie con meta NO aparece como 0%** | ADR-014, RF-030 |
+| 29 | El consolidado agrupa por área del cargo | ADR-014 |
+| 30 | El avance relativo por área es cumplimiento/objetivo, celda por celda | RN-008 |
+| 31 | Ningún funcionario medido se pierde al consolidar | RF-029 |
+| 32 | **El semáforo por delegación muestra los tres colores** — propiedad de los datos de demostración, verificada y no supuesta | RN-008, HU-16 |
 
 ### `npm run verificar:rut` — 16 RUT + casos de normalización
 
 Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `17.721.947-9` y `17,721,947-9` (el formato de Google Sheets) y se rechacen un DV incorrecto y el dato sucio `216944` que aparece en la planilla real. Cubre RF-010 y ADR-001.
 
-### `npm run smoke` — 18/18
+### `npm run smoke` — 21/21
 
 | # | Verificación | Cubre |
 |---|---|---|
@@ -146,9 +155,12 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 2 | Funcionaria ve el libro de su delegación | RNF-005, CA-07 |
 | 3 | Funcionaria NO ve el libro de otra delegación | CA-07, HU-26 |
 | 4 | `GET /tareas` de otra delegación → 404 | CA-07 |
-| 5 | Funcionaria sí ve el semáforo consolidado | RF-029 |
+| 5 | Funcionaria sí ve el semáforo consolidado (5 delegaciones, 13 funcionarios) | RF-029 |
 | 6 | El semáforo produce verde, naranjo y rojo | RN-008, HU-16 |
-| 7 | La vista expone `objetivo_al_dia` y `avance_relativo` | RN-007, RF-026, HU-17 |
+| 7 | El consolidado expone objetivo al día y avance relativo | RN-007, RF-026, HU-17 |
+| 7.b | **Una delegación sin funcionarios medidos se informa aparte, no como 0%** | ADR-014, RF-030 |
+| 7.c | El mapa se agrupa por área del cargo | ADR-014 |
+| 7.d | **El cálculo v1 dejó de existir**: `/kpis/cumplimiento` y `/metas` → 404 | ADR-014 |
 | 8 | Usuario no puede mover tarea ajena (403) | RNF-005, CA-07 |
 | 9-11 | Join al room propio OK; a otra delegación rechazado | RF-034, CA-07 |
 | 10 | Presencia en vivo | HU-23 |
@@ -158,7 +170,7 @@ Valida los RUT ficticios del seed con módulo 11 y comprueba que se normalicen `
 | 16 | `GET /kpis/tubo` agregado con vencidas | RF-019, RF-021 |
 | 17-18 | Crear tarea y su evento | RF-016, HU-02 |
 
-### `npm run verificar:api` — 168/168 (Bloques A, A2, A3, B, B2, B3, B4 y B5)
+### `npm run verificar:api` — 178/178 (Bloques A, A2, A3, B, B2, B3, B4, B5 y C)
 
 Integración de extremo a extremo sobre el servidor corriendo, con las seis cuentas demo. Crea un período, un cargo, ítems, actividades, una evidencia y sus validaciones, y **limpia todo al terminar**.
 
@@ -170,6 +182,7 @@ Integración de extremo a extremo sobre el servidor corriendo, con las seis cuen
 | Evidencias (5) | formato fuera del catálogo → 415, tamaño sobre el parámetro → 413, ruta derivada del código, nombre `../../etc/passwd.jpg` saneado, descarga por endpoint controlado | RF-012, RNF-017 |
 | Validación (13) | nadie valida lo propio, consulta no valida, rechazo sin observación → 400, corrección solicitada, aprobación, **el punto suma solo al aprobar y una sola vez**, aprobada no se re-decide, validada no se edita, anular exige motivo, anulación con motivo, lo anulado deja de sumar, validación auditada | RF-013, RF-014, RN-003, RN-009, CA-01, CA-02, CA-09, RNF-005, ADR-006 |
 | Cumplimiento (5) | cálculo por funcionario expuesto, días del período, parámetros con marca `confirmado`, semáforo visible por el rol consulta, tenant ajeno → 404 | RF-022…RF-027, RF-038, ADR-007 |
+| Consolidado por delegación (10) | el tablero se consolida desde el motor por funcionario; **los seis roles ven el semáforo consolidado**; ninguna proyección supera el tope del parámetro; el color de cada delegación respeta los umbrales del parámetro; **una delegación sin nadie medido se informa aparte y no como 0%**; el mapa se agrupa por área del cargo; período ajeno → 404; **`/kpis/cumplimiento`, `/kpis/recalcular` y `/metas` v1 responden 404**; `/kpis/tubo` sobrevive; y **CA-06: el total del tablero coincide con el detalle filtrado de esa delegación** | RF-024, RF-027, RF-029, CA-06, ADR-007, **ADR-014** |
 | Contrato de la ficha personal (5) | los formatos salen del catálogo y coinciden con lo que aplica el 415, registro paginado por período y funcionario, las anuladas solo si se piden, la ficha de una persona trae ítems, metas y semáforo | RF-004, RF-008, HU-06 |
 | Contrato de la bandeja (8) | la cola entrega código, funcionario y delegación en cada fila; **lo recién subido es alcanzable en la primera página con `orden=recientes`**; **la cola pagina sin repetir**; lo aprobado sale de pendientes; lo decidido se revisa con lo más reciente primero; una actividad anulada desaparece; el verificador no tiene libro pero sí bandeja; filtra por delegación | RF-013, RF-014, RF-032, RN-003, HU-11 |
 | Metas por funcionario (25) | RN-001 en sus dos formas (el alta no supera el 100%, el lote exige el 100% exacto), meta 0 rechazada, ítem ajeno al cargo, sin duplicados, 409 por versión en el alta y en el lote, período cerrado sin cambios, lo que ya sumó puntaje no se quita, el funcionario ve lo suyo con la suma y el faltante, delegación ajena → 404, auditoría de crear/actualizar/eliminar, la regresión de `Decimal`, **los seis roles cargan la pantalla**, **el selector ofrece exactamente lo que cada rol puede consultar**, y lo configurado es lo que el motor mide | RF-003, RF-007, RF-008, RN-001, RN-002, RN-009, RN-013, CA-01, CA-08, RNF-005, RNF-008 |

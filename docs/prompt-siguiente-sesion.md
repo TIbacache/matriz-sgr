@@ -2,8 +2,8 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 3 de septiembre de 2026 · `main` en la etiqueta `v0.13.0-solicitud-en-el-tubo`
-**Bloque que abre**: C — migrar el dashboard al motor de cálculo v2 y eliminar la vista materializada v1, para que no queden dos verdades sobre el mismo número.
+**Última actualización**: 4 de septiembre de 2026 · `main` en la etiqueta `v0.14.0-dashboard-v2`
+**Lo que abre**: el **Planner** (bloqueante para la evaluación) y la **entrega del 15 de septiembre**. El código quedó con un solo cálculo: el Bloque C cerró la deuda técnica más cara.
 
 ---
 
@@ -16,74 +16,65 @@ entidades ya existen sin API o sin pantalla, y duplicar algo sería el error
 más caro):
 
 1. CLAUDE.md — reglas del proyecto y estado real del código.
-2. docs/siguiente-sesion.md — §3 tiene el Bloque C, §4 los cabos sueltos
-   (incluido "dos cálculos conviviendo", prioridad Alta) y §6 las trampas del
-   entorno.
-3. docs/requerimientos-oficiales.md — la especificación que se evalúa:
-   RF-022 a RF-029 (cálculo, semáforo y monitoreo), RN-004 a RN-008, y CA-05
-   y CA-06. Su §10 son las 12 consultas abiertas al docente: NO inventar esas
-   respuestas — el tope de 150% y los ajustes por felicitación/reclamo son
-   dos de ellas y afectan directamente a este bloque.
-4. docs/estructura-planilla-real.md §7 — las cifras reales contra las que se
-   contrastó el motor (98 vs 50,55 → verde; 15,5 vs 39,56 → rojo).
-5. docs/decisiones-tecnicas.md — ADR-007 (nada de valores de negocio en el
-   código: los umbrales y el tope salen de `parametro`, y la vista v1 los
-   tiene escritos en SQL, que es justo el problema) y ADR-009 (ítem inverso).
-   ADR-005 para la concurrencia.
-6. DESIGN.md — §8.2 tiene los criterios de las pantallas construidas; §3.3
-   dice dónde puede y dónde no puede ir el rojo institucional; §10.7, cómo se
-   verifica.
-7. docs/estado-proyecto.md — cuentas y roles (§1), contrato de la API (§3),
+2. docs/siguiente-sesion.md — §4 abre con el orden acordado (Planner →
+   entrega del 15 → panel RF-030 → pruebas formales) y la tabla de cabos
+   sueltos; §6 son las trampas del entorno, que ya costaron horas.
+3. docs/requerimientos-oficiales.md — la especificación que se evalúa. Su §10
+   son las 12 consultas abiertas al docente: NO inventar esas respuestas.
+   §9.bis y §9.ter son las instrucciones que dio en clase, sin rúbrica.
+4. docs/estado-proyecto.md — cuentas y roles (§1), contrato de la API (§3),
    las pantallas y por qué son así (§6), las decisiones tomadas (§7) y lo que
    aprendimos probando (§8).
+5. docs/decisiones-tecnicas.md — 14 ADR. Los más recientes: ADR-012 y ADR-013
+   (quién ve datos de un vecino: decisión legal, no de comodidad) y ADR-014
+   (cómo se consolida una delegación).
+6. DESIGN.md — normativo para todo el frontend. §8.2 los criterios de cada
+   pantalla, §3.3 dónde puede ir el rojo institucional, §10.7 cómo se verifica.
 
 Verifica el estado real con Docker arriba (docker compose up -d):
       cd backend && npm run build && npm run verificar:calculo
       npm run dev   (en otra terminal)
       npm run smoke && npm run verificar:api
       cd frontend && npm run build && npm run verificar:contraste
-Deben dar 290 comprobaciones en verde (18 + 21 + 168 + 83). Si algo falla,
-repórtalo antes de avanzar. Si `npm run dev` muere con EADDRINUSE mientras
-`curl localhost:4000/health` responde 200, hay un `tsx watch` huérfano: matar
-al hijo NO basta, el vigilante lo respawnea — hay que subir al proceso padre
-(receta exacta en siguiente-sesion.md §6). Si Prisma no conecta, lo más
-probable es que el contenedor de Postgres esté detenido.
+Deben dar 314 comprobaciones en verde (21 + 32 + 178 + 83). Si algo falla,
+repórtalo antes de avanzar.
 
-TAREA — Bloque C: un solo cálculo, el v2.
+⚠ Antes de levantar el backend, mira si hay `tsx watch` huérfanos: en la
+sesión del Bloque C había CINCO vivos de días anteriores, peleando por el
+4000 y ninguno escuchando. Matar al hijo no basta, el vigilante lo respawnea:
+hay que subir al padre (receta exacta en siguiente-sesion.md §6).
 
-  HOY CONVIVEN DOS VERDADES sobre el mismo número y es la deuda técnica más
-  cara que queda:
-   · `cumplimiento_ponderado_vista` (v1): vista materializada, POR DELEGACIÓN,
-     con los umbrales (80%, 60%) y el tope (150%) escritos en el SQL. Es la
-     que alimenta el dashboard hoy.
-   · `services/cumplimiento.ts` (v2): motor POR FUNCIONARIO, con los valores
-     leídos de `parametro`. Es el correcto según la especificación y el que
-     verifican las 21 comprobaciones de `verificar:calculo`.
+⚠ El seed tarda ~15 minutos (genera y escribe ~2.000 PNG de evidencia uno por
+uno). No lo corras "por si acaso": corre `SELECT count(*)` primero.
 
-  Que el tablero muestre una cifra y la ficha personal otra es exactamente lo
-  que CA-06 prohíbe ("los totales del tablero coinciden con el detalle
-  filtrado"). Piezas:
-   1. Que el dashboard consuma `GET /cumplimiento/:periodoId` en vez de
-      `/kpis/cumplimiento`. Ojo: hoy filtra por el STRING "2026-Q3" y no por
-      `periodoId` — está anotado como cabo suelto.
-   2. Comprobar que las cifras del tablero coinciden con las de la ficha para
-      la misma persona y período. Esa es la verificación que cierra CA-06, no
-      la de que el endpoint responda 200.
-   3. ELIMINAR la vista materializada v1, `jobs/cumplimiento.ts` y
-      `GET /kpis/cumplimiento`. Mientras las dos existan, alguien las va a
-      volver a mezclar. `GET /kpis/tubo` NO muere: es independiente.
-   4. Con la vista fuera, `/metas` v1 y la tabla `Meta` quedan libres para
-      borrarse (hoy la vista depende de ellas).
-   5. Verificaciones, captura del dashboard con las seis cuentas, y la fila en
-      docs/matriz-trazabilidad.md.
+TAREA — en este orden, acordado al cerrar el Bloque C:
 
-  ALTERNATIVA, si el equipo prefiere otro orden: el panel de actividad de
-  usuarios (RF-030, HU-19), que el docente pidió expresamente en clase — quién
-  ingresó, quién NO y quién está trabajando ahora. Las piezas existen
-  (`ultimoIngreso`, `diasSinIngreso`, presencia por socket); falta la vista
-  que las junta. Ojo: "ingresar" es ambiguo y un panel de conexión es
-  monitoreo de personas (finalidad y proporcionalidad, regla 18).
-  Preguntar antes de elegir; no decidirlo en silencio.
+  1. EL PLANNER. Bloqueante y no depende de nada del código. El docente dijo
+     que SOLO revisará el Planner: lo que no esté adjunto ahí no se evalúa,
+     por mucho que esté en el repositorio. Receta en docs/guia-cargar-planner.md
+     y scripts/cargar-plan-planner.ps1. El plan de 58 tareas sigue sin cargar.
+
+  2. ENTREGA DEL 15 DE SEPTIEMBRE: mockups, MER, modelo de datos, diagrama de
+     clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en
+     docs/Guia-Entregables-15-septiembre.docx. Ojo: el dashboard cambió con el
+     Bloque C, así que hay que REGENERAR los mockups
+     (cd frontend && npm run mockups && npm run verificar:mockups) y los
+     diagramas (npm run diagramas) antes de adjuntar nada.
+
+  3. PANEL DE ACTIVIDAD DE USUARIOS (RF-030, HU-19), pedido expresamente por
+     el docente en clase: quién ingresó, quién NO y quién está trabajando
+     ahora, para admin y coordinador. Las piezas existen (`ultimoIngreso`,
+     `diasSinIngreso`, `totalIngresos`, `promedioDiario`, presencia por
+     socket) y el Bloque C dejó la primera en pantalla: el tablero ya nombra
+     a las delegaciones SIN MEDICIÓN. Falta el "quién no ha ingresado" por
+     persona y una presencia a nivel de organización.
+     ⚠ "Ingresar" es ambiguo (iniciar sesión vs. registrar trabajo) y un panel
+     de conexión es monitoreo de personas trabajadoras: finalidad y
+     proporcionalidad, no vigilancia (regla 18, requerimientos §9.ter).
+
+  4. BLOQUE D — pruebas en marco formal (Jest para el backend portando las 32
+     comprobaciones de verificar-cumplimiento.ts, RTL para el frontend) y CI
+     en GitHub Actions. Después el BLOQUE E — despliegue.
 
 Reglas no negociables (están en CLAUDE.md, se repiten porque son las que más
 se olvidan):
@@ -100,8 +91,6 @@ se olvidan):
 - Probar cada pantalla con los seis roles: `node scripts/capturas.mjs` en
   frontend lo hace en un comando. Mirar las capturas, no solo generarlas.
 - Todo cambio de color pasa por `npm run verificar:contraste`.
-- Al terminar la pantalla, regenerar los entregables visuales:
-      cd frontend && npm run mockups && npm run verificar:mockups
 - Documentar al cerrar el bloque en el archivo que corresponda (CLAUDE.md,
   DESIGN.md, README.md, docs/*, memoria). No dejarlo para el final.
 - Flujo de git: rama por bloque → verificar en verde → documentar →
@@ -112,6 +101,19 @@ se olvidan):
 - Nada de atribución de herramientas de IA en etiquetas, PR ni entregables.
 
 Contexto que NO hay que volver a derivar:
+- HAY UN SOLO CÁLCULO (Bloque C). `services/cumplimiento.ts` mide por
+  funcionario y `consolidarPeriodo()` lo agrega por delegación y por área del
+  cargo. La vista materializada v1, la tabla `metas`, `/metas`,
+  `/kpis/cumplimiento`, `/kpis/recalcular` y el cron SE ELIMINARON. No
+  revivirlos: si el volumen obliga a cachear, se cachea el resultado del
+  motor (ADR-014). `GET /kpis/tubo` se queda.
+- La delegación es el PROMEDIO SIMPLE de sus funcionarios, y una delegación
+  sin nadie con metas NO cumple 0%: no tiene medición y se informa aparte
+  (ADR-014). La Pampa está sin medición A PROPÓSITO en el seed, para poder
+  mostrarlo.
+- El eje del mapa de calor es `Cargo.area`, no `CategoriaGestion`: las
+  categorías son del TUBO y no tienen relación con lo que se le mide a una
+  persona.
 - La identidad visual está cerrada (Bloques D0 y D1): Libre Franklin +
   General Sans, los dos rojos separados por rol/zona/forma, faro en SVG que
   gira e ilumina el mar, la escena de La Serena en la barra, la frase
@@ -122,33 +124,29 @@ Contexto que NO hay que volver a derivar:
   sostiene es ADR-013: el servidor decide en qué casillero cae cada gestión,
   no el cliente. No agregar un selector de "número de gestión".
 - EP-01 está COMPLETA (Bloque B5): el tubo captura INT/EXT, solicitante,
-  territorio, área de apoyo y el vínculo OPCIONAL con la ficha del vecino. **No
-  se pide RUT en el tubo** —la planilla real no tiene esa columna y el
-  solicitante puede ser una organización— y la regla del solicitante vale hacia
-  adelante: `interesExterno` tiene `@default(true)`, así que exigirlo al
-  corregir tareas antiguas bloquearía el tubo entero.
-- CA-08 y CA-09 están CERRADOS (Bloque A3): las tres rutas heredadas
-  (/tareas, /unidades, /categorias) comparan `version` → 409 y auditan. El
-  tubo avisa el conflicto en pantalla en vez de revertir en silencio.
+  territorio, área de apoyo y el vínculo OPCIONAL con la ficha del vecino. No
+  se pide RUT en el tubo —la planilla real no tiene esa columna y el
+  solicitante puede ser una organización—.
+- CA-06, CA-08 y CA-09 están CERRADOS. CA-06 lo cerró el Bloque C con la
+  comprobación de que el total del tablero coincide con el detalle filtrado.
 - El alcance de los datos de un vecino es una decisión LEGAL, no de
-  comodidad: ADR-012 y ADR-013. `verificador` y `consulta` no entran; desde
-  otra delegación viaja el hecho y el avance, no el contenido. No ampliarlo
-  sin que el docente responda la consulta nº 12.
-- "v1" no significa obsoleto: /tareas, /unidades y /categorias sostienen
-  requisitos vigentes y ya están endurecidas. Las que mueren son /metas v1 y
-  /kpis/cumplimiento, y es justo lo que hace este bloque.
-- El docente dijo que SOLO revisará el Planner. El plan de 58 tareas sigue
-  sin cargar y eso es bloqueante para la evaluación, no deuda técnica.
-- La entrega del 15 de septiembre (mockups, MER, modelo de datos, diagrama de
-  clases, UML, historias, 10 casos de uso) tiene su guía en
-  docs/Guia-Entregables-15-septiembre.docx. En pausa hasta la rúbrica escrita.
+  comodidad: ADR-012 y ADR-013. No ampliarlo sin que el docente responda la
+  consulta nº 12.
 - Precisiones del docente en clase, en requerimientos-oficiales §9.ter:
-  (a) admin y coordinador deben ver quién ingresó, quién NO ingresó y quién
-      está trabajando ahora (RF-030, HU-19). Las piezas existen; falta el
-      panel. "Ingresar" es ambiguo y un panel de conexión es monitoreo de
-      personas — finalidad y proporcionalidad, no vigilancia.
+  (a) admin y coordinador deben ver quién ingresó, quién NO y quién está
+      trabajando ahora (RF-030, HU-19);
   (b) la mayoría de las fórmulas de ponderación son REGLA DE TRES SIMPLE.
       Las dos excepciones legítimas son el ítem inverso y el tope configurable.
+
+CABOS SUELTOS que conviene tomar cuando se toque su archivo (no como bloque
+propio; la lista completa está en siguiente-sesion.md §4):
+- `GET /cumplimiento/:periodoId` devuelve el detalle POR FUNCIONARIO a todos
+  los roles. El tablero no lo necesita, pero roza la consulta abierta nº 11.
+- No se declara `color-scheme`: los controles nativos se pintan en claro
+  también en el tema oscuro.
+- `TareaHistorial` sigue sin usarse (RF-018, es lo que le falta a CA-03).
+- El historial del vecino no pagina (trae hasta 500 hechos).
+- Corregir una gestión ya registrada de una atención social (ADR-013).
 
 Trabaja por bloques y al cerrar cada uno dame un informe breve (qué se hizo,
 qué falta, decisiones, riesgos) y espera aprobación.

@@ -52,19 +52,41 @@ const rLibroAjeno = await fetch(`${API}/tareas?unidad=${otraUnidad.id}`, {
 });
 check("GET tareas de otra delegación → 404", rLibroAjeno.status === 404, `status ${rLibroAjeno.status}`);
 
-// 4. El semáforo consolidado SÍ es visible para todos (Efecto Hawthorne)
-const rKpis = await fetch(`${API}/kpis/cumplimiento?trimestre=2026-Q3`, {
+// 4. El semáforo consolidado SÍ es visible para todos (Efecto Hawthorne).
+// Bloque C: antes se leía de `GET /kpis/cumplimiento` (vista materializada v1).
+// Hoy sale del motor por funcionario, consolidado por delegación.
+const periodos = await (await fetch(`${API}/periodos`, {
+  headers: { Authorization: `Bearer ${funcionario.token}` },
+})).json();
+const periodoAbierto = periodos.find((p) => p.estado === "abierto") ?? periodos[0];
+const rCons = await fetch(`${API}/cumplimiento/${periodoAbierto.id}/consolidado`, {
   headers: { Authorization: `Bearer ${funcionario.token}` },
 });
-const kpis = await rKpis.json();
-check("funcionario ve semáforo consolidado", rKpis.status === 200 && kpis.length >= 20, `${kpis.length} filas`);
-const colores = new Set(kpis.map((f) => f.semaforo_color));
+const cons = await rCons.json();
+check("funcionario ve el semáforo consolidado", rCons.status === 200 && cons.delegaciones.length >= 2,
+  `${cons.delegaciones?.length} delegaciones, ${cons.totales?.funcionarios} funcionarios medidos`);
+const colores = new Set(cons.delegaciones.map((d) => d.semaforo));
 check("semáforo con verde/naranjo/rojo", ["verde", "naranjo", "rojo"].every((c) => colores.has(c)),
   [...colores].join(","));
-const fila = kpis.find((f) => f.unidad_nombre === "Rural");
-check("vista expone objetivo_al_dia y avance_relativo",
-  typeof fila?.objetivo_al_dia === "number" && typeof fila?.avance_relativo === "number",
-  `objetivo=${fila?.objetivo_al_dia} relativo=${fila?.avance_relativo}`);
+const filaRural = cons.delegaciones.find((d) => d.nombre === "Rural");
+check("el consolidado expone objetivo al día y avance relativo",
+  typeof filaRural?.objetivoAlDia === "number" && typeof filaRural?.avanceRelativo === "number",
+  `objetivo=${filaRural?.objetivoAlDia} relativo=${filaRural?.avanceRelativo}`);
+// Lo que la vista v1 no sabía decir: una delegación sin nadie medido no es 0%.
+check("una delegación sin funcionarios medidos se informa aparte, no como 0%",
+  cons.sinMedicion.length > 0 &&
+    !cons.delegaciones.some((d) => d.unidadTerritorialId === cons.sinMedicion[0].unidadTerritorialId),
+  cons.sinMedicion.map((u) => u.nombre).join(", "));
+check("el mapa se agrupa por área del cargo", cons.areas.length >= 3, cons.areas.join(", "));
+// El cálculo v1 ya no existe: si respondiera, habría dos verdades otra vez.
+const rV1 = await fetch(`${API}/kpis/cumplimiento?trimestre=2026-Q3`, {
+  headers: { Authorization: `Bearer ${funcionario.token}` },
+});
+const rMetasV1 = await fetch(`${API}/metas`, {
+  headers: { Authorization: `Bearer ${funcionario.token}` },
+});
+check("el cálculo v1 dejó de existir (/kpis/cumplimiento y /metas → 404)",
+  rV1.status === 404 && rMetasV1.status === 404, `kpis ${rV1.status}, metas ${rMetasV1.status}`);
 
 // 5. Permisos de edición: el funcionario no mueve tareas ajenas.
 // El cuerpo lleva `version` a propósito: la petición debe fallar por PERMISOS
@@ -125,7 +147,10 @@ const delegado = await login("delegado.centro@sgr.demo");
 const equipo = await (await fetch(`${API}/usuarios?unidad=${centro.id}`, {
   headers: { Authorization: `Bearer ${delegado.token}` },
 })).json();
-check("GET /usuarios con cargos", equipo.some((m) => m.cargo === "Territorial 1"),
+// El cargo se busca por el nombre que define el seed. Antes decía "Territorial 1",
+// que solo existía en las cuentas @demo.cl de la Fase 2: la comprobación pasaba
+// gracias a datos fósiles que ningún seed regeneraba (Bloque C).
+check("GET /usuarios con cargos", equipo.some((m) => m.cargo === "Territorial OO.CC. 1"),
   `${equipo.length} miembros`);
 const tuboStats = await (await fetch(`${API}/kpis/tubo`, {
   headers: { Authorization: `Bearer ${funcionario.token}` },

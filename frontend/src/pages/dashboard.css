@@ -177,61 +177,9 @@
   overflow-x: auto;
 }
 
-.tabla-detalle {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.tabla-detalle th {
-  text-align: left;
-  border-bottom: 1px solid var(--borde);
-  padding: var(--esp-2) var(--esp-3);
-  background: var(--fondo);
-}
-
-.tabla-orden {
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--tinta-2);
-  cursor: pointer;
-}
-.tabla-orden:hover {
-  color: var(--tinta);
-}
-
-.tabla-detalle td {
-  border-bottom: 1px solid var(--borde);
-  padding: var(--esp-2) var(--esp-3);
-  line-height: 1.35;
-}
-
-.tabla-detalle th.num,
-.tabla-detalle td.num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.tabla-detalle tbody tr {
-  cursor: pointer;
-}
-
-.tabla-detalle tbody tr:hover {
-  background: var(--fondo);
-}
-
-.tabla-fila--activa {
-  background: var(--seleccion-bg) !important;
-  box-shadow: inset 3px 0 0 var(--seleccion);
-}
-
-/* .chip-semaforo vive en styles/base.css: es una primitiva del sistema
-   (DESIGN §5), no una pieza del dashboard. */
+/* La tabla del tablero usa .tabla-sgr (styles/base.css), como el resto del
+   sistema. Aquí vivía una copia casi idéntica: era deuda declarada y se saldó
+   en el Bloque C. Solo queda la envoltura con scroll, que es del layout. */
 
 .tabla-nota {
   font-size: 0.75rem;
@@ -247,4 +195,29 @@
 }
 .dash-skeleton > div {
   height: 110px;
+}
+
+/* Aviso persistente del tablero: parámetros sin confirmar (ADR-007),
+   delegaciones sin medición y cifras que quedaron atrás. No es un toast: son
+   condiciones del dato, no eventos que pasaron. */
+.dash-aviso {
+  display: block;
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.dash-aviso .btn-tabla {
+  margin-left: var(--esp-3);
+  vertical-align: baseline;
+}
+
+.dash-aviso--vivo {
+  background: var(--seleccion-bg);
+  border-left-color: var(--seleccion);
+  color: var(--tinta);
 }

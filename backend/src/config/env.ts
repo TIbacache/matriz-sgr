@@ -12,7 +12,6 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
   port: Number(process.env.PORT ?? 4000),
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
-  cronCumplimiento: process.env.CRON_CUMPLIMIENTO ?? "*/10 * * * *",
   // RNF-017: dónde viven las evidencias. Fuera del repositorio, por tenant.
   evidenciasDir: process.env.EVIDENCIAS_DIR ?? "almacenamiento/evidencias",
   // Tope DURO de infraestructura para el cuerpo de una subida. NO es el límite
