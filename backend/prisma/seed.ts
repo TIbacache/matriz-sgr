@@ -349,17 +349,50 @@ async function main() {
   // --- Tubo de trabajo ---
   {
     const ejemplos = [
-      { titulo: "Camino cortado por lluvia en sector rural", pilar: "DISERCO", estado: "en_proceso", dias: 3, ext: true, territorio: "Zona Rural", apoyo: "DISERCO" },
-      { titulo: "Solicitud de máquina para despeje de camino", pilar: "DISERCO", estado: "pendiente", dias: -2, ext: true, territorio: "Zona Rural", apoyo: "DISERCO" },
-      { titulo: "Taller de reciclaje con junta de vecinos", pilar: "Organizaciones Comunitarias", estado: "realizado", dias: -8, ext: false, territorio: "Sector Norte", apoyo: null },
-      { titulo: "Operativo de limpieza en plaza principal", pilar: "DISERCO", estado: "realizado", dias: -5, ext: false, territorio: "Sector Sur", apoyo: "Sección Aseo" },
-      { titulo: "Entrega de caja de útiles escolares", pilar: "Social (DIDECO)", estado: "pendiente", dias: 5, ext: true, territorio: "Sector Poniente", apoyo: null },
-      { titulo: "Solicitud de iluminación en pasaje", pilar: "Seguridad", estado: "ingresado", dias: 7, ext: true, territorio: "Sector Oriente", apoyo: "Alumbrado Público" },
-      { titulo: "Ronda preventiva con inspectores municipales", pilar: "Seguridad", estado: "pendiente", dias: -1, ext: false, territorio: "Sector Norte", apoyo: "Seguridad Ciudadana" },
-      { titulo: "Conformación de directiva junta de vecinos", pilar: "Organizaciones Comunitarias", estado: "en_proceso", dias: 7, ext: false, territorio: "Sector Sur", apoyo: null },
+      { titulo: "Camino cortado por lluvia en sector rural", pilar: "DISERCO", estado: "en_proceso", dias: 3, ext: true, territorio: "Zona Rural", apoyo: "DISERCO", pide: "vecino" },
+      { titulo: "Solicitud de máquina para despeje de camino", pilar: "DISERCO", estado: "pendiente", dias: -2, ext: true, territorio: "Zona Rural", apoyo: "DISERCO", pide: "vecino" },
+      { titulo: "Taller de reciclaje con junta de vecinos", pilar: "Organizaciones Comunitarias", estado: "realizado", dias: -8, ext: false, territorio: "Sector Norte", apoyo: null, pide: null },
+      { titulo: "Operativo de limpieza en plaza principal", pilar: "DISERCO", estado: "realizado", dias: -5, ext: false, territorio: "Sector Sur", apoyo: "Sección Aseo", pide: null },
+      // Este es el que demuestra que `solicitante` es texto libre: lo pide una
+      // ORGANIZACIÓN, que no tiene RUT ni ficha. Está en un estado que el
+      // tablero muestra a propósito — un caso que solo existe en una columna
+      // que todavía no se pinta (RF-018, "Ingresado") no demuestra nada.
+      { titulo: "Entrega de caja de útiles escolares", pilar: "Social (DIDECO)", estado: "pendiente", dias: 5, ext: true, territorio: "Sector Poniente", apoyo: null, pide: "organizacion" },
+      { titulo: "Solicitud de iluminación en pasaje", pilar: "Seguridad", estado: "ingresado", dias: 7, ext: true, territorio: "Sector Oriente", apoyo: "Alumbrado Público", pide: "vecino" },
+      { titulo: "Ronda preventiva con inspectores municipales", pilar: "Seguridad", estado: "pendiente", dias: -1, ext: false, territorio: "Sector Norte", apoyo: "Seguridad Ciudadana", pide: null },
+      { titulo: "Conformación de directiva junta de vecinos", pilar: "Organizaciones Comunitarias", estado: "en_proceso", dias: 7, ext: false, territorio: "Sector Sur", apoyo: null, pide: null },
     ];
     const responsables = ["territorial.centro@sgr.demo", "social.centro@sgr.demo", "diserco.centro@sgr.demo", "apoyo.centro@sgr.demo"];
     const rutsVecinos = [...vecinoPorRut.values()];
+
+    // RF-017: quién pidió cada compromiso externo. Uno de cada tres es una
+    // ORGANIZACIÓN y no una persona — sin RUT ni ficha— porque es el caso que
+    // justifica que `solicitante` sea texto libre y que el vínculo con el
+    // vecino sea opcional: la planilla real del cliente no tiene columna RUT
+    // en el tubo (estructura-planilla-real §6).
+    const ORGANIZACIONES = [
+      "Junta de vecinos Villa El Faro",
+      "Comité de agua potable rural",
+      "Club deportivo Los Aromos",
+    ];
+    const nombrePorVecinoId = new Map<string, string>();
+    for (const v of VECINOS) {
+      const rut = normalizarRut(v.rut);
+      const id = rut ? vecinoPorRut.get(rut) : undefined;
+      if (id) nombrePorVecinoId.set(id, `${v.nombres} ${v.paterno} ${v.materno}`);
+    }
+
+    /** Quién pidió el compromiso y si tiene ficha detrás. Determinista. */
+    const solicitudDeEjemplo = (i: number, pide: string | null) => {
+      if (pide === "organizacion") {
+        return { solicitante: ORGANIZACIONES[i % ORGANIZACIONES.length]!, personaUsuariaId: null };
+      }
+      if (pide === "vecino") {
+        const vecinoId = rutsVecinos[i % rutsVecinos.length]!;
+        return { solicitante: nombrePorVecinoId.get(vecinoId) ?? "Vecino del sector", personaUsuariaId: vecinoId };
+      }
+      return { solicitante: null, personaUsuariaId: null };
+    };
 
     for (const delegacion of ["Centro", "Rural"]) {
       for (const [i, t] of ejemplos.entries()) {
@@ -376,7 +409,7 @@ async function main() {
             fechaSolicitud: new Date(Date.now() - 10 * 86_400_000),
             fechaCompromiso: new Date(Date.now() + t.dias * 86_400_000),
             responsableId: userPorEmail.get(responsables[i % responsables.length]!)!,
-            personaUsuariaId: t.ext ? rutsVecinos[i % rutsVecinos.length]! : null,
+            ...solicitudDeEjemplo(i, t.pide),
           },
         });
         // RF-018: toda tarea nace con su primera entrada de historial

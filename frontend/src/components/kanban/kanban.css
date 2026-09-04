@@ -170,3 +170,36 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Origen de la solicitud en la tarjeta — RF-016 · RF-017 · DESIGN §3.3.
+   Zona de datos: ni --marca ni --acento. El punto que marca el vínculo con la
+   ficha del vecino usa --seleccion, que es como el sistema dice "esto está
+   relacionado con algo" dentro de una tabla. */
+.tarea-card-solicitud {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: var(--esp-1) 0 0;
+  font-size: 0.6875rem;
+  color: var(--tinta-3);
+  min-width: 0;
+}
+
+.tarea-card-solicitante {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tinta-2);
+}
+
+.tarea-card-territorio {
+  white-space: nowrap;
+}
+
+.tarea-card-vecino {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--seleccion);
+}

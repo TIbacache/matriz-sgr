@@ -1,7 +1,8 @@
 # DESIGN.md — Especificación visual SGR
 
-**Versión**: 1.7 · **Fecha**: 3 de septiembre de 2026
+**Versión**: 1.8 · **Fecha**: 3 de septiembre de 2026
 **Regla de oro**: este archivo es normativo. Si un componente no cumple lo que dice aquí, está mal aunque "se vea bien".
+**v1.8**: §8.2 suma los criterios del **origen de la solicitud** en el tubo (RF-016, RF-017): dos opciones explícitas marcadas en el contenedor, el formulario que no crece para el caso frecuente, y por qué no se pide RUT.
 **v1.7**: §8.2 suma los criterios del **caso social** (RF-015): escalera de tres peldaños en vez de formulario plano, sin selector de número de gestión, y en modal para no romper la tabla densa del registro diario.
 **v1.6**: §8.2 suma la regla del **aviso de conflicto** (CA-08), general para toda pantalla con bloqueo optimista: releer en vez de revertir, aviso persistente y nombrar el registro. §3 anota que los dos tratamientos del aviso (`--seleccion` y ámbar) todavía no están unificados.
 **v1.5**: §3.6 pasa a tener dos regímenes de movimiento —**estado** en las zonas de datos y **ambiente** en las zonas de identidad— y una regla de feedback para todo lo clickeable. Decisión del equipo del 2 de septiembre: "la app se mueve sin que la toquen". §8.9 se reescribe en consecuencia.
@@ -282,7 +283,7 @@ El PDF de los profesores la exige: *"navegación por teclado, contraste suficien
 
 Estas reglas se fijaron **antes** de construir las pantallas, para que no hubiera deriva. Todas heredan los tokens, la escala y la lista negra de este documento.
 
-**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ✅ ficha del vecino (`frontend/src/pages/VecinosPage.tsx`, 03-09-2026) · ✅ aviso de conflicto del tubo · ✅ caso social y sus tres gestiones (03-09-2026) · ⬜ configuración de parámetros.
+**Estado**: ✅ ficha personal (`frontend/src/pages/FichaPage.tsx`) · ✅ bandeja del verificador (`frontend/src/pages/BandejaPage.tsx`) · ✅ configuración de metas (`frontend/src/pages/MetasPage.tsx`), las tres del 01-09-2026 · ✅ ficha del vecino (`frontend/src/pages/VecinosPage.tsx`, 03-09-2026) · ✅ aviso de conflicto del tubo · ✅ caso social y sus tres gestiones · ✅ origen de la solicitud en el tubo (03-09-2026) · ⬜ configuración de parámetros.
 
 ### Contexto que manda sobre la estética
 
@@ -304,6 +305,14 @@ Regla general para **cualquier** pantalla que escriba con bloqueo optimista:
 2. **El aviso es persistente, no un toast.** Un mensaje de 5 segundos puede perderse, y perder de vista que un cambio no se guardó es exactamente lo que CA-08 prohíbe. Lleva `role="alert"` y se cierra a mano.
 3. **Nombra el registro concreto** ("«Solicitud de máquina…»: otra persona la movió"), no la categoría. Misma lección que el aviso de duplicidad del vecino: un aviso que marca de más deja de avisar.
 4. Es **zona de datos**: ni `--marca` ni `--acento` (§3.3). Un choque de ediciones es estado.
+
+### El origen de la solicitud en el tubo (RF-016, RF-017) ✅ construido
+
+1. **Dos opciones explícitas, no una casilla.** "No marcado" no es lo mismo que "es trabajo interno", y en la planilla del cliente la columna INT/EXT siempre tiene un valor.
+2. **La elegida se marca en el contenedor**, no solo con el punto del radio: fondo, borde y negrita. Sin `color-scheme` declarado, los controles nativos se pintan en claro también en el tema oscuro y el punto se distingue mal; y "nunca solo color" (§8.1) pide más de un canal de todos modos.
+3. **El formulario no crece para el caso frecuente**: los campos de la solicitud aparecen solo al marcar "Externa". Obvio no significa pedirlo todo siempre.
+4. **No se pide RUT.** La planilla no tiene esa columna en el tubo y el solicitante puede ser una organización. El vínculo con la ficha del vecino es un buscador **opcional**.
+5. En la tarjeta, el vínculo con una ficha se marca con **un punto**, no con el RUT: el tubo lo mira todo el equipo y ese dato no hace falta ahí (mínimo privilegio, ADR-012).
 
 ### Caso social y sus tres gestiones (RF-015, CA-04) ✅ construido
 

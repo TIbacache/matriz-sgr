@@ -2,8 +2,8 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 3 de septiembre de 2026 · `main` en la etiqueta `v0.12.0-atencion-social`
-**Bloque que abre**: B5 — la solicitud del vecino en el tubo (RF-016, RF-017). No es una mejora: es un agujero de trazabilidad que hace parecer roto algo que funciona.
+**Última actualización**: 3 de septiembre de 2026 · `main` en la etiqueta `v0.13.0-solicitud-en-el-tubo`
+**Bloque que abre**: C — migrar el dashboard al motor de cálculo v2 y eliminar la vista materializada v1, para que no queden dos verdades sobre el mismo número.
 
 ---
 
@@ -16,20 +16,20 @@ entidades ya existen sin API o sin pantalla, y duplicar algo sería el error
 más caro):
 
 1. CLAUDE.md — reglas del proyecto y estado real del código.
-2. docs/siguiente-sesion.md — §3 tiene el Bloque B5 con su plan completo, y
-   §4 y §6 los cabos sueltos y las trampas del entorno.
+2. docs/siguiente-sesion.md — §3 tiene el Bloque C, §4 los cabos sueltos
+   (incluido "dos cálculos conviviendo", prioridad Alta) y §6 las trampas del
+   entorno.
 3. docs/requerimientos-oficiales.md — la especificación que se evalúa:
-   RF-016 (compromisos internos o externos), RF-017 (solicitante, territorio,
-   responsable, área de apoyo, fecha comprometida), RF-018 a RF-021 y CA-03.
-   Su §10 son las 12 consultas abiertas al docente: NO inventar esas
-   respuestas.
-4. docs/estructura-planilla-real.md §6 — las columnas REALES del tubo. Fíjate
-   en lo que NO tienen: no hay columna RUT. SOLICITANTE es texto libre y
-   muchos compromisos son internos.
-5. docs/decisiones-tecnicas.md — ADR-008 (la persona usuaria es única por
-   organización), ADR-012 y ADR-013 (quién ve qué de un vecino y con qué
-   detalle), ADR-005 (concurrencia) y ADR-007 (nada de valores de negocio en
-   el código).
+   RF-022 a RF-029 (cálculo, semáforo y monitoreo), RN-004 a RN-008, y CA-05
+   y CA-06. Su §10 son las 12 consultas abiertas al docente: NO inventar esas
+   respuestas — el tope de 150% y los ajustes por felicitación/reclamo son
+   dos de ellas y afectan directamente a este bloque.
+4. docs/estructura-planilla-real.md §7 — las cifras reales contra las que se
+   contrastó el motor (98 vs 50,55 → verde; 15,5 vs 39,56 → rojo).
+5. docs/decisiones-tecnicas.md — ADR-007 (nada de valores de negocio en el
+   código: los umbrales y el tope salen de `parametro`, y la vista v1 los
+   tiene escritos en SQL, que es justo el problema) y ADR-009 (ítem inverso).
+   ADR-005 para la concurrencia.
 6. DESIGN.md — §8.2 tiene los criterios de las pantallas construidas; §3.3
    dice dónde puede y dónde no puede ir el rojo institucional; §10.7, cómo se
    verifica.
@@ -42,49 +42,48 @@ Verifica el estado real con Docker arriba (docker compose up -d):
       npm run dev   (en otra terminal)
       npm run smoke && npm run verificar:api
       cd frontend && npm run build && npm run verificar:contraste
-Deben dar 278 comprobaciones en verde (18 + 21 + 156 + 83). Si algo falla,
+Deben dar 290 comprobaciones en verde (18 + 21 + 168 + 83). Si algo falla,
 repórtalo antes de avanzar. Si `npm run dev` muere con EADDRINUSE mientras
 `curl localhost:4000/health` responde 200, hay un `tsx watch` huérfano: matar
 al hijo NO basta, el vigilante lo respawnea — hay que subir al proceso padre
 (receta exacta en siguiente-sesion.md §6). Si Prisma no conecta, lo más
 probable es que el contenedor de Postgres esté detenido.
 
-TAREA — Bloque B5: la solicitud del vecino en el tubo.
+TAREA — Bloque C: un solo cálculo, el v2.
 
-  EL HECHO: `backend/src/services/vecinos.ts` ya LEE `tarea.personaUsuariaId`
-  y la línea de tiempo del vecino muestra sus compromisos del tubo. Pero
-  NINGUNA PANTALLA PUEDE CREAR ESE VÍNCULO: ni el `tareaSchema` de
-  `tareas.routes.ts` ni `NuevaTareaModal.tsx` aceptan un solo campo del
-  solicitante. Solo el seed los llena. Si el docente crea una tarea externa
-  desde la aplicación y después busca a ese vecino, el compromiso no aparece,
-  y la conclusión razonable sería que la trazabilidad no funciona. Funciona;
-  falta el formulario que la alimenta.
+  HOY CONVIVEN DOS VERDADES sobre el mismo número y es la deuda técnica más
+  cara que queda:
+   · `cumplimiento_ponderado_vista` (v1): vista materializada, POR DELEGACIÓN,
+     con los umbrales (80%, 60%) y el tope (150%) escritos en el SQL. Es la
+     que alimenta el dashboard hoy.
+   · `services/cumplimiento.ts` (v2): motor POR FUNCIONARIO, con los valores
+     leídos de `parametro`. Es el correcto según la especificación y el que
+     verifican las 21 comprobaciones de `verificar:calculo`.
 
-  LO QUE NO HAY QUE HACER: pedir RUT obligatorio en el tubo. Contradiría la
-  planilla real (fuente 2) y trabaría el registro rápido que el cliente pidió.
-
-  Piezas (todo el modelo YA EXISTE — comprobarlo antes de crear nada):
-   1. `INT/EXT` como interruptor (`Tarea.interesExterno`, ya modelado) →
-      RF-016.
-   2. Si es interna, nada más: el formulario no crece para el caso frecuente.
-   3. Si es externa: `solicitante` (texto libre, obligatorio), `territorio`
-      (del catálogo `territorio`, YA SEMBRADO, nunca de una lista en el
-      código) y `areaApoyo` → RF-017.
-   4. Buscador OPCIONAL de vecino que reutiliza `GET /vecinos?q=` del Bloque
-      B3 para enlazar `personaUsuariaId`. Opcional a propósito: un
-      solicitante puede ser una organización, y forzar la ficha convertiría
-      el tubo en un registro de personas que la ley no pide (regla 18).
-   5. Extender el `tareaSchema`, exponer los campos en el `GET`, mostrarlos
-      en la tarjeta y en el detalle, y VERIFICAR QUE UN COMPROMISO CREADO POR
-      API APARECE EN LA FICHA DEL VECINO. Esa es la comprobación que cierra
-      el agujero, no la de que el campo se guarda.
-   6. Verificaciones en backend/scripts/verificar-api-v2.ts (incluida la de
-      los seis roles), captura con las seis cuentas, y la fila en
+  Que el tablero muestre una cifra y la ficha personal otra es exactamente lo
+  que CA-06 prohíbe ("los totales del tablero coinciden con el detalle
+  filtrado"). Piezas:
+   1. Que el dashboard consuma `GET /cumplimiento/:periodoId` en vez de
+      `/kpis/cumplimiento`. Ojo: hoy filtra por el STRING "2026-Q3" y no por
+      `periodoId` — está anotado como cabo suelto.
+   2. Comprobar que las cifras del tablero coinciden con las de la ficha para
+      la misma persona y período. Esa es la verificación que cierra CA-06, no
+      la de que el endpoint responda 200.
+   3. ELIMINAR la vista materializada v1, `jobs/cumplimiento.ts` y
+      `GET /kpis/cumplimiento`. Mientras las dos existan, alguien las va a
+      volver a mezclar. `GET /kpis/tubo` NO muere: es independiente.
+   4. Con la vista fuera, `/metas` v1 y la tabla `Meta` quedan libres para
+      borrarse (hoy la vista depende de ellas).
+   5. Verificaciones, captura del dashboard con las seis cuentas, y la fila en
       docs/matriz-trazabilidad.md.
 
-  ALTERNATIVA, si el equipo prefiere otro orden: el Bloque C (migrar el
-  dashboard al motor v2 y eliminar la vista materializada v1, para que no
-  queden dos verdades). Preguntar antes de elegir; no decidirlo en silencio.
+  ALTERNATIVA, si el equipo prefiere otro orden: el panel de actividad de
+  usuarios (RF-030, HU-19), que el docente pidió expresamente en clase — quién
+  ingresó, quién NO y quién está trabajando ahora. Las piezas existen
+  (`ultimoIngreso`, `diasSinIngreso`, presencia por socket); falta la vista
+  que las junta. Ojo: "ingresar" es ambiguo y un panel de conexión es
+  monitoreo de personas (finalidad y proporcionalidad, regla 18).
+  Preguntar antes de elegir; no decidirlo en silencio.
 
 Reglas no negociables (están en CLAUDE.md, se repiten porque son las que más
 se olvidan):
@@ -122,6 +121,12 @@ Contexto que NO hay que volver a derivar:
   existe, avanza y se consulta cruzando delegaciones. La regla que lo
   sostiene es ADR-013: el servidor decide en qué casillero cae cada gestión,
   no el cliente. No agregar un selector de "número de gestión".
+- EP-01 está COMPLETA (Bloque B5): el tubo captura INT/EXT, solicitante,
+  territorio, área de apoyo y el vínculo OPCIONAL con la ficha del vecino. **No
+  se pide RUT en el tubo** —la planilla real no tiene esa columna y el
+  solicitante puede ser una organización— y la regla del solicitante vale hacia
+  adelante: `interesExterno` tiene `@default(true)`, así que exigirlo al
+  corregir tareas antiguas bloquearía el tubo entero.
 - CA-08 y CA-09 están CERRADOS (Bloque A3): las tres rutas heredadas
   (/tareas, /unidades, /categorias) comparan `version` → 409 y auditan. El
   tubo avisa el conflicto en pantalla en vez de revertir en silencio.
@@ -129,8 +134,9 @@ Contexto que NO hay que volver a derivar:
   comodidad: ADR-012 y ADR-013. `verificador` y `consulta` no entran; desde
   otra delegación viaja el hecho y el avance, no el contenido. No ampliarlo
   sin que el docente responda la consulta nº 12.
-- "v1" no significa obsoleto. Las que mueren son /metas v1 y
-  /kpis/cumplimiento, con el Bloque C.
+- "v1" no significa obsoleto: /tareas, /unidades y /categorias sostienen
+  requisitos vigentes y ya están endurecidas. Las que mueren son /metas v1 y
+  /kpis/cumplimiento, y es justo lo que hace este bloque.
 - El docente dijo que SOLO revisará el Planner. El plan de 58 tareas sigue
   sin cargar y eso es bloqueante para la evaluación, no deuda técnica.
 - La entrega del 15 de septiembre (mockups, MER, modelo de datos, diagrama de

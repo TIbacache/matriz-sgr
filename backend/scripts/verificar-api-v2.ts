@@ -1788,6 +1788,204 @@ check(
 );
 
 // ===========================================================================
+// 11. LA SOLICITUD DEL VECINO EN EL TUBO — RF-016 · RF-017 · RF-004 · CA-04
+//     ADR-008 · ADR-007
+//
+// El agujero que cerró el Bloque B5: `services/vecinos.ts` YA leía
+// `tarea.personaUsuariaId` y mostraba los compromisos del vecino, pero ninguna
+// pantalla podía crear ese vínculo —solo el seed—, así que un compromiso
+// registrado desde la aplicación no llegaba a la ficha. La trazabilidad
+// parecía rota sin estarlo.
+//
+// La comprobación que importa no es que el campo se guarde: es que el
+// compromiso APAREZCA en el historial del vecino. Las demás protegen esa.
+// ===========================================================================
+
+const compromisoInterno = await S("POST", "/tareas", {
+  titulo: "Revisión interna de inventario (prueba)",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  interesExterno: false,
+});
+if (compromisoInterno.status === 201) creado.tareas.push((compromisoInterno.datos as { id: string }).id);
+check(
+  "RF-016 un compromiso INTERNO no exige solicitante: el formulario no crece para el caso frecuente",
+  compromisoInterno.status === 201 &&
+    (compromisoInterno.datos as { interesExterno: boolean }).interesExterno === false,
+  `status ${compromisoInterno.status}`
+);
+
+const externaSinSolicitante = await S("POST", "/tareas", {
+  titulo: "Solicitud externa sin quién la pidió (prueba)",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  interesExterno: true,
+});
+check(
+  "RF-017 una solicitud EXTERNA sin solicitante se rechaza (422): si no, INT/EXT no significa nada",
+  externaSinSolicitante.status === 422,
+  `status ${externaSinSolicitante.status}`
+);
+
+const territorioInventado = await S("POST", "/tareas", {
+  titulo: "Con un territorio que no existe (prueba)",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  interesExterno: true,
+  solicitante: "Junta de vecinos de prueba",
+  territorio: "Sector Que No Existe",
+});
+check(
+  "RF-004 el territorio sale del catálogo, no de una lista en el código",
+  territorioInventado.status === 422,
+  `status ${territorioInventado.status}`
+);
+
+const areaInventada = await S("POST", "/tareas", {
+  titulo: "Con un área de apoyo que no existe (prueba)",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  interesExterno: true,
+  solicitante: "Junta de vecinos de prueba",
+  areaApoyo: "Departamento Imaginario",
+});
+check(
+  "RF-004 el área de apoyo también sale del catálogo",
+  areaInventada.status === 422,
+  `status ${areaInventada.status}`
+);
+
+const cuerpoVecinoAjeno = {
+  titulo: "Enlazada a un vecino que no existe (prueba)",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  interesExterno: true,
+  solicitante: "Alguien",
+};
+// UUID bien formado (v4) pero inexistente → 404; mal formado → 400. Son cosas
+// distintas y el proyecto las distingue (regla 8).
+const vecinoInexistente = await S("POST", "/tareas", {
+  ...cuerpoVecinoAjeno,
+  personaUsuariaId: "11111111-1111-4111-8111-111111111111",
+});
+const vecinoMalFormado = await S("POST", "/tareas", {
+  ...cuerpoVecinoAjeno,
+  personaUsuariaId: "no-es-uuid",
+});
+check(
+  "Multi-tenant: enlazar a una persona inexistente o de otro tenant → 404; identificador mal formado → 400",
+  vecinoInexistente.status === 404 && vecinoMalFormado.status === 400,
+  `${vecinoInexistente.status} y ${vecinoMalFormado.status}`
+);
+
+// --- El compromiso externo completo, enlazado a la vecina del caso CA-04 ---
+const compromisoExterno = await S("POST", "/tareas", {
+  titulo: "Retiro de escombros tras el temporal (prueba)",
+  descripcion: "La vecina pide retiro en su pasaje.",
+  unidadTerritorialId: centro.id,
+  categoriaId: categoriaPrueba.id,
+  interesExterno: true,
+  fechaSolicitud: "2026-07-15",
+  solicitante: "Vecina DePrueba",
+  personaUsuariaId: personaCreada.id,
+  territorio: "Sector Norte",
+  areaApoyo: "DISERCO",
+  observaciones: "Coordinado con la delegación.",
+});
+const compromiso = compromisoExterno.datos as {
+  id: string;
+  version: number;
+  interesExterno: boolean;
+  solicitante: string | null;
+  territorio: string | null;
+  areaApoyo: string | null;
+  personaUsuaria: { id: string; rut: string | null } | null;
+  alertaTrazabilidad: { delegaciones: string[]; mensaje: string } | null;
+};
+if (compromisoExterno.status === 201) creado.tareas.push(compromiso.id);
+check(
+  "RF-017 el compromiso externo guarda solicitante, territorio, área de apoyo y el vínculo con el vecino",
+  compromisoExterno.status === 201 &&
+    compromiso.interesExterno === true &&
+    compromiso.solicitante === "Vecina DePrueba" &&
+    compromiso.territorio === "Sector Norte" &&
+    compromiso.areaApoyo === "DISERCO" &&
+    compromiso.personaUsuaria?.id === personaCreada.id,
+  `status ${compromisoExterno.status}`
+);
+
+// ADR-008: el aviso que ya daba el alta de una actividad, ahora también aquí.
+// La vecina tiene atenciones en Rural (sección 3) y este compromiso es Centro.
+check(
+  "ADR-008 · CA-04 el alta del compromiso avisa que la persona ya registra hechos en otra delegación",
+  compromiso.alertaTrazabilidad !== null &&
+    compromiso.alertaTrazabilidad.delegaciones.includes("Rural"),
+  compromiso.alertaTrazabilidad?.mensaje ?? "sin alerta"
+);
+
+// --- LA COMPROBACIÓN QUE CIERRA EL AGUJERO ---
+interface HechoDelHistorial {
+  tipo: string;
+  id: string;
+  titulo: string | null;
+  delegacion: { nombre: string };
+}
+const fichaConCompromiso = await A("GET", `/vecinos/${personaCreada.id}`);
+const historialConTubo = (fichaConCompromiso.datos as { historial: HechoDelHistorial[] }).historial;
+const elCompromiso = historialConTubo.find((h) => h.tipo === "compromiso" && h.id === compromiso.id);
+check(
+  "RF-016 · CA-04 un compromiso creado POR LA API aparece en la ficha del vecino (antes solo los del seed)",
+  elCompromiso !== undefined && elCompromiso.titulo === "Retiro de escombros tras el temporal (prueba)",
+  elCompromiso ? `«${elCompromiso.titulo}» en ${elCompromiso.delegacion.nombre}` : "NO aparece en el historial"
+);
+
+// --- Corrección posterior ---
+const marcarExterna = await S("PATCH", `/tareas/${compromisoInterno.datos && (compromisoInterno.datos as { id: string }).id}`, {
+  interesExterno: true,
+  version: (compromisoInterno.datos as { version: number }).version,
+});
+check(
+  "RF-017 pasar un compromiso a externo sin decir quién lo pidió también se rechaza (422)",
+  marcarExterna.status === 422,
+  `status ${marcarExterna.status}`
+);
+
+const correccionTubo = await S("PATCH", `/tareas/${compromiso.id}`, {
+  territorio: "Zona Rural",
+  areaApoyo: "Sección Aseo",
+  version: compromiso.version,
+});
+const auditoriaTubo = await prisma.auditoria.findMany({
+  where: { entidad: "tarea", entidadId: compromiso.id },
+});
+check(
+  "CA-09 corregir la solicitud aplica y queda en la bitácora con su valor anterior",
+  correccionTubo.status === 200 &&
+    (correccionTubo.datos as { territorio: string }).territorio === "Zona Rural" &&
+    auditoriaTubo.some((a) => a.accion === "crear") &&
+    auditoriaTubo.some((a) => a.accion === "actualizar" && a.valorAnterior !== null),
+  `status ${correccionTubo.status} · ${auditoriaTubo.length} eventos`
+);
+
+const territorioMaloAlCorregir = await S("PATCH", `/tareas/${compromiso.id}`, {
+  territorio: "Otro que no existe",
+  version: (correccionTubo.datos as { version: number }).version,
+});
+check(
+  "RF-004 el catálogo también se valida al corregir, no solo al crear",
+  territorioMaloAlCorregir.status === 422,
+  `status ${territorioMaloAlCorregir.status}`
+);
+
+// El libro sigue siendo privado: el funcionario de Rural no ve el de Centro.
+const tuboAjeno = await I("GET", `/tareas?unidad=${centro.id}`);
+check(
+  "Regla 9 la solicitud no abre el libro ajeno: el tubo de otra delegación sigue dando 404",
+  tuboAjeno.status === 404,
+  `status ${tuboAjeno.status}`
+);
+
+// ===========================================================================
 // Limpieza — el script no debe dejar rastro en los datos de demostración
 // ===========================================================================
 await prisma.tarea.deleteMany({ where: { id: { in: creado.tareas } } });

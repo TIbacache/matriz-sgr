@@ -95,3 +95,158 @@
 .tubo-conflicto .btn-tabla {
   margin-left: auto;
 }
+
+/* Origen y campos de la solicitud en el alta — RF-016 · RF-017.
+   El bloque aparece solo al marcar "Externa": el formulario no crece para el
+   caso frecuente (DESIGN §8.2). */
+.tubo-origen {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3);
+  margin: var(--esp-4) 0 0;
+  display: flex;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+}
+
+.tubo-origen legend {
+  padding: 0 var(--esp-2);
+}
+
+/* La opción elegida se marca en el CONTENEDOR, no solo con el punto del radio.
+   Sin `color-scheme`, los controles nativos se pintan en claro también en el
+   tema oscuro y el punto se distingue mal; y "nunca solo color" (RNF-012) pide
+   que la elección se lea por más de un canal: fondo, borde y negrita. */
+.tubo-origen-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1) var(--ease-expo),
+    background var(--dur-1) var(--ease-expo);
+}
+
+.tubo-origen-opcion:hover {
+  border-color: var(--borde-fuerte);
+}
+
+.tubo-origen-opcion:has(input:checked) {
+  background: var(--seleccion-bg);
+  border-color: var(--seleccion);
+  color: var(--tinta);
+}
+
+.tubo-origen-opcion:has(input:focus-visible) {
+  outline: 2px solid var(--seleccion);
+  outline-offset: 2px;
+}
+
+.tubo-origen-opcion input {
+  margin-top: 3px;
+  accent-color: var(--seleccion);
+  cursor: pointer;
+}
+
+.tubo-origen-opcion span {
+  display: flex;
+  flex-direction: column;
+}
+
+.tubo-origen-ayuda {
+  font-size: 0.6875rem;
+  color: var(--tinta-3);
+}
+
+.tubo-solicitud {
+  border-left: 3px solid var(--borde-fuerte);
+  padding-left: var(--esp-3);
+  margin-top: var(--esp-3);
+}
+
+.tubo-vecino-elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  margin: 0 0 var(--esp-2);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--seleccion-bg);
+  border-left: 3px solid var(--seleccion);
+  border-radius: var(--radio-control);
+  font-size: 0.8125rem;
+  color: var(--tinta);
+}
+
+.tubo-vecino-lista {
+  list-style: none;
+  margin: var(--esp-2) 0;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  overflow: hidden;
+}
+
+.tubo-vecino-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  width: 100%;
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--superficie);
+  border: 0;
+  border-bottom: 1px solid var(--borde);
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tubo-vecino-lista li:last-child .tubo-vecino-opcion {
+  border-bottom: 0;
+}
+
+.tubo-vecino-opcion:hover,
+.tubo-vecino-opcion:focus-visible {
+  background: var(--seleccion-bg);
+}
+
+.tubo-vecino-rut {
+  color: var(--tinta-3);
+  flex-shrink: 0;
+}
+
+.tubo-vecino-nota {
+  margin: var(--esp-2) 0 0;
+  font-size: 0.6875rem;
+  color: var(--tinta-3);
+  max-width: 60ch;
+}
+
+/* Aviso de trazabilidad del vecino al crear un compromiso — ADR-008 · CA-04.
+   Mismo tratamiento que en la ficha personal: informa, no bloquea, y usa el
+   ámbar de estado porque es una señal, no una selección. */
+.tubo-aviso-vecino {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  background: var(--estado-amarillo-bg);
+  border-left: 3px solid var(--estado-amarillo);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--estado-amarillo-texto);
+}
+
+.tubo-aviso-vecino .btn-tabla {
+  margin-left: auto;
+}

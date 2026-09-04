@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque B4 — atención social y sus tres gestiones)
+**Actualizado**: 3 de septiembre de 2026 (cierre del Bloque B5 — la solicitud del vecino en el tubo)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -20,7 +20,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **18 ✅ · 13 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). **CA-04, CA-08 y CA-09 quedaron en ✅**: el A3 cerró los dos de concurrencia y auditoría, y el B4 cerró el caso social con sus tres gestiones. RF-016 bajó de ✅ a 🟡 al comprobar que el campo INT/EXT no es alcanzable (Bloque B5). El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
+Cumplimiento contra los 38 RF oficiales: **20 ✅ · 11 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -138,25 +138,20 @@ Lo que decidió y conviene no reabrir:
 
 ⚠ **Lo que dejó abierto**: **corregir una gestión ya registrada** no está resuelto — el `PATCH` solo toca la cabecera. Si el cliente lo pide, habrá que decidir entre corregirla con bloqueo optimista o anular la actividad y registrar otra, como con las validaciones aprobadas (consulta abierta nº 8). Y no se exige que el ítem de la actividad sea del área SOCIAL: la especificación no lo dice y no se inventó (regla 16).
 
-### Bloque B5 — La solicitud del vecino en el tubo (RF-016, RF-017, CA-04)
+### ~~Bloque B5 — La solicitud del vecino en el tubo~~ ✅ TERMINADO (`v0.13.0-solicitud-en-el-tubo`)
 
-**Hallazgo del 3 de septiembre de 2026, mientras se auditaba la pantalla de nueva tarea.** No es una mejora deseable: es un **agujero de trazabilidad** que hace parecer roto algo que funciona.
+Cerró **RF-016 y RF-017**, y con ellos **HU-02 y la épica EP-01 completa**. No era una mejora deseable: era un agujero de trazabilidad que hacía parecer roto lo que funcionaba. Contrato en [estado-proyecto §3.2](estado-proyecto.md) y la pantalla en [§6.1](estado-proyecto.md).
 
-**El hecho**: [`services/vecinos.ts`](../backend/src/services/vecinos.ts) ya lee `tarea.personaUsuariaId` — la línea de tiempo del vecino muestra sus compromisos del tubo junto a sus atenciones. Pero **ninguna pantalla puede crear ese vínculo**: ni el `tareaSchema` de [`tareas.routes.ts`](../backend/src/routes/tareas.routes.ts) ni [`NuevaTareaModal.tsx`](../frontend/src/components/NuevaTareaModal.tsx) aceptan un solo campo del solicitante. Solo el seed los llena (`seed.ts`, `interesExterno`, `territorio`, `areaApoyo`, `personaUsuariaId`).
+Lo que decidió y conviene no reabrir:
 
-**Por qué importa para la evaluación**: si el docente crea una tarea externa desde la aplicación y después busca a ese vecino, el compromiso **no aparece**. La conclusión razonable sería que la trazabilidad entre delegaciones —el control que el cliente vino a buscar— no funciona. Funciona; lo que falta es el formulario que la alimenta.
+- **No se pide RUT en el tubo.** La planilla real del cliente no tiene esa columna ([estructura-planilla-real §6](estructura-planilla-real.md)): `SOLICITANTE` es texto libre y muchos compromisos son internos. Exigirlo contradiría la fuente 2 y trabaría el registro rápido que el cliente pidió. El seed lo demuestra a propósito: uno de los compromisos externos lo pide una **organización**, que no tiene RUT ni ficha.
+- **El vínculo con la ficha del vecino es opcional**, y es lo que lleva el compromiso a su historial. Forzarlo convertiría el tubo en un registro de personas que la ley no pide (finalidad y proporcionalidad, regla 18).
+- **INT/EXT son dos opciones explícitas, no una casilla.** "No marcado" no es lo mismo que "es trabajo interno", y en la planilla la columna siempre tiene un valor. Una solicitud externa **sin solicitante se rechaza con 422**: sin eso, INT/EXT no significaba nada.
+- **El formulario no crece para el caso frecuente**: los cuatro campos de la solicitud aparecen solo al marcar "Externa".
+- **La regla del solicitante vale hacia adelante, no hacia atrás.** `Tarea.interesExterno` tiene `@default(true)` desde el modelo v2, así que **todas las tareas anteriores a este bloque son "externas" sin solicitante**. Exigírselo al corregirlas dejaba el tubo entero bloqueado —ni siquiera se podía arrastrar una tarjeta—; lo destaparon tres verificaciones del Bloque A3 al ponerse en rojo. Ahora la regla solo aplica si el cuerpo **toca** `interesExterno` o `solicitante`.
+- **El alta avisa la duplicidad igual que la ficha personal** (ADR-008): un compromiso y una atención son dos hechos de la misma persona, y el control solo sirve si avisa en los dos sitios donde se registra algo a su nombre.
 
-**Lo que NO hay que hacer**: pedir RUT obligatorio en el tubo. La planilla real del cliente ([estructura-planilla-real §6](estructura-planilla-real.md)) **no tiene columna RUT** en el tubo: tiene `SOLICITANTE` como texto libre ("la junta de vecinos del Sector Norte"), y muchos compromisos son internos y no tienen persona detrás. El RUT vive en la pestaña SOCIAL y en las actividades. Exigirlo contradiría la fuente 2 y trabaría el registro rápido que el cliente pidió expresamente.
-
-**Lo que sí**, y todo el modelo ya existe (regla 1: comprobar antes de crear):
-
-1. `INT/EXT` como interruptor (`Tarea.interesExterno`, ya modelado) — RF-016.
-2. Si es **interna**, nada más: el formulario no crece para el caso frecuente.
-3. Si es **externa**: `solicitante` (texto libre, obligatorio), `territorio` (del catálogo `territorio`, **ya sembrado**, nunca de una lista en el código) y `areaApoyo` — RF-017.
-4. **Buscador opcional de vecino** que reutiliza `GET /vecinos?q=` del Bloque B3 para enlazar `personaUsuariaId` cuando la persona ya está registrada. Opcional a propósito: un solicitante puede ser una organización, y forzar la ficha convertiría el tubo en un registro de personas que la ley no pide (finalidad y proporcionalidad, regla 18).
-5. Extender el `tareaSchema`, exponer los campos en el `GET`, mostrarlos en la tarjeta y en el detalle, y **verificar que un compromiso creado por API aparece en la ficha del vecino** — esa es la comprobación que cierra el agujero, no la de que el campo se guarda.
-
-**Cierra**: RF-016 y RF-017 (dos 🟡 → ✅) y el último tramo de CA-04 que no depende de `AtencionSocial`.
+⚠ **Lo que dejó abierto**: `zod` 4 rechaza los UUID que no cumplen la versión y variante de la RFC (`1111…1111` da 400, no 404). Es correcto —mal formado es 400— pero conviene saberlo al escribir pruebas. Y apareció un cabo suelto real: **no se declara `color-scheme`**, así que los controles nativos se pintan en claro también en el tema oscuro; aquí se rodeó marcando la opción elegida en el contenedor, pero la causa afecta a todos los formularios.
 
 ### Bloque C — Migrar el dashboard al cálculo v2
 
@@ -172,12 +167,13 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 ## 4. Cabos sueltos concretos
 
-**Orden acordado el 1 de septiembre, actualizado el 3**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), después la ficha del vecino (Bloque B3, ✅) y el endurecimiento de las rutas heredadas (Bloque A3, ✅). El Bloque B4 (atención social) quedó ✅ el 3 de septiembre y con él **CA-04**. **Ahora**: el **Bloque B5** (la solicitud del vecino en el tubo), que no es opcional — sin él la trazabilidad que construyeron los Bloques B3 y B4 solo funciona con los datos del seed. Después, el Bloque C. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
+**Orden acordado el 1 de septiembre, actualizado el 3**: primero el rediseño (Bloques D0 y D1, ✅ cerrados el 2 de septiembre), después la ficha del vecino (Bloque B3, ✅) y el endurecimiento de las rutas heredadas (Bloque A3, ✅). Los Bloques B4 (atención social) y B5 (la solicitud en el tubo) quedaron ✅ el 3 de septiembre, y con ellos **CA-04** y **EP-01**. **Ahora**: el **Bloque C** — migrar el dashboard al motor v2 y eliminar la vista materializada v1, para que no queden dos verdades. El Planner sigue siendo bloqueante para la evaluación, con independencia de todo lo anterior.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
 | ~~**Endurecer `/tareas`, `/unidades` y `/categorias`** con `version` → 409 y auditoría~~ → **resuelto** en el Bloque A3, junto con RF-001 (la baja de una delegación la desactiva) y el aviso de conflicto en el tubo. Las que sí mueren siguen siendo `/metas` v1 y `/kpis/cumplimiento` — ver [estado-proyecto §3.2](estado-proyecto.md) | — | ✅ |
-| 🔴 **El tubo no puede enlazar al vecino**: `services/vecinos.ts` ya lee `tarea.personaUsuariaId`, pero ni el `tareaSchema` ni `NuevaTareaModal.tsx` aceptan solicitante, territorio, área de apoyo, INT/EXT ni el vínculo con la persona. **Solo el seed los llena**, así que una tarea externa creada desde la aplicación no aparece en la ficha del vecino: la trazabilidad parece rota sin estarlo. Plan completo en el **Bloque B5** de §3 | `tareas.routes.ts`, `NuevaTareaModal.tsx` | **Alta** |
+| ~~🔴 **El tubo no puede enlazar al vecino**~~ → **resuelto** en el Bloque B5: INT/EXT, solicitante, territorio, área de apoyo y el vínculo opcional con la ficha, con la verificación que comprueba que el compromiso aparece en el historial del vecino | — | ✅ |
+| **No se declara `color-scheme`**: los controles nativos (radios, casillas, fechas) se pintan en claro también en el tema oscuro. El B5 lo rodeó marcando la opción elegida en el contenedor, pero la causa afecta a todos los formularios | `tokens.css` | Media |
 | **`TareaHistorial` sin usar**: RF-018 pide historial de transición y la bitácora de auditoría no lo reemplaza (es interna). Con la alerta, es lo que le falta a CA-03 | `tareas.routes.ts` | Media |
 | ~~Roles `verificador` y `consulta` sin uso~~ → resuelto: se aplican en validación y en el alcance de la bandeja | — | ✅ |
 | ~~Falta la API de `MetaItem`~~ → **resuelta** en el Bloque A2; ~~falta su pantalla~~ → **resuelta** en el Bloque B2 (`/metas`) | — | ✅ |
