@@ -677,6 +677,172 @@ check(
 
 
 
+
+// ===========================================================================
+// 6.ter CONTROL DE ACTIVIDAD DE USUARIOS — RF-030 · HU-19 · ADR-015
+//       Quién registró, QUIÉN NO y quién está conectado. Lo pidió el docente
+//       en clase para el administrador y el coordinador (§9.ter).
+// ===========================================================================
+
+const panelSup = await S("GET", `/actividad-usuarios?periodo=${periodoActivo.id}`);
+const panel = panelSup.datos as {
+  umbralDias: number;
+  umbralConfirmado: boolean;
+  funcionarios: {
+    funcionarioId: string;
+    nombre: string;
+    unidadNombre: string | null;
+    registradas: number;
+    validadas: number;
+    pendientes: number;
+    ultimaActividad: string | null;
+    diasSinRegistrar: number | null;
+    estado: string;
+    conectado: boolean;
+  }[];
+  sinMedicion: { funcionarioId: string; nombre: string; rol: string }[];
+  resumen: {
+    medidos: number;
+    conRegistro: number;
+    sinRegistro: number;
+    atrasados: number;
+    alDia: number;
+    conectadosAhora: number;
+    totalRegistradas: number;
+  };
+  conectados: { userId: string }[];
+};
+
+check(
+  "RF-030 el coordinador ve el control de actividad",
+  panelSup.status === 200 && panel.funcionarios.length > 0,
+  `${panel.resumen?.medidos} medidos · ${panel.resumen?.totalRegistradas} actividades`
+);
+
+// Lo que el docente pidió y hoy no se veía: el COMPLEMENTO. Alguien con metas
+// configuradas y sin una sola actividad registrada en el período.
+const nadaRegistrado = panel.funcionarios.filter((f) => f.estado === "sin_registro");
+check(
+  "RF-030 quien tiene metas y NO registró nada aparece como 'sin registro'",
+  nadaRegistrado.length > 0 &&
+    nadaRegistrado.every((f) => f.registradas === 0 && f.ultimaActividad === null),
+  nadaRegistrado.map((f) => `${f.nombre} (${f.unidadNombre})`).join(", ") || "ninguno: el seed no arma el caso"
+);
+
+check(
+  "RF-030 el resumen separa sin registro, atrasados y al día, y suman los medidos",
+  panel.resumen.sinRegistro + panel.resumen.atrasados + panel.resumen.alDia === panel.resumen.medidos,
+  JSON.stringify(panel.resumen)
+);
+
+// El umbral es el parámetro `dias_sin_ingreso_alerta`, no un número escrito en
+// el código, y viaja con su marca `confirmado` (ADR-007).
+check(
+  "RF-030 · ADR-007 el umbral de días sale del parámetro y dice si está confirmado",
+  panel.umbralDias === 7 && panel.umbralConfirmado === false,
+  `${panel.umbralDias} días, confirmado=${panel.umbralConfirmado}`
+);
+
+// La diferencia con el motor de cumplimiento: aquí se cuenta lo REGISTRADO. El
+// motor cuenta solo lo aprobado (RN-003), y con esa cifra alguien que subió 40
+// actividades pendientes figuraría en cero.
+const conPendientes = panel.funcionarios.find((f) => f.pendientes > 0);
+check(
+  "RF-030 cuenta lo registrado, no solo lo validado",
+  conPendientes !== undefined && conPendientes.registradas > conPendientes.validadas,
+  conPendientes
+    ? `${conPendientes.nombre}: ${conPendientes.registradas} registradas, ${conPendientes.validadas} validadas`
+    : "nadie con evidencia pendiente"
+);
+
+// Quien no tiene cargo medido no registra actividades por diseño: va aparte y
+// no como una alarma falsa (un aviso que marca de más deja de avisar).
+check(
+  "RF-030 quien no tiene cargo medido va aparte, no como 'sin registro'",
+  panel.sinMedicion.length > 0 &&
+    panel.sinMedicion.every(
+      (s) => !panel.funcionarios.some((f) => f.funcionarioId === s.funcionarioId)
+    ),
+  `${panel.sinMedicion.length} sin cargo medido`
+);
+
+// ADR-015: rige lo restrictivo y el 403 dice POR QUÉ.
+const panelPorRol = await Promise.all(
+  [
+    { rol: "admin", cli: A, esperado: 200 },
+    { rol: "supervisor", cli: S, esperado: 200 },
+    { rol: "verificador", cli: V, esperado: 403 },
+    { rol: "consulta", cli: C, esperado: 403 },
+    { rol: "usuario Centro", cli: G, esperado: 403 },
+    { rol: "usuario Rural", cli: I, esperado: 403 },
+  ].map(async (r) => {
+    const res = await r.cli("GET", `/actividad-usuarios?periodo=${periodoActivo.id}`);
+    return { ...r, status: res.status, motivo: (res.datos as { motivo?: string }).motivo };
+  })
+);
+check(
+  "ADR-015 solo admin y coordinador entran; el resto recibe 403",
+  panelPorRol.every((r) => r.status === r.esperado),
+  panelPorRol.map((r) => `${r.rol}:${r.status}`).join(" ")
+);
+check(
+  "ADR-015 el 403 explica el motivo, no deja un vacío mudo",
+  panelPorRol
+    .filter((r) => r.esperado === 403)
+    .every((r) => typeof r.motivo === "string" && r.motivo.length > 80),
+  panelPorRol.find((r) => r.esperado === 403)?.motivo?.slice(0, 70) + "…"
+);
+
+// Filtros y errores del contrato.
+const sinPeriodo = await S("GET", "/actividad-usuarios");
+check("RF-030 sin `periodo` responde 400", sinPeriodo.status === 400, `status ${sinPeriodo.status}`);
+
+const panelPeriodoAjeno = await S(
+  "GET",
+  "/actividad-usuarios?periodo=00000000-0000-0000-0000-0000000000ff"
+);
+check(
+  "Multi-tenant: período ajeno o inexistente → 404",
+  panelPeriodoAjeno.status === 404,
+  `status ${panelPeriodoAjeno.status}`
+);
+
+const panelUnidadAjena = await S(
+  "GET",
+  `/actividad-usuarios?periodo=${periodoActivo.id}&unidad=00000000-0000-0000-0000-0000000000ff`
+);
+check(
+  "Multi-tenant: delegación ajena o inexistente → 404",
+  panelUnidadAjena.status === 404,
+  `status ${panelUnidadAjena.status}`
+);
+
+const unidadCentro = (
+  (await S("GET", "/unidades")).datos as { id: string; nombre: string }[]
+).find((u) => u.nombre === "Centro")!;
+const panelCentro = (
+  await S("GET", `/actividad-usuarios?periodo=${periodoActivo.id}&unidad=${unidadCentro.id}`)
+).datos as typeof panel;
+check(
+  "RF-032 el panel se filtra por delegación",
+  panelCentro.funcionarios.length > 0 &&
+    panelCentro.funcionarios.every((f) => f.unidadNombre === "Centro") &&
+    panelCentro.funcionarios.length < panel.funcionarios.length,
+  `${panelCentro.funcionarios.length} en Centro de ${panel.funcionarios.length} en total`
+);
+
+// Abrir el panel se AUDITA: son datos de desempeño de personas identificadas y
+// la ley pide trazabilidad del acceso, no solo de la modificación (ADR-012).
+const auditoriaPanel = await prisma.auditoria.findFirst({
+  where: { entidad: "ActividadUsuarios", accion: "consultar" },
+  orderBy: { createdAt: "desc" },
+});
+check(
+  "ADR-015 · RNF-008 abrir el control de actividad queda en la bitácora",
+  auditoriaPanel !== null && auditoriaPanel.usuarioId !== null && auditoriaPanel.valorNuevo !== null,
+  `origen ${auditoriaPanel?.origen}`
+);
+
 // ===========================================================================
 // 7. CONTRATO QUE CONSUME LA FICHA PERSONAL — RF-004 · RF-008 · HU-06
 //    La pantalla no calcula nada: se apoya en estas llamadas. Verificarlas es

@@ -34,7 +34,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | Documento | Contenido |
 |---|---|
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
-| **[docs/mockups/](docs/mockups/)** | **Las siete pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
+| **[docs/mockups/](docs/mockups/)** | **Las ocho pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
 | [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
 | [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
@@ -96,16 +96,16 @@ La lista completa (13 cuentas con su cargo y delegación) está en [docs/estado-
 
 ## Verificación
 
-Cinco suites automatizadas, **314 comprobaciones** (231 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
+Cinco suites automatizadas, **332 comprobaciones** (249 del backend + 83 de contraste del frontend), todas en verde. Cada una cita el requisito que demuestra; el detalle está en [docs/matriz-trazabilidad.md §3](docs/matriz-trazabilidad.md).
 
 ```powershell
 cd backend
 npm run build              # TypeScript estricto: debe pasar antes de cada commit
-npm run verificar:calculo  # 32 · fórmulas del cálculo, semáforo, parámetros y consolidación por delegación
+npm run verificar:calculo  # 37 · fórmulas del cálculo, semáforo, parámetros, consolidación y control de actividad
 npm run verificar:rut      # 16 RUT del seed + normalización (requiere base)
 npm run dev                # las dos siguientes necesitan el servidor arriba
 npm run smoke              # 21 · tiempo real, permisos, visibilidad por delegación y semáforo consolidado
-npm run verificar:api      # 178 · registro, evidencia, validación, metas, ficha del vecino, atención social, tubo, tablero consolidado, concurrencia y auditoría
+npm run verificar:api      # 191 · registro, evidencia, validación, metas, ficha del vecino, atención social, tubo, tablero consolidado, concurrencia y auditoría
 
 cd frontend
 npm run verificar:contraste          # 83 · WCAG AA en los dos temas, los dos rojos separados, sin hex fuera de tokens
@@ -114,7 +114,7 @@ node scripts/capturas.mjs capturas   # cada pantalla con las seis cuentas (--mov
 
 ## Las pantallas
 
-Las siete pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
+Las ocho pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
 
 ```powershell
 cd frontend

@@ -1,0 +1,188 @@
+/* Control de actividad de usuarios — RF-030 · HU-19 · DESIGN §8.2.
+   Zona de DATOS: ni --marca ni --acento pintan nada aquí; el único rojo es
+   --estado-rojo y lo seleccionado sería --seleccion (ADR-011, DESIGN §3.3). */
+
+.act {
+  max-width: 1200px;
+}
+
+.act-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  margin-bottom: var(--esp-4);
+}
+
+.act-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--esp-3);
+}
+
+.act-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.act-filtro .campo {
+  min-width: 12rem;
+  max-width: 100%;
+}
+
+/* Finalidad declarada. Tono informativo, no de alarma: es una condición
+   permanente de la pantalla, no un evento. */
+.act-proposito {
+  display: block;
+  background: var(--fondo-2);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio-control);
+  padding: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  line-height: 1.5;
+}
+
+/* El 403 explica su causa. Un vacío sin explicación se lee como error del
+   sistema; uno que dice por qué se lee como la regla que es. */
+.act-403 {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  background: var(--estado-amarillo-bg);
+  color: var(--estado-amarillo-texto);
+  border-radius: var(--radio-control);
+  padding: var(--esp-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+/* En flex, un SVG cede antes que un párrafo y se aplasta a un hilo en móvil. */
+.act-403 > svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.act-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--esp-4);
+  margin-bottom: var(--esp-4);
+}
+
+.act-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  padding: var(--esp-4);
+}
+
+.act-kpi-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+
+.act-kpi-valor {
+  font-family: var(--fuente-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+/* La cifra que el panel existe para mostrar. Es un estado, no la marca. */
+.act-kpi-valor--alerta {
+  color: var(--estado-rojo);
+}
+
+.act-kpi-contexto {
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+  line-height: 1.35;
+}
+
+.act-tabla-card {
+  padding: var(--esp-4);
+}
+
+.act-titulo {
+  margin: 0 0 var(--esp-1);
+  font-size: 1rem;
+}
+
+.act-subtitulo {
+  font-weight: 400;
+  color: var(--tinta-3);
+}
+
+.act-sub {
+  margin: 0 0 var(--esp-4);
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+.act-tabla-envoltura {
+  overflow-x: auto;
+}
+
+.act-persona {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+/* Presencia en vivo: un punto, sin contador de minutos. Late despacio para
+   que se lea como "ahora" sin competir con el semáforo (DESIGN §3.6). */
+.act-punto-vivo {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--estado-verde);
+  flex-shrink: 0;
+  animation: act-latido 2.6s ease-in-out infinite;
+}
+
+@keyframes act-latido {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .act-punto-vivo { animation: none; }
+}
+
+.act-hace {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--tinta-3);
+}
+
+.act-vacio,
+.act-nota {
+  margin: var(--esp-4) 0 0;
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+  line-height: 1.5;
+}
+
+.act-skeleton {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.act-skeleton > div {
+  height: 92px;
+  border-radius: var(--radio-tarjeta);
+}

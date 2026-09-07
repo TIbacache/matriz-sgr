@@ -1,6 +1,6 @@
 # Mockups de las pantallas — SGR
 
-**Generados el 3 de septiembre de 2026** desde la aplicación real corriendo, con `node scripts/mockups.mjs` (en `frontend/`). No son dibujos: son la aplicación, congelada.
+**Generados el 6 de septiembre de 2026** desde la aplicación real corriendo, con `node scripts/mockups.mjs` (en `frontend/`). No son dibujos: son la aplicación, congelada.
 
 Cada pantalla está dos veces, y cada formato sirve para una cosa distinta:
 
@@ -18,7 +18,7 @@ Cada pantalla está dos veces, y cada formato sirve para una cosa distinta:
 ```powershell
 # con el backend en :4000 y el frontend en :5173
 cd frontend
-node scripts/mockups.mjs           # .html + .png de las siete pantallas
+node scripts/mockups.mjs           # .html + .png de las ocho pantallas
 node scripts/verificar-mockups.mjs # los abre desde file:// con la red bloqueada
 ```
 
@@ -66,9 +66,17 @@ Es la pantalla con más datos personales del sistema, así que dice en voz alta 
 
 ## 7. Tablero de control
 
-Semáforo por delegación, cumplimiento por pilar, proyección al cierre y detalle (EP-05). Los gráficos leen los tokens vivos, así que siguen el tema claro/oscuro solos.
+Semáforo por delegación, avance por **área del cargo**, proyección al cierre y detalle (EP-05). Desde el Bloque C consolida el motor por funcionario: la delegación es el promedio de su gente y una delegación sin nadie con metas se informa como **sin medición**, no como 0% (ADR-014). Los gráficos leen los tokens vivos, así que siguen el tema claro/oscuro solos.
 
 ![Tablero de control](07-dashboard.png)
+
+## 8. Control de actividad
+
+Lo que el docente pidió en clase (RF-030, HU-19): quién registró trabajo, **quién no** y quién está en la plataforma ahora. Lo ven solo el administrador y el coordinador.
+
+La tabla se ordena por **quien necesita atención primero**, no alfabéticamente, y separa lo *registrado* de lo *validado*: quien subió cuarenta actividades que esperan al verificador sí está registrando. La conexión en vivo es un punto y nada más —sin minutos acumulados ni historial de sesiones—, y la finalidad del panel está escrita en la propia pantalla: acompañar a quien se está quedando atrás, no vigilar (ADR-015, Leyes 19.628 y 21.719).
+
+![Control de actividad](08-actividad.png)
 
 ---
 

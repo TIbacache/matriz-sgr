@@ -2,8 +2,8 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 4 de septiembre de 2026 · `main` en la etiqueta `v0.14.0-dashboard-v2`
-**Lo que abre**: el **Planner** (bloqueante para la evaluación) y la **entrega del 15 de septiembre**. El código quedó con un solo cálculo: el Bloque C cerró la deuda técnica más cara.
+**Última actualización**: 6 de septiembre de 2026 · `main` en la etiqueta `v0.15.0-control-actividad`
+**Lo que abre**: el **Planner** (bloqueante para la evaluación) y la **entrega del 15 de septiembre**. Lo que el docente pidió en clase ya está construido: un solo cálculo (Bloque C) y el control de actividad de usuarios (RF-030).
 
 ---
 
@@ -36,7 +36,7 @@ Verifica el estado real con Docker arriba (docker compose up -d):
       npm run dev   (en otra terminal)
       npm run smoke && npm run verificar:api
       cd frontend && npm run build && npm run verificar:contraste
-Deben dar 314 comprobaciones en verde (21 + 32 + 178 + 83). Si algo falla,
+Deben dar 332 comprobaciones en verde (21 + 37 + 191 + 83). Si algo falla,
 repórtalo antes de avanzar.
 
 ⚠ Antes de levantar el backend, mira si hay `tsx watch` huérfanos: en la
@@ -47,7 +47,8 @@ hay que subir al padre (receta exacta en siguiente-sesion.md §6).
 ⚠ El seed tarda ~15 minutos (genera y escribe ~2.000 PNG de evidencia uno por
 uno). No lo corras "por si acaso": corre `SELECT count(*)` primero.
 
-TAREA — en este orden, acordado al cerrar el Bloque C:
+TAREA — en este orden, acordado al cerrar el Bloque C y confirmado al cerrar
+el panel de actividad:
 
   1. EL PLANNER. Bloqueante y no depende de nada del código. El docente dijo
      que SOLO revisará el Planner: lo que no esté adjunto ahí no se evalúa,
@@ -61,20 +62,13 @@ TAREA — en este orden, acordado al cerrar el Bloque C:
      (cd frontend && npm run mockups && npm run verificar:mockups) y los
      diagramas (npm run diagramas) antes de adjuntar nada.
 
-  3. PANEL DE ACTIVIDAD DE USUARIOS (RF-030, HU-19), pedido expresamente por
-     el docente en clase: quién ingresó, quién NO y quién está trabajando
-     ahora, para admin y coordinador. Las piezas existen (`ultimoIngreso`,
-     `diasSinIngreso`, `totalIngresos`, `promedioDiario`, presencia por
-     socket) y el Bloque C dejó la primera en pantalla: el tablero ya nombra
-     a las delegaciones SIN MEDICIÓN. Falta el "quién no ha ingresado" por
-     persona y una presencia a nivel de organización.
-     ⚠ "Ingresar" es ambiguo (iniciar sesión vs. registrar trabajo) y un panel
-     de conexión es monitoreo de personas trabajadoras: finalidad y
-     proporcionalidad, no vigilancia (regla 18, requerimientos §9.ter).
-
-  4. BLOQUE D — pruebas en marco formal (Jest para el backend portando las 32
+  3. BLOQUE D — pruebas en marco formal (Jest para el backend portando las 32
      comprobaciones de verificar-cumplimiento.ts, RTL para el frontend) y CI
      en GitHub Actions. Después el BLOQUE E — despliegue.
+
+  Lo que NO hace falta volver a hacer: el panel de actividad (RF-030, HU-19)
+  quedó construido el 4 de septiembre. Lo único que le falta es la ALERTA
+  automática al cruzar el umbral, que es RF-037 y comparte diseño con HU-31.
 
 Reglas no negociables (están en CLAUDE.md, se repiten porque son las que más
 se olvidan):
@@ -114,6 +108,16 @@ Contexto que NO hay que volver a derivar:
 - El eje del mapa de calor es `Cargo.area`, no `CategoriaGestion`: las
   categorías son del TUBO y no tienen relación con lo que se le mide a una
   persona.
+- EL PANEL DE ACTIVIDAD ACOMPAÑA, NO VIGILA (ADR-015). Cuenta lo REGISTRADO
+  (no solo lo validado, como el motor), solo entran admin y coordinador con el
+  motivo escrito en el 403, la presencia de organización viaja por el room
+  `org:<id>:central` y NO por el general, se muestra un punto de "está ahora"
+  sin minutos acumulados, y abrir el panel se audita. "Ingresar" se interpretó
+  como registrar trabajo: es un SUPUESTO documentado, no una respuesta del
+  docente (requerimientos §9.ter).
+- El seed crea a `apoyo.companias@sgr.demo` con metas y CERO actividades a
+  propósito: es el caso que RF-030 pide demostrar. Igual que La Pampa sin
+  medición. No "arreglarlo".
 - La identidad visual está cerrada (Bloques D0 y D1): Libre Franklin +
   General Sans, los dos rojos separados por rol/zona/forma, faro en SVG que
   gira e ilumina el mar, la escena de La Serena en la barra, la frase

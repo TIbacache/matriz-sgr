@@ -35,6 +35,10 @@ const RUTAS = [
   // que la captura muestre lo que la pantalla existe para mostrar.
   ["vecinos", "/vecinos?q=13.111.222-K"],
   ["dashboard", "/dashboard"],
+  // Solo admin y coordinador entran (ADR-015). Con los otros cuatro roles la
+  // captura debe mostrar el motivo escrito, no un vacío: por eso se captura
+  // con los seis y no solo con quien tiene permiso.
+  ["actividad", "/actividad"],
 ];
 const TEMAS = ["claro", "oscuro"];
 
