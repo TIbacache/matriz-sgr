@@ -44,6 +44,13 @@ const PANTALLAS = [
     titulo: "Ficha del vecino",
   },
   { archivo: "07-dashboard", ruta: "/dashboard", cuenta: "admin@sgr.demo", titulo: "Tablero de control" },
+  {
+    archivo: "08-actividad",
+    ruta: "/actividad",
+    // Con el coordinador, que es uno de los dos roles que entran (ADR-015).
+    cuenta: "coordinador@sgr.demo",
+    titulo: "Control de actividad",
+  },
 ];
 
 async function sesion(email) {

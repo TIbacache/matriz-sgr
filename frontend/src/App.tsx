@@ -9,6 +9,7 @@ import { FichaPage } from "./pages/FichaPage";
 import { BandejaPage } from "./pages/BandejaPage";
 import { MetasPage } from "./pages/MetasPage";
 import { VecinosPage } from "./pages/VecinosPage";
+import { ActividadPage } from "./pages/ActividadPage";
 
 // Carga perezosa: ECharts pesa; solo se descarga al entrar al dashboard,
 // y el tubo (la pantalla de todos los días) queda liviano.
@@ -43,6 +44,10 @@ export function App() {
                 consulta ven la pantalla con el motivo escrito, no un 404 mudo
                 (ADR-012). El backend responde 403 igual. */}
             <Route path="/vecinos" element={<VecinosPage />} />
+            {/* Sin guarda de rol, mismo criterio: quien no puede verlo lee el
+                motivo en pantalla en vez de un 404 mudo. El backend responde
+                403 con ese mismo motivo (ADR-015). */}
+            <Route path="/actividad" element={<ActividadPage />} />
             <Route
               path="/dashboard"
               element={

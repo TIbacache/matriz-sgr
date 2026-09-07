@@ -4,7 +4,9 @@ export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 export class ApiError extends Error {
   constructor(
     public status: number,
-    message: string
+    message: string,
+    /** Explicación larga que acompaña a algunos 403: por qué, no solo que no */
+    public motivo?: string
   ) {
     super(message);
   }
@@ -25,13 +27,18 @@ async function procesar<T>(res: Response): Promise<T> {
   if (res.status === 401 && onUnauthorized) onUnauthorized();
   if (!res.ok) {
     let mensaje = `Error ${res.status}`;
+    let motivo: string | undefined;
     try {
       const body = await res.json();
       if (body?.error) mensaje = body.error;
+      // Varios 403 del backend explican POR QUÉ además de decir que no
+      // (ADR-012, ADR-013, ADR-015). Ese texto es el que la pantalla debe
+      // mostrar: "Sin permisos" a secas se lee como un error del sistema.
+      if (typeof body?.motivo === "string") motivo = body.motivo;
     } catch {
       /* respuesta sin cuerpo JSON */
     }
-    throw new ApiError(res.status, mensaje);
+    throw new ApiError(res.status, mensaje, motivo);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;

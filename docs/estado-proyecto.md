@@ -1,6 +1,6 @@
 # Estado del proyecto — SGR
 
-**Actualizado**: 4 de septiembre de 2026 · `main` en `v0.14.0-dashboard-v2`
+**Actualizado**: 6 de septiembre de 2026 · `main` en `v0.15.0-control-actividad`
 **Verificación**: 290 comprobaciones automatizadas en verde — backend 207 (18 smoke + 21 cálculo + 168 API) y frontend 83 (contraste)
 
 Este documento es la fuente de verdad del avance. Se actualiza al cerrar cada bloque.
@@ -38,8 +38,11 @@ Lo vigente está arriba; el registro histórico de las fases, al final.
 | `delegado.companias` | Constanza Barraza Pastén | `gerente` | Delegado | — | Las Compañías |
 | `territorial.companias` | Hernán Olivares Trigo | `usuario` | Funcionario | Territorial OO.CC. 1 | Las Compañías |
 | `diserco.companias` | Yasna Peralta Salgado | `usuario` | Funcionario | Coordinador DISERCO | Las Compañías |
+| `apoyo.companias` | Ignacia Fuenzalida Cerda | `usuario` | Funcionario | Apoyo Administrativo | Las Compañías |
 
-Las **trece personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición.
+Las **catorce personas con cargo** son las únicas que tienen metas y aparecen en el cálculo: sin cargo no hay ítems, y sin ítems no hay medición.
+
+⚠ **`apoyo.companias` tiene metas y CERO actividades a propósito.** Es el caso que RF-030 pide demostrar —«quién no ha ingresado»— y sin él el panel de actividad quedaría verificado solo por su camino feliz ([ADR-015](decisiones-tecnicas.md)).
 
 ⚠ **Las nueve últimas nacieron con el Bloque C.** El tablero consolidado mide personas: con solo Centro y Rural configurados, cuatro de las seis delegaciones aparecían sin medición. Se poblaron tres y **La Pampa se dejó a propósito sin nadie medido**, para poder mostrar ese estado en pantalla ([ADR-014](decisiones-tecnicas.md)).
 
@@ -56,7 +59,7 @@ El mismo bloque **borró de la base las cuentas `@demo.cl`** que seguían vivas 
 | Documentación y especificación | ✅ Completa y contrastada con el PDF oficial |
 | Modelo de datos (16 entidades v2) | ✅ Migrado, con garantías en la base |
 | API del modelo v2 | ✅ Períodos, cargos, ítems, metas, actividades, evidencias, validación, cumplimiento y catálogos |
-| Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, **ficha del vecino**, dashboard |
+| Pantallas | ✅ Tubo, ficha personal, bandeja, configuración de metas, **ficha del vecino**, dashboard y **control de actividad** |
 | Identidad visual de La Serena (DESIGN §10) | ✅ Tokens, barra, login con el faro, tipografía; verificada por script y con capturas de los seis roles |
 | Tiempo real | ✅ Socket.io con rooms por delegación y organización |
 | Dashboard sobre el motor v2 | ✅ Consolida el motor por funcionario; la vista materializada v1 **se eliminó** (Bloque C) |
@@ -102,6 +105,7 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 | `POST /evidencias/:id/validacion` | verificador, supervisor, admin | `{decision, observacion}`. Tres decisiones; observación obligatoria si no aprueba; **nadie valida lo propio**; una aprobación no se re-decide |
 | `GET /cumplimiento/:periodoId[?unidad=&funcionario=]` | todos | Motor v2 por funcionario + `parametros` usados con su marca `confirmado` + `resumen` por semáforo |
 | `GET /cumplimiento/:periodoId/consolidado` | todos | **Lo que consume el dashboard** (RF-029). Devuelve `delegaciones` (promedio de sus funcionarios, con `porArea`), `sinMedicion` (las que no tienen a nadie con metas: no son 0%), `areas` (el eje del mapa: `Cargo.area`), `totales` y los `parametros` usados. El semáforo consolidado lo ven los seis roles ([ADR-014](decisiones-tecnicas.md)) |
+| `GET /actividad-usuarios?periodo=[&unidad=]` | **solo admin y supervisor** | RF-030. Quién registró, **quién no** y quién está conectado. Devuelve `funcionarios` (con `registradas`, `validadas`, `ultimaActividad`, `diasSinRegistrar` y `estado`), `sinMedicion`, `resumen`, `conectados` y el `umbralDias` del parámetro con su marca. Otros roles → **403 con el motivo escrito**; sin `periodo` → 400; período o delegación ajenos → 404. Abrirlo se **audita** como `consultar` ([ADR-015](decisiones-tecnicas.md)) |
 | `GET /catalogos?catalogo=` | todos | Solo lectura. El CRUD de HU-27 está pendiente |
 | `GET /usuarios[?unidad=]` | todos | Directorio con `cargo` y **`cargoId`** — es lo que dice qué ítems se le miden |
 | `GET /vecinos?q=&limite=` | admin, supervisor, gerente, usuario | Busca por **RUT** (exacto, en cualquier formato) o por **nombre** (parcial, sobre la expresión indexada de ADR-003). Menos de 3 caracteres devuelve vacío. Cada resultado trae `atenciones` y en cuántas `delegaciones`. `verificador` y `consulta` → **403 con el motivo** (ADR-012) |
@@ -128,14 +132,16 @@ Auth: header `Authorization: Bearer <JWT>`. El token lleva `{userId, organizatio
 ## 4. Contrato de Socket.io (mismo puerto)
 
 - Conexión: `io(url, { auth: { token } })` — sin token válido el handshake se **rechaza**.
-- Al conectar, el socket entra automáticamente a `org:<organizationId>`.
+- Al conectar, el socket entra automáticamente a `org:<organizationId>`, y si el rol es `admin` o `supervisor`, además a `org:<organizationId>:central`.
+- La presencia de **organización** se registra al conectar (no al entrar a una delegación): quien está en la ficha o en el tablero también está trabajando.
 - El cliente emite `unidad:join` con `unidadId` (ack booleano) → entra a `unidad:<id>`. **Ojo**: el servidor emite `presencia:actualizada` ANTES del ack; registrar el listener antes del join.
 - Límites: 10 mensajes/s por socket, payload máximo 100 KB.
 
 | Room | Eventos |
 |---|---|
 | `unidad:<id>` | `tarea:creada/actualizada/eliminada`, `presencia:actualizada`, `actividad:creada/actualizada/anulada`, `evidencia:creada`, `validacion:registrada`, `meta_item:creada/actualizada/eliminada`, `atencion_social:creada/actualizada` |
-| `org:<id>` | `unidad:*`, `categoria:*`, `meta:actualizada/eliminada`, `periodo:creado/actualizado/cerrado/reabierto`, `cargo:*`, `item:*`, `evidencia:pendiente`, `cumplimiento:cambiado`, `cumplimiento:recalculado`, `vecino:actualizado` |
+| `org:<id>` | `unidad:*`, `categoria:*`, `periodo:creado/actualizado/cerrado/reabierto`, `cargo:*`, `item:*`, `evidencia:pendiente`, `cumplimiento:cambiado`, `vecino:actualizado` |
+| `org:<id>:central` | `presencia:organizacion` — **solo admin y supervisor**. Quién está conectado en toda la organización es dato de monitoreo y no se difunde al room general ([ADR-015](decisiones-tecnicas.md)); la presencia por delegación sí, porque ahí es colaboración |
 
 Todas las cargas de `meta_item:*` llevan `periodoId` y `funcionarioId` **en la raíz**: es lo único que el oyente necesita para saber si le toca releer.
 
@@ -185,7 +191,7 @@ Lo que Prisma no expresa, agregado por SQL en la migración:
 
 ### 5.3 Seed
 
-100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, **22 personas** (13 con cargo medido), 3 vecinos, 16 tareas con historial y **~2.400 actividades con evidencia y validación**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert, y desde el Bloque C **borra a los miembros que ya no están en su lista `EQUIPO`** (así se fueron las cuentas `@demo.cl` fósiles).
+100% ficticio: 6 delegaciones, 5 cargos con sus ítems y ponderadores que suman 100%, 8 catálogos, **23 personas** (14 con cargo medido), 3 vecinos, 16 tareas con historial y **~2.400 actividades con evidencia y validación**. Regenera lo transaccional en cada corrida; los datos maestros van con upsert, y desde el Bloque C **borra a los miembros que ya no están en su lista `EQUIPO`** (así se fueron las cuentas `@demo.cl` fósiles).
 
 Cinco de las seis delegaciones tienen medición y **La Pampa no la tiene a propósito**: es el caso que demuestra que «sin nadie configurado» no es «0% de cumplimiento» ([ADR-014](decisiones-tecnicas.md)). Los factores de cumplimiento están elegidos para que el semáforo por delegación muestre los tres colores; eso se verifica, no se confía.
 
@@ -277,7 +283,18 @@ ECharts modular con carga perezosa: gauges por delegación, mapa de calor semán
 - **Las delegaciones sin nadie medido se nombran**, en vez de desaparecer o valer 0%.
 - La tabla del detalle usa `.tabla-sgr` como el resto del sistema; su copia `.tabla-detalle` era deuda declarada y se saldó aquí.
 
-### 6.7 Piezas reutilizables
+### 6.7 Control de actividad (`/actividad`) — RF-030, HU-19
+
+Lo que el docente pidió en clase: **quién registró trabajo, quién no y quién está conectado ahora**. Solo lo ven admin y coordinador ([ADR-015](decisiones-tecnicas.md)).
+
+- **La tabla se ordena por quien necesita atención**, no alfabéticamente: primero «sin registro», después los atrasados y dentro de cada grupo el que lleva más tiempo. Un panel ordenado por nombre obliga a buscar el problema.
+- **Dos columnas separadas: registradas y validadas.** El motor de cumplimiento cuenta solo lo aprobado (RN-003); aquí la pregunta es si la persona está registrando, y quien subió 40 actividades pendientes del verificador sí ingresó.
+- **La conexión en vivo es un punto, y nada más**: sin minutos acumulados ni historial de sesiones. La diferencia entre acompañar y vigilar es exactamente esa.
+- **La finalidad está escrita en la pantalla**, a la vista de quien la usa, y cada consulta queda en la bitácora (`consultar`).
+- Las personas **sin cargo medido** van en una nota aparte, contadas y nombradas: no registran actividades por diseño y listarlas como «sin registro» sería una alarma falsa.
+- El umbral de días sale del parámetro `dias_sin_ingreso_alerta` y se muestra con su marca «por confirmar».
+
+### 6.8 Piezas reutilizables
 
 `ChipSemaforo` (obliga a poner símbolo + texto, nunca solo color) · `MarcaSemaforo` (con `mono` para zonas de identidad) · `FaroSerena` · `.tabla-sgr` · `.btn-peligro` (contorno) · `.btn-tabla` · `useUnidadSocket` · `useOrgSocket` · `useArchivoEvidencia` · `useTokens` (los gráficos leen los tokens vivos; `colorCategoria()` devuelve `var(--cat-N)`).
 
@@ -407,6 +424,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 | Pruebas en marco formal (Jest/RTL) y CI | — | Media |
 | Despliegue: Docker de producción, VPS, Caddy, respaldos | — | Baja hasta la entrega |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
+| ~~Panel de control de actividad de usuarios (RF-030, HU-19)~~ ✅ **resuelto el 04-09-2026**: `/actividad` con las tres preguntas del docente, presencia a nivel de organización y alcance restringido por proporcionalidad (ADR-015) | — | ✅ |
 | Warning de Prisma: `package.json#prisma` deprecado → migrar a `prisma.config.ts` | — | Baja |
 | **`GET /cumplimiento/:periodoId` devuelve el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11 (si un funcionario ve las cifras de sus pares). Detectado en el Bloque C y **anotado, no cambiado en silencio** | `cumplimiento.routes.ts` | Media |
 | El seed tarda ~12 minutos: escribe ~2.400 PNG de evidencia uno por uno. Se arregla con escrituras en paralelo, pero no bloquea nada | `prisma/seed.ts` | Baja |

@@ -9,6 +9,7 @@ import {
   proyectarCumplimiento,
 } from "../src/services/cumplimiento.js";
 import { obtenerParametros, CLAVES } from "../src/services/parametros.js";
+import { estadoPorDias } from "../src/services/actividad-usuarios.js";
 import { diasDelPeriodo, diasTranscurridos } from "../src/lib/fechas.js";
 
 const ORG = "00000000-0000-0000-0000-000000000001";
@@ -47,6 +48,19 @@ check("RN-008 caso real planilla (98 vs 50,55)",
 // Caso real: Katherine Bozzo, objetivo 39,56 · avance 15,5 → 39,2% → rojo
 check("RN-008 caso real planilla (15,5 vs 39,56)",
   calcularSemaforo((15.5 / 39.56) * 100, 1.0, 0.6) === "rojo");
+
+// --- Control de actividad de usuarios (RF-030) — regla de estado ------------
+// El umbral es el parámetro `dias_sin_ingreso_alerta`, así que la función se
+// prueba con umbrales distintos: si alguien lo escribiera fijo, estas fallan.
+check("RF-030 nunca registró → sin registro", estadoPorDias(null, 7) === "sin_registro");
+check("RF-030 registró hoy → al día", estadoPorDias(0, 7) === "al_dia");
+check("RF-030 el día del umbral ya es atraso", estadoPorDias(7, 7) === "atrasado");
+check("RF-030 un día antes del umbral todavía no", estadoPorDias(6, 7) === "al_dia");
+check(
+  "RF-030 el umbral es configurable, no un 7 escrito en el código",
+  estadoPorDias(6, 3) === "atrasado" && estadoPorDias(6, 30) === "al_dia"
+);
+
 
 // --- ADR-007: los parámetros salen de la base, no del código ---
 const params = await obtenerParametros(ORG);

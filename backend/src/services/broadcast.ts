@@ -22,6 +22,15 @@ export function roomOrganizacion(organizationId: string): string {
   return `org:${organizationId}`;
 }
 
+// Room del NIVEL CENTRAL (admin y coordinador) dentro de una organización.
+// Existe para lo que no puede difundirse a todos: hoy, la presencia de toda la
+// organización que alimenta el panel de actividad (RF-030, ADR-015). Saber
+// quién está conectado es monitoreo de personas trabajadoras, no un dato de
+// colaboración como la presencia dentro de un mismo libro.
+export function roomCentral(organizationId: string): string {
+  return `org:${organizationId}:central`;
+}
+
 export function emitEvent(room: string, event: string, data: unknown) {
   if (!io) {
     // El servidor HTTP siempre registra io antes de escuchar; esto solo puede

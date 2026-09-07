@@ -1,23 +1,26 @@
 import type { Server, Socket } from "socket.io";
 import { verificarToken, type AuthPayload } from "../middleware/auth.js";
 import { prisma } from "../lib/prisma.js";
-import { roomOrganizacion, roomUnidad } from "../services/broadcast.js";
+import { roomCentral, roomOrganizacion, roomUnidad } from "../services/broadcast.js";
 import { puedeVerUnidad } from "../services/alcance.js";
+import {
+  conectadosEnOrganizacion,
+  conectadosEnUnidad,
+  entrarAOrganizacion,
+  entrarAUnidad,
+  salirDeOrganizacion,
+  salirDeUnidad,
+} from "../services/presencia.js";
 
-// Presencia en vivo (Efecto Hawthorne, Documento Maestro §3.4).
-// Estado en memoria: suficiente para un solo proceso Node (arquitectura B).
-// Map<unidadId, Map<socketId, usuario>>
-const presencia = new Map<string, Map<string, { userId: string; nombre: string; rol: string }>>();
+// Presencia en vivo (Efecto Hawthorne, Documento Maestro §3.4). El estado vive
+// en `services/presencia.ts` porque el panel de actividad (RF-030) también lo
+// consulta desde su endpoint, y dos copias del mismo Map se desincronizan.
 
 const MAX_MENSAJES_POR_SEGUNDO = 10;
 
-function listaPresencia(unidadId: string) {
-  const sala = presencia.get(unidadId);
-  if (!sala) return [];
-  // Deduplicar por userId (un usuario puede tener 2 pestañas abiertas)
-  const porUsuario = new Map<string, { userId: string; nombre: string; rol: string }>();
-  for (const u of sala.values()) porUsuario.set(u.userId, u);
-  return [...porUsuario.values()];
+/** Quiénes pueden ver la presencia de TODA la organización (ADR-015). */
+function esNivelCentral(rol: string): boolean {
+  return rol === "admin" || rol === "supervisor";
 }
 
 export function configurarSockets(io: Server) {
@@ -58,6 +61,24 @@ export function configurarSockets(io: Server) {
     // Todos entran al room de su organización (dashboards consolidados).
     void socket.join(roomOrganizacion(auth.organizationId));
 
+    // El nivel central entra además a un room propio. La presencia de toda la
+    // organización NO se difunde al room general: quién está conectado es dato
+    // de monitoreo y solo lo ven admin y coordinador (ADR-015).
+    const central = esNivelCentral(auth.rol);
+    if (central) void socket.join(roomCentral(auth.organizationId));
+
+    // La presencia de organización se registra al CONECTAR, no al entrar a una
+    // delegación: si dependiera de `unidad:join`, quien está en la ficha o en
+    // el tablero figuraría como ausente aunque esté trabajando.
+    entrarAOrganizacion(auth.organizationId, socket.id, {
+      userId: auth.userId,
+      nombre: auth.nombre,
+      rol: auth.rol,
+    });
+    io.to(roomCentral(auth.organizationId)).emit("presencia:organizacion", {
+      conectados: conectadosEnOrganizacion(auth.organizationId),
+    });
+
     // El cliente pide unirse al room de una unidad (su delegación).
     socket.on("unidad:join", async (unidadId: unknown, ack?: (ok: boolean) => void) => {
       if (typeof unidadId !== "string") return ack?.(false);
@@ -74,8 +95,7 @@ export function configurarSockets(io: Server) {
       if (!(await puedeVerUnidad(auth, unidadId))) return ack?.(false);
 
       await socket.join(roomUnidad(unidadId));
-      if (!presencia.has(unidadId)) presencia.set(unidadId, new Map());
-      presencia.get(unidadId)!.set(socket.id, {
+      entrarAUnidad(unidadId, socket.id, {
         userId: auth.userId,
         nombre: auth.nombre,
         rol: auth.rol,
@@ -84,19 +104,24 @@ export function configurarSockets(io: Server) {
 
       io.to(roomUnidad(unidadId)).emit("presencia:actualizada", {
         unidadId,
-        conectados: listaPresencia(unidadId),
+        conectados: conectadosEnUnidad(unidadId),
       });
       ack?.(true);
     });
 
     socket.on("disconnect", () => {
       clearInterval(ventana);
+      salirDeOrganizacion(auth.organizationId, socket.id);
+      io.to(roomCentral(auth.organizationId)).emit("presencia:organizacion", {
+        conectados: conectadosEnOrganizacion(auth.organizationId),
+      });
+
       const unidadId = socket.data.unidadId as string | undefined;
       if (!unidadId) return;
-      presencia.get(unidadId)?.delete(socket.id);
+      salirDeUnidad(unidadId, socket.id);
       io.to(roomUnidad(unidadId)).emit("presencia:actualizada", {
         unidadId,
-        conectados: listaPresencia(unidadId),
+        conectados: conectadosEnUnidad(unidadId),
       });
     });
   });

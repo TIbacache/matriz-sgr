@@ -121,6 +121,12 @@ const EQUIPO = [
   { email: "delegado.companias@sgr.demo", nombres: "Constanza", paterno: "Barraza", materno: "Pastén", rut: "16777888-7", rol: "gerente", cargo: null, delegacion: "Las Compañías" },
   { email: "territorial.companias@sgr.demo", nombres: "Hernán", paterno: "Olivares", materno: "Trigo", rut: "15888999-4", rol: "usuario", cargo: "Territorial OO.CC. 1", delegacion: "Las Compañías" },
   { email: "diserco.companias@sgr.demo", nombres: "Yasna", paterno: "Peralta", materno: "Salgado", rut: "14999111-5", rol: "usuario", cargo: "Coordinador DISERCO", delegacion: "Las Compañías" },
+  // El caso que RF-030 pide demostrar: alguien con cargo y metas configuradas
+  // que NO ha registrado nada en el período. Sin una persona así, el panel de
+  // actividad no puede mostrar su señal más importante —"quién no ha
+  // ingresado"— y quedaría verificado solo el camino feliz. Su factor de
+  // cumplimiento es 0 y por eso el generador no le crea ninguna actividad.
+  { email: "apoyo.companias@sgr.demo", nombres: "Ignacia", paterno: "Fuenzalida", materno: "Cerda", rut: "13444555-6", rol: "usuario", cargo: "Apoyo Administrativo", delegacion: "Las Compañías" },
 ] as const;
 
 // Vecinos ficticios (para trazabilidad por RUT — ADR-008)
@@ -518,6 +524,8 @@ async function main() {
       "apoyo.antena@sgr.demo": 0.8, // verde
       "social.avmar@sgr.demo": 0.45, // naranjo
       "territorial.companias@sgr.demo": 0.3, // rojo
+      // Cero a propósito: es el "sin registro" del panel de actividad (RF-030).
+      "apoyo.companias@sgr.demo": 0,
     };
 
     // Vecinos en el registro diario (ADR-008). El reparto es DETERMINISTA a
@@ -699,7 +707,7 @@ async function main() {
   console.log("  consulta     consulta@sgr.demo / matriz123");
   console.log("  delegado     delegado.centro@sgr.demo / matriz123");
   console.log("  funcionario  territorial.centro@sgr.demo / matriz123");
-  console.log("  (las 22 cuentas, con su rol y delegación, en docs/estado-proyecto.md §1)");
+  console.log("  (las 23 cuentas, con su rol y delegación, en docs/estado-proyecto.md §1)");
 }
 
 main()

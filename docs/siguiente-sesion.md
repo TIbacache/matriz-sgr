@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 4 de septiembre de 2026 (cierre del Bloque C — el dashboard sobre el motor v2)
+**Actualizado**: 6 de septiembre de 2026 (cierre del panel de control de actividad, RF-030)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -187,7 +187,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 1. 🔴 **El Planner** — bloqueante y no depende de nada del código. El docente dijo que **solo** revisará el Planner: lo que no esté adjunto ahí no se evalúa, por mucho que esté en el repositorio. Receta lista en [guia-cargar-planner.md](guia-cargar-planner.md) y `scripts/cargar-plan-planner.ps1`.
 2. **Entrega del 15 de septiembre** — mockups, MER, modelo de datos, diagrama de clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en [Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx). Tiene fecha encima y el dashboard nuevo hay que volver a capturar (`npm run mockups`).
-3. **Panel de actividad de usuarios** (RF-030, HU-19) — pedido explícitamente por el docente en clase. Las piezas existen y el Bloque C dejó la primera: el tablero ya nombra a las delegaciones sin nadie medido. Falta el «quién no ha ingresado» por persona y la presencia a nivel de organización.
+3. ~~**Panel de actividad de usuarios** (RF-030, HU-19)~~ ✅ **terminado el 4 de septiembre**: `/actividad` responde las tres preguntas del docente —quién registró, **quién no** y quién está conectado—, con presencia a nivel de organización y alcance restringido a admin y coordinador ([ADR-015](decisiones-tecnicas.md)).
 4. **Bloque D — pruebas formales y CI**, y después el **Bloque E — despliegue**.
 
 Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo que los contiene, no como bloque propio.
@@ -213,7 +213,8 @@ Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo q
 | El historial del vecino no pagina: trae hasta 500 hechos y la pantalla los pinta todos. Misma lección que la bandeja | `vecinos.routes.ts`, `VecinosPage.tsx` | Media |
 | ~~El dashboard filtra por el string `2026-Q3`, no por `periodoId`~~ → **resuelto** en el Bloque C | — | ✅ |
 | `Comentario` y `Ajuste` sin API ni pantalla | backend y frontend | Media |
-| **Panel de control de actividad de usuarios** (RF-030, HU-19): quién ingresó, **quién no** y quién está trabajando ahora, para admin y coordinador. Precisado por el docente en clase; detalle y la ambigüedad de "ingresar" en [requerimientos-oficiales §9.ter](requerimientos-oficiales.md). Las piezas existen (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario` y presencia por socket) y el Bloque C dejó la primera en pantalla (las delegaciones **sin medición** se nombran): falta el «quién no ha ingresado» por persona y la presencia a nivel de organización | frontend y backend | Alta |
+| ~~**Panel de control de actividad de usuarios** (RF-030, HU-19)~~ → **resuelto** el 4 de septiembre: `/actividad` con las tres preguntas del docente, presencia por organización en un room propio del nivel central, umbral configurable y auditoría del acceso. La ambigüedad de «ingresar» queda **documentada como supuesto**, no resuelta en silencio ([ADR-015](decisiones-tecnicas.md), [requerimientos §9.ter](requerimientos-oficiales.md)) | — | ✅ |
+| **Alerta automática cuando alguien cruza el umbral** (RF-037): el panel avisa en pantalla, pero no envía nada a nadie. Es la mitad que le falta a HU-19 y comparte diseño con las alertas de HU-31 | backend | Media |
 | Alertas (RF-037, HU-31) sin diseñar | — | Media |
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
 | ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |

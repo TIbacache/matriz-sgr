@@ -13,6 +13,14 @@ interface Handlers {
   onEvidenciaPendiente?: (datos: { evidenciaId: string; actividadId: string; codigo: string }) => void;
   /** Una aprobación movió el puntaje de alguien */
   onCumplimientoCambiado?: (datos: { periodoId: string; funcionarioId: string }) => void;
+  /**
+   * Quién está conectado en TODA la organización. El servidor solo lo emite al
+   * room del nivel central: admin y coordinador (ADR-015). Un socket de otro
+   * rol nunca recibe este evento, así que el handler simplemente no se llama.
+   */
+  onPresenciaOrganizacion?: (datos: {
+    conectados: { userId: string; nombre: string; rol: string }[];
+  }) => void;
   onReconectado?: () => void;
 }
 
@@ -34,6 +42,11 @@ export function useOrgSocket(token: string | null, handlers: Handlers) {
     );
     socket.on("cumplimiento:cambiado", (d: { periodoId: string; funcionarioId: string }) =>
       handlersRef.current.onCumplimientoCambiado?.(d)
+    );
+    socket.on(
+      "presencia:organizacion",
+      (d: { conectados: { userId: string; nombre: string; rol: string }[] }) =>
+        handlersRef.current.onPresenciaOrganizacion?.(d)
     );
 
     return () => {

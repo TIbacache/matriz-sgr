@@ -85,7 +85,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-027 | Semáforo verde/ámbar/rojo con **umbrales configurables** | ✅ | `semaforo_verde` y `semaforo_naranjo`, aplicados por la misma función en las tres escalas: funcionario, delegación y área (Bloque C) |
 | RF-028 | Tablero **personal** con metas, avance, evidencias y compromisos | ⬜ | |
 | RF-029 | Tablero de delegación consolidado | ✅ | Dashboard sobre el motor por funcionario, consolidado por delegación y por área del cargo ([ADR-014](decisiones-tecnicas.md)). Una delegación sin nadie con metas se informa como **sin medición**, no como 0% |
-| RF-030 | Actividad reciente: último ingreso, días sin ingreso, cantidad, promedio diario | 🟡 | El motor ya calcula y expone los cuatro (`ultimoIngreso`, `diasSinIngreso`, `totalIngresos`, `promedioDiario`) y la ficha personal los muestra. **Falta el panel de control de actividad para admin y coordinador** — ver §9.ter |
+| RF-030 | Actividad reciente: último ingreso, días sin ingreso, cantidad, promedio diario | ✅ | La ficha personal muestra los cuatro por persona, y el **panel `/actividad`** (admin y coordinador) responde las tres preguntas del docente: quién registró, **quién no** y quién está conectado. Umbral configurable y alcance restringido por proporcionalidad ([ADR-015](decisiones-tecnicas.md)) |
 | RF-031 | Vista global por cargos | ⬜ | Diapositiva 19 |
 
 ### 3.5 Consulta, colaboración y administración
@@ -100,7 +100,7 @@ El proyecto se llama oficialmente **SGR — Sistema de Gestión de Resultados**.
 | RF-037 | Alertas por vencimientos, evidencias pendientes, ausencia de registros, avance bajo | 🟡 | Existe el evento `evidencia:pendiente` y la bandeja; falta el motor de alertas |
 | RF-038 | **Versionar parámetros**: los cambios no alteran períodos cerrados | 🟡 | `parametro` con vigencia por período y resolución período → organización; falta su CRUD |
 
-**Resumen: 38 RF → 22 ✅ · 9 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅; el **Bloque C** cerró RF-024 y RF-027 al eliminar el cálculo v1, que tenía el tope y los umbrales escritos en SQL)
+**Resumen: 38 RF → 23 ✅ · 8 🟡 · 7 ⬜** (antes del Bloque A: 5 ✅ · 13 🟡 · 20 ⬜; tras el Bloque A: 14 ✅ · 15 🟡 · 9 ⬜; el Bloque A3 subió RF-001 a ✅; el **Bloque C** cerró RF-024 y RF-027 al eliminar el cálculo v1, que tenía el tope y los umbrales escritos en SQL)
 
 ---
 

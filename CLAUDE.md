@@ -14,15 +14,15 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 ## Leer antes de trabajar
 
 - **[docs/estado-proyecto.md](docs/estado-proyecto.md)** — estado por fase, contrato de API y Socket.io, deuda técnica. Actualizar al cerrar cada fase.
-- **[docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md)** — 14 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, tipo/dirección de ítems, tipografía, los dos rojos, **quién consulta la ficha del vecino (ADR-012)**, **las tres gestiones como avance (ADR-013)** y **cómo se consolida una delegación (ADR-014)**.
+- **[docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md)** — 15 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, tipo/dirección de ítems, tipografía, los dos rojos, **quién consulta la ficha del vecino (ADR-012)**, **las tres gestiones como avance (ADR-013)** **cómo se consolida una delegación (ADR-014)** y **el control de actividad acompaña, no vigila (ADR-015)**.
 - **[docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md)** — HU ↔ requisito ↔ commit ↔ prueba. **Exigida por los profesores.**
 - **[DESIGN.md](DESIGN.md)** — normativo para todo el frontend. Un PR que viole su §8 se rechaza.
 - **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** — qué sigue, con su orden y sus trampas.
 - [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) — prompt listo para abrir una sesión nueva. **Se actualiza al cerrar cada bloque.**
 
-## Estado del código (4 de septiembre de 2026)
+## Estado del código (6 de septiembre de 2026)
 
-**Construido y verificado** (231 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
+**Construido y verificado** (249 comprobaciones del backend + 83 de contraste del frontend, todas en verde):
 - **Identidad visual de La Serena (Bloques D0 y D1, DESIGN §10 y §3.6)**: tokens en los dos temas, barra heráldica con una escena de La Serena (San Francisco, jarro pato diaguita, La Recova, El Miliciano, papayo, faro, camanchaca, greca), login con el Faro Monumental en SVG —dibujado a partir del real— que gira e ilumina el mar, Libre Franklin + General Sans (ADR-010), los dos rojos separados por rol, zona y forma (ADR-011), frase del producto, **dos regímenes de movimiento** (ambiente solo en login y barra; estado en los datos) y hover en todo lo clickeable. Verificada con `npm run verificar:contraste` y con capturas de las seis cuentas (`scripts/capturas.mjs`).
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
@@ -32,18 +32,18 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **API de metas por funcionario (Bloque A2)**: `/metas-item` — meta y ponderador por funcionario, ítem y período (RF-006, RF-007). RN-001 exigida en sus dos formas: el alta unitaria rechaza superar el 100%, el `PUT` del conjunto exige el 100% exacto. **Ojo: `/metas` es el modelo v1 (unidad × categoría) y `/metas-item` el v2 (funcionario × ítem × período); no son lo mismo.**
 - **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
 - **Bandeja del verificador `/verificacion`** (RF-013, HU-11): cola, foto grande, tres decisiones con observación obligatoria y teclado `J`/`K`/`Enter`. Solo la ven verificador, supervisor y admin.
+- **Control de actividad `/actividad`** (RF-030, HU-19, ADR-015): quién registró, **quién no** y quién está conectado ahora. Solo admin y coordinador; el resto recibe 403 con el motivo. Cuenta lo **registrado** (no solo lo validado), la presencia de organización viaja por un room propio del nivel central, el umbral sale del parámetro y abrir el panel se audita.
 - **Ficha del vecino `/vecinos`** (ADR-008, ADR-012, RF-032, CA-04, HU-29): búsqueda por RUT o nombre, historial **cruzando delegaciones** y aviso ámbar de posible atención duplicada. Es el control que el cliente vino a buscar. Su alcance por rol es una decisión legal (ADR-012): `verificador` y `consulta` reciben 403 con el motivo, y para `gerente` y `usuario` el detalle de una atención ajena viaja reducido. Abrir una ficha se **audita** (acción `consultar`).
 - **La solicitud del vecino en el tubo (Bloque B5)** — RF-016, RF-017: el alta pregunta INT/EXT y, si es externa, exige quién la pidió y ofrece territorio y área de apoyo del catálogo más un **buscador opcional de vecino**. Ese vínculo es lo que lleva el compromiso al historial de la persona (ADR-008). **No se pide RUT en el tubo**: la planilla real no tiene esa columna (estructura-planilla-real §6) y el solicitante puede ser una organización.
 - **Atención social y sus tres gestiones (Bloque B4)** — `/atenciones-sociales` (RF-015, HU-03, CA-04, ADR-013). La atención se crea colgada de su actividad (1:1) y **avanza**: el cliente manda la gestión y el servidor decide el casillero, así que no se puede saltar la primera ni registrar una cuarta. Tipos, sub-atenciones y las tres gestiones salen de `CatalogoItem`. Aparece en la ficha personal como caso con su escalera de tres peldaños y en el historial del vecino cruzando delegaciones. **CA-04 queda cerrado de punta a punta.** Alcance por rol: `verificador` y `consulta` reciben 403 con el motivo; desde otra delegación viaja el avance, no el contenido.
 - **Rutas heredadas endurecidas (Bloque A3)**: `/tareas`, `/unidades` y `/categorias` aplican `version` → 409 y auditan todo write, igual que el modelo v2. **CA-08 y CA-09 quedaron completos.** El tubo avisa el conflicto en pantalla en vez de revertir en silencio, y `DELETE /unidades/:id` **desactiva** en vez de borrar (RF-001, que estaba incumplido).
 - **Configuración de metas `/metas`** (RF-006, RF-007, HU-05): totalizador de RN-001 siempre visible, todos los ítems del cargo, guardado del conjunto con `PUT`, reparto en partes iguales y protección de lo que ya sumó puntaje. Solo la editan admin y supervisor.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
-- Seed 100% ficticio: 22 personas (13 con cargo medido) y ~2.000 actividades con evidencia y validación. Borra a quien no esté en su lista `EQUIPO`, y deja **una delegación sin medición a propósito**.
+- Seed 100% ficticio: 23 personas (14 con cargo medido) y ~2.000 actividades con evidencia y validación. Borra a quien no esté en su lista `EQUIPO`, y deja **una delegación sin medición a propósito**.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
 - API de `Ajuste`, `Comentario`, `Ausencia`, catálogos y parámetros.
 - Pruebas en marco formal (Jest/RTL) y CI. Despliegue (Fase 5).
-- Panel de actividad de usuarios (RF-030, HU-19), pedido por el docente en clase.
 
 ⚠ **"v1" no significa "obsoleto".** `/tareas` (el tubo: EP-04, RF-016 a RF-021), `/unidades` (RF-001) y `/categorias` sostienen requisitos oficiales vigentes y **ya están endurecidas** (Bloque A3): `version` → 409 y auditoría en las tres. **Las que sí murieron** —con el Bloque C— son `/metas` v1 y su tabla `Meta`, `GET /kpis/cumplimiento`, `POST /kpis/recalcular`, la vista materializada `cumplimiento_ponderado_vista` y el cron que la refrescaba. `GET /kpis/tubo` se queda: nunca dependió de ese cálculo. Detalle en [docs/estado-proyecto.md §3.2](docs/estado-proyecto.md).
 
@@ -58,8 +58,8 @@ cd backend
 npm run dev                   # API + Socket.io en :4000 (tsx watch)
 npm run build                 # tsc estricto — debe pasar antes de commit
 npm run smoke                 # 21 verificaciones de integración (server corriendo)
-npm run verificar:calculo     # 32 verificaciones del motor de cálculo y su consolidación
-npm run verificar:api         # 178 verificaciones de la API v2 (server corriendo)
+npm run verificar:calculo     # 37 verificaciones del motor, su consolidación y el control de actividad
+npm run verificar:api         # 191 verificaciones de la API v2 (server corriendo)
 npm run verificar:rut         # RUT del seed + casos de normalización
 npx prisma db seed            # datos demo ficticios (regenera lo transaccional)
 npx prisma generate           # tras cambiar el esquema; falla si el server dev está corriendo
@@ -83,9 +83,9 @@ npx prisma migrate diff --from-schema-datasource prisma\schema.prisma --to-schem
 npx prisma migrate deploy
 ```
 
-Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`. Son **22 en total** desde el Bloque C.
+Cuentas demo (todas `matriz123`), una por rol para la prueba de los seis: `admin@sgr.demo` · `coordinador@sgr.demo` · `verificador@sgr.demo` · `consulta@sgr.demo` · `delegado.centro@sgr.demo` · `territorial.centro@sgr.demo`. Son **23 en total**.
 
-⚠ **Solo existen las `@sgr.demo`.** Las `@demo.cl` de las Fases 2 y 3 seguían vivas en la base hasta el Bloque C —el seed las creaba con `upsert`, y dejar de nombrarlas nunca las quitó—; ahora el seed **borra a quien no esté en su lista `EQUIPO`**. Las 22 cuentas con su rol, cargo y delegación están en [docs/estado-proyecto.md §1](docs/estado-proyecto.md) — **esa tabla es la fuente única**. Ahí también está la equivalencia entre el rol técnico y el nombre municipal: `supervisor` = "coordinador", `gerente` = "delegado".
+⚠ **Solo existen las `@sgr.demo`.** Las `@demo.cl` de las Fases 2 y 3 seguían vivas en la base hasta el Bloque C —el seed las creaba con `upsert`, y dejar de nombrarlas nunca las quitó—; ahora el seed **borra a quien no esté en su lista `EQUIPO`**. Las 23 cuentas con su rol, cargo y delegación están en [docs/estado-proyecto.md §1](docs/estado-proyecto.md) — **esa tabla es la fuente única**. Ahí también está la equivalencia entre el rol técnico y el nombre municipal: `supervisor` = "coordinador", `gerente` = "delegado".
 
 ## Reglas del proyecto
 

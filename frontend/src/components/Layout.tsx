@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { LayoutGroup, motion } from "motion/react";
 import {
+  Activity,
   BadgeCheck,
   ClipboardList,
   LayoutDashboard,
@@ -59,6 +60,9 @@ const PUEDEN_CONFIGURAR = ["admin", "supervisor"];
     vecinos, mínimo privilegio. El verificador y el rol de consulta quedan
     fuera y por eso tampoco ven la entrada del menú. */
 const PUEDEN_VER_VECINOS = ["admin", "supervisor", "gerente", "usuario"];
+// RF-030 · ADR-015: el control de actividad es del nivel central. Cruza
+// desempeno individual con presencia en linea, asi que rige lo restrictivo.
+const PUEDEN_VER_ACTIVIDAD = ["admin", "supervisor"];
 
 export function Layout() {
   const { usuario, organizacionNombre, logout } = useAuth();
@@ -122,6 +126,12 @@ export function Layout() {
               <ItemNav to="/vecinos" titulo="Ficha del vecino">
                 <UserSearch size={18} strokeWidth={1.5} />
                 <span className="layout-nav-texto">Vecinos</span>
+              </ItemNav>
+            )}
+            {PUEDEN_VER_ACTIVIDAD.includes(usuario?.rol ?? "") && (
+              <ItemNav to="/actividad" titulo="Control de actividad">
+                <Activity size={18} strokeWidth={1.5} />
+                <span className="layout-nav-texto">Actividad</span>
               </ItemNav>
             )}
             <ItemNav to="/dashboard" titulo="Dashboard">

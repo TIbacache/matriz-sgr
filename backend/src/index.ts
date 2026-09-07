@@ -20,6 +20,7 @@ import { cumplimientoRouter } from "./routes/cumplimiento.routes.js";
 import { catalogosRouter } from "./routes/catalogos.routes.js";
 import { vecinosRouter } from "./routes/vecinos.routes.js";
 import { atencionesSocialesRouter } from "./routes/atenciones-sociales.routes.js";
+import { actividadUsuariosRouter } from "./routes/actividad-usuarios.routes.js";
 
 const app = express();
 app.use(cors({ origin: env.corsOrigin }));
@@ -52,6 +53,7 @@ app.get("/", (_req, res) =>
         "POST /evidencias/:id/validacion",
         "GET /cumplimiento/:periodoId · GET /cumplimiento/:periodoId/consolidado",
         "GET /catalogos?catalogo=formato_evidencia",
+        "GET /actividad-usuarios?periodo= (RF-030, solo admin y coordinador)",
         "GET /vecinos?q= · GET|PATCH /vecinos/:id (ficha del vecino, ADR-008)",
       ],
     },
@@ -77,6 +79,9 @@ app.use("/evidencias", evidenciasRouter);
 app.use("/cumplimiento", cumplimientoRouter);
 app.use("/catalogos", catalogosRouter);
 app.use("/atenciones-sociales", atencionesSocialesRouter);
+// Control de actividad de usuarios (RF-030): quién registró, quién NO y quién
+// está conectado. Solo admin y coordinador, y abrirlo se audita (ADR-015).
+app.use("/actividad-usuarios", actividadUsuariosRouter);
 // Ficha del vecino: la pantalla con más datos personales. Su alcance por rol
 // es una decisión legal, no de comodidad (ADR-012).
 app.use("/vecinos", vecinosRouter);

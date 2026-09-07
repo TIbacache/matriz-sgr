@@ -405,3 +405,50 @@ Sobre eliminar en vez de deprecar: mientras las dos existan, cualquiera puede le
 - El cálculo pesa más por petición que leer una vista materializada. Con los datos actuales (22 miembros, ~2.000 actividades) la respuesta es inmediata; si el volumen creciera, la solución es cachear el resultado del motor v2, **no** revivir una segunda verdad en SQL.
 - Los datos de demostración tuvieron que crecer: medir personas dejaba cuatro de las seis delegaciones sin nadie configurado. Se sumaron funcionarios a tres de ellas y **La Pampa se deja a propósito sin medición**, para que el estado del punto 3 se pueda mostrar.
 - Queda **fuera de este bloque**: `GET /cumplimiento/:periodoId` sigue devolviendo el detalle por funcionario a todos los roles. El consolidado no lo necesita, pero el detalle individual roza la consulta abierta nº 11 (si un funcionario ve las cifras de sus pares). Se anota, no se cambia en silencio.
+
+---
+
+## ADR-015 — El control de actividad acompaña; no vigila
+
+### Contexto
+RF-030 pide *"actividad reciente: último ingreso, días sin ingreso, cantidad y promedio diario"*, y el docente lo precisó en clase (requerimientos-oficiales §9.ter): el administrador y el coordinador deben poder saber **quiénes han ingresado, quiénes no y quiénes están trabajando ahora mismo**.
+
+Las piezas existían desde el modelo v2 —el motor de cumplimiento ya calculaba los cuatro indicadores y había presencia en vivo por Socket.io—, pero ninguna respondía la pregunta del medio, que es la única que sirve para actuar: *quién no está registrando*. Alguien sin actividades sencillamente **no aparecía** en ningún cálculo, y ese silencio es justo lo que había que hacer visible.
+
+Construirlo obliga a tres decisiones que no son técnicas.
+
+La primera es de vocabulario. **"Ingresar" tiene dos sentidos** en este proyecto: iniciar sesión y registrar trabajo (el motor llama `totalIngresos` a las actividades registradas). Son métricas distintas y llevan a paneles distintos.
+
+La segunda es de aritmética. El motor de cumplimiento cuenta **solo lo validado** (RN-003, RN-009), porque mide desempeño. Si el panel usara esa cifra, quien subió cuarenta actividades que esperan al verificador aparecería en cero.
+
+La tercera es legal, y es la de fondo. Un panel que cruza el desempeño individual de una persona con su conexión en línea es **monitoreo de personas trabajadoras** en un organismo público. Bajo las Leyes 19.628 y 21.719 eso exige finalidad declarada, proporcionalidad, mínimo privilegio y trazabilidad. No es un detalle de permisos: es lo que decide qué se muestra.
+
+### Decisión (4 de septiembre de 2026)
+
+**1. "Ingresar" se interpreta como registrar trabajo**, que es el sentido que usa la planilla del cliente. La conexión en vivo viaja como dato **explícitamente secundario**, y así se rotula en pantalla. Queda como supuesto documentado hasta que el docente responda (requerimientos §9.ter).
+
+**2. El panel cuenta lo REGISTRADO, no solo lo validado**, y muestra las dos cifras en columnas separadas ("registradas" y "validadas"). La pregunta aquí no es cuánto vale el trabajo de alguien, sino si está registrando. Mostrar un 0 a quien registró cuarenta actividades pendientes sería una alarma falsa.
+
+**3. Solo admin y coordinador, y el 403 dice por qué.** Es el alcance que pidió el docente y el que resiste el criterio de proporcionalidad: son quienes deben acompañar a un equipo que se está quedando atrás. Hereda la forma de ADR-012: quien no entra lee el motivo escrito, no un vacío mudo.
+
+**4. La presencia de toda la organización no se difunde al room general.** Existe un room aparte, `org:<id>:central`, al que solo entran admin y coordinador; el evento `presencia:organizacion` se emite ahí. La presencia **por delegación** (`presencia:actualizada`) se mantiene como está: ver quién más trabaja en el mismo libro es colaboración, no vigilancia. La diferencia entre las dos es de privilegio, no de implementación.
+
+**5. Se muestra actividad de gestión, nunca tiempo de pantalla.** Un punto verde que dice "está en la plataforma ahora" y nada más: sin minutos acumulados, sin historial de sesiones, sin "última conexión". La diferencia entre acompañar y vigilar es exactamente esa.
+
+**6. La finalidad se declara en la propia pantalla**, a la vista de quien la usa, y **abrir el panel se audita** como `consultar` sobre la entidad `ActividadUsuarios`. La ley pide trazabilidad del acceso, no solo de la modificación (mismo criterio que la ficha del vecino).
+
+**7. El universo son las personas con cargo medido.** Quien no tiene cargo —nivel central, verificador, consulta, las jefaturas sin medición— no registra actividades por diseño, así que va en una lista aparte, contada y nombrada. Listarlos como "sin registro" sería una alarma falsa, y un aviso que marca de más deja de avisar.
+
+**8. El umbral de días sin registrar es el parámetro `dias_sin_ingreso_alerta`** (7 días, sin confirmar), y viaja con su marca `confirmado` (ADR-007). Los tres estados —`al_dia`, `atrasado`, `sin_registro`— los decide el servidor.
+
+### Justificación
+La alternativa fácil era un panel de "quién está conectado y desde hace cuánto": más vistoso y más fácil de construir, porque el dato ya está en el socket. Se descartó porque mide presencia y no trabajo, porque invita a un uso que la ley no ampara, y porque no responde lo que el docente pidió —el registro de gestión— sino algo parecido que suena igual.
+
+Sobre el punto 7: es la misma lección que dejó el aviso de duplicidad del Bloque B3, cuando marcaba 21 de 35 hitos y por eso dejaba de leerse. Un panel que muestra a nueve personas "sin registro" cuando siete de ellas no deben registrar nada entrena a su lector a ignorarlo.
+
+### Consecuencias
+- La presencia en memoria se mudó a `services/presencia.ts`, porque el endpoint del panel y los sockets consultan el mismo estado y dos copias del mismo `Map` se desincronizan.
+- La presencia de organización se registra **al conectar**, no al entrar a una delegación: si dependiera de `unidad:join`, quien está en la ficha o en el tablero figuraría como ausente aunque esté trabajando.
+- El estado vive en memoria de un solo proceso. Con más de una instancia habría que mudarlo a Redis; hasta entonces, un `Map` es honesto y no agrega dependencias de pago (restricción de costo cero).
+- **Los datos de demostración tuvieron que crecer otra vez**: sin una persona con metas y cero actividades, el panel no podía mostrar su señal más importante y habría quedado verificado solo el camino feliz. El seed crea a esa persona a propósito, igual que deja La Pampa sin medición (ADR-014).
+- Queda **fuera**: la alerta automática cuando alguien cruza el umbral (RF-037) y la exportación del panel (RF-033). El panel avisa en pantalla; no envía nada a nadie.
