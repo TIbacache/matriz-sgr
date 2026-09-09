@@ -19,6 +19,8 @@ La notación es la del documento «Relación entre los artefactos»: bloques `«
 | `«deriveReqt»` | Un requisito **nace de** otro: sin el primero, el segundo no tiene sentido |
 | `«satisfy»` | Un **caso de uso** cumple el requisito. Es la trazabilidad hacia las funcionalidades |
 
+**Los estereotipos van en inglés a propósito.** Son notación de UML y SysML, no texto: por la misma razón no se traducen `+` de público ni `1..*` de cardinalidad. Y es como los muestra el documento del docente, que es la fuente que se evalúa. Todo lo demás —títulos, actores, enunciados y notas— está en español. La convención completa está en [puml/_estilo.md](puml/_estilo.md).
+
 Y en cada bloque:
 
 | Marca | Estado en el código |
