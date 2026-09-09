@@ -27,9 +27,9 @@ LEE PRIMERO, EN ESTE ORDEN:
 2. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA: los ocho
    criterios con su puntaje, la ficha mínima de cada caso de uso, la condición
    de los 10 mínimos, la validación de consistencia DER↔script y la cadena de
-   artefactos que espera el docente. ⚠ Los PDF originales (la rúbrica y
-   "Relación entre los artefactos") llegaron por chat y NO están en el
-   repositorio: si los tienes, guárdalos en docs/ y contrástalos.
+   artefactos que espera el docente. Los dos PDF originales están versionados
+   en docs/ (la rúbrica y "Relación entre los artefactos"): ante cualquier
+   duda, mandan ellos.
 3. CLAUDE.md — reglas del proyecto y estado real del código.
 4. docs/requerimientos-oficiales.md — los 38 RF, 18 RNF, 13 RN, 10 CA y 31 HU.
    Su §10 son las 13 consultas abiertas: NO inventar esas respuestas.

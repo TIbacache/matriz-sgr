@@ -6,7 +6,7 @@ Este documento **reemplaza como plan operativo** a [Guia-Entregables-15-septiemb
 
 Fuentes que mandan, en orden:
 
-1. **[rubrica-entrega-15-septiembre.md](rubrica-entrega-15-septiembre.md)** — la rúbrica oficial y el ejemplo del docente, **transcritos**: 100 puntos, 8 criterios, la ficha mínima de cada CU y la cadena de artefactos. ⚠ Los PDF originales llegaron por chat y no están en el repositorio; si aparecen, se guardan en `docs/` y se contrastan.
+1. **[Rúbrica oficial](Entrega_15_Septiembre_Semana_Analisis_Diseno_Rubrica.pdf)** y **[Relación entre los artefactos](Relación%20entre%20los%20artefactos.pdf)** — los PDF del profesor, versionados en `docs/`. Transcritos y resumidos en **[rubrica-entrega-15-septiembre.md](rubrica-entrega-15-septiembre.md)**: 100 puntos, 8 criterios, la ficha mínima de cada CU y la cadena de artefactos.
 2. [requerimientos-oficiales.md](requerimientos-oficiales.md) — los 38 RF, 18 RNF, 13 RN, 10 CA y 31 HU del PDF del proyecto.
 
 ---

@@ -1,7 +1,7 @@
 # Rúbrica oficial de la primera evaluación — Análisis y Diseño
 
 **Fuente**: `Entrega_15_Septiembre_Semana_Analisis_Diseno_Rubrica.pdf` y `Relación entre los artefactos.pdf`, entregados por el profesor Jorge Cortés.
-**Transcrito el 6 de septiembre de 2026.** Los PDF originales llegaron por chat y **no estaban en el repositorio**: si los tienes, guárdalos en `docs/` junto a este archivo. Mientras tanto, esto es lo que manda.
+**Transcrito el 6 de septiembre de 2026.** Los dos PDF originales están versionados junto a este archivo: `Entrega_15_Septiembre_Semana_Analisis_Diseno_Rubrica.pdf` y `Relación entre los artefactos.pdf`. **Ante cualquier duda mandan ellos**; esta transcripción existe para poder citarla, enlazarla y buscarla en texto.
 
 > ⚠ Esto es una transcripción de lo que exige la evaluación, no una interpretación del equipo. Donde el equipo decidió algo, se dice y se remite a [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md).
 
