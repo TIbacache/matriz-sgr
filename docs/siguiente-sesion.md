@@ -20,8 +20,9 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
+| **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **25 de 100 puntos.** Criterio 1 preparado y criterio 2 hecho; faltan los criterios 3 a 7 y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |
 
-Cumplimiento contra los 38 RF oficiales: **22 ✅ · 9 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
+Cumplimiento contra los 38 RF oficiales: **23 ✅ · 8 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -222,7 +223,7 @@ Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo q
 | **Entrega del 15 de septiembre**: plan operativo en [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md), contra la rúbrica oficial. La [guía en .docx](Guia-Entregables-15-septiembre.docx) es del 1 de septiembre (`v0.7.1`) y quedó desfasada: sirve su paso a paso y su ficha de ejemplo de CU-03, no su estado | documentación | **Alta, con fecha** |
 | 🔴 **`docs/diagramas.md` describe el modelo v1**: `metas`, la vista materializada, el cron y umbrales «50-79» que nunca existieron. Cuatro diagramas del 25 de agosto. Presentarlos en la entrega sería describir un sistema que no es el nuestro | `docs/diagramas.md` | **Alta** |
 | **No existe diagrama de clases** (15 pts de la rúbrica) ni **casos de uso con ficha** (20 pts). Es el 35% de la nota de la primera evaluación | `docs/entrega/` | **Alta** |
-| `README.md` dice «11 ADR» y son 15; `historias-usuario.md` sigue en las 20 historias propias sin decir que las 31 oficiales mandan | README, docs | Media |
+| ~~`README.md` dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente: `historias-usuario.md` está en las 20 historias propias sin decir que **las 31 oficiales mandan** sobre ellas | `docs/historias-usuario.md` | Media |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | **`GET /cumplimiento/:periodoId` entrega el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11. Detectado en el Bloque C, anotado y no cambiado en silencio | `cumplimiento.routes.ts` | Media |
 | **El seed tarda ~15 minutos**: genera y escribe ~2.400 PNG de evidencia uno por uno. Se arregla escribiendo en paralelo; no bloquea nada, pero conviene saberlo antes de correrlo | `prisma/seed.ts` | Baja |

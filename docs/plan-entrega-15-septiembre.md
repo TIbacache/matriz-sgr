@@ -15,9 +15,9 @@ Fuentes que mandan, en orden:
 
 | # | Criterio | Pts | Qué hay hoy | Veredicto |
 |---|---|---|---|---|
-| 1 | **Planner / Jira** | 15 | **El tablero existe y lo construyó Héctor**: 7 depósitos y 8 tareas, 5 de ellas de esta entrega con vencimiento 15/9. Pero Desarrollo, Pruebas y Piloto están vacíos | 🟠 **No está vacío: está incompleto y desactualizado.** Ver §1.bis |
-| 2 | **Diagramas de requerimientos** | 10 | **No existe** ningún artefacto de este tipo | 🔴 Hay que crearlo de cero |
-| 3 | **Caso de uso general** | 10 | `diagramas.md §2`, del 25 de agosto: 4 actores de 6, 12 casos del modelo v1, sin frontera ni «include»/«extend» | 🟠 Rehacer |
+| 1 | **Planner / Jira** | 15 | El CSV quedó reescrito contra el estado real: **87 tareas**, ninguna bloqueada, con la tarea que faltaba del diagrama de requerimientos. Falta cargarlo en el tablero | 🟠 **Preparado, sin cargar.** INACAP no deja automatizarlo: va a mano con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf). Ver §1.bis |
+| 2 | **Diagramas de requerimientos** | 10 | **[entrega/requerimientos.md](entrega/requerimientos.md)**: los 38 RF y 18 RNF por módulo y por épica, con actores y trazados a los CU, en 8 diagramas PlantUML | ✅ **Hecho** (9-09-2026) |
+| 3 | **Caso de uso general** | 10 | `diagramas.md §2`, del 25 de agosto: 4 actores de 6, 12 casos del modelo v1, sin frontera ni «include»/«extend» | 🟠 **En curso.** Rehacer en PlantUML |
 | 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **Cero fichas.** La guía propone 10 CU con actor y RF, y desarrolla CU-03 como plantilla | 🔴 El criterio más caro y el más vacío |
 | 5 | **Diagrama de clases** | 15 | **No existe** | 🔴 Hay que crearlo de cero |
 | 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El modelo real tiene 16 entidades | 🔴 Está mal, no solo incompleto |
@@ -25,6 +25,8 @@ Fuentes que mandan, en orden:
 | 8 | **Mockup funcional + Git** | 10 | 8 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | 🟢 **Es lo más fuerte que tenemos.** Faltan los escenarios alternativos |
 
 **Lectura del cuadro**: de 100 puntos, **85 dependen de artefactos de análisis y diseño que hoy no existen o están obsoletos**, y solo 10 dependen del software, que es justamente lo que está terminado. La entrega no se juega en el código: se juega en documentar lo construido.
+
+> **Avance al 9 de septiembre de 2026**: cerrados los criterios **1** (preparado, falta cargarlo a mano) y **2**. Quedan **75 puntos** en artefactos por construir, y el más caro sigue siendo el 4, con 20.
 
 ---
 
