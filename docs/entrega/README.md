@@ -15,7 +15,7 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 |---|---|---|---|---|
 | 1 | Planner | 15 | 🟠 **Preparado, falta cargarlo** | [guia-planner-hector.pdf](guia-planner-hector.pdf) · [planner-delta.md](planner-delta.md) |
 | 2 | Diagramas de requerimientos | 10 | ✅ **Hecho** | [requerimientos.md](requerimientos.md) · [puml/](puml/) |
-| 3 | Caso de uso general | 10 | 🔴 En curso | — |
+| 3 | Caso de uso general | 10 | 🟠 **Empezado** | [puml/09-casos-uso-general.puml](puml/09-casos-uso-general.puml) |
 | 4 | Casos de uso específicos + fichas | 20 | 🔴 Pendiente | — |
 | 5 | Diagrama de clases | 15 | 🔴 Pendiente | — |
 | 6 | DER MySQL | 10 | 🔴 Pendiente | — |
@@ -24,6 +24,15 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | — | Informe de la entrega | — | 🔴 Pendiente | — |
 
 **25 de 100 puntos cubiertos.** El criterio 4 es el más caro y el más vacío.
+
+### Dónde quedó el criterio 3 (para retomar)
+
+El diagrama **general** está dibujado y compila: frontera del sistema, los seis actores del PDF §3 y los doce casos de uso, con sus relaciones actor–caso de uso. **Falta revisarlo a ojo** —no se ha mirado el PNG todavía— y falta:
+
+1. Un **segundo diagrama con las relaciones** `«include»` y `«extend»`: los tres incluidos (CU-I1 validar RUT, CU-I2 generar código, CU-I3 auditar) y los seis de extensión (CU-E1 a CU-E6), que están definidos en el [plan §4](../plan-entrega-15-septiembre.md). Se separan del general a propósito: meterlos todos en un dibujo con 12 casos y 6 actores lo vuelve ilegible, y la rúbrica evalúa la legibilidad.
+2. El documento **`casos-uso-general.md`** que los envuelve, con la tabla actor ↔ caso de uso y la correspondencia con los RF.
+
+⚠ **Decisión pendiente de confirmar**: *no* se dibuja generalización entre actores. Los seis roles no forman una jerarquía sino conjuntos que se solapan (el Verificador valida pero no ve el tubo; el Coordinador ve el panel de actividad y el Administrador también). Dibujar una herencia afirmaría algo que el código no cumple. La rúbrica pide «include», «extend» **o** generalización, y las dos primeras están cubiertas.
 
 ---
 
