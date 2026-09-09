@@ -65,7 +65,11 @@ $patronBucket = @{
 }
 
 $prioridadPlanner = @{ "Urgente" = 1; "Importante" = 3; "Media" = 5; "Baja" = 9 }
-$avancePorEstado = @{ "Completado" = 100; "En curso" = 50; "Pendiente" = 0; "Bloqueado" = 0 }
+# Planner básico solo distingue No iniciada / En curso / Completada por el
+# porcentaje. La rúbrica pide cuatro estados, así que "En revisión" se carga
+# como 75% y además se le pone una etiqueta de color a mano en el tablero
+# (ver docs/entrega/planner-delta.md).
+$avancePorEstado = @{ "Completado" = 100; "En revisión" = 75; "En curso" = 50; "Pendiente" = 0; "Bloqueado" = 0 }
 
 if (-not (Test-Path $CsvPath)) { throw "No se encontró el CSV en $CsvPath" }
 $filas = Import-Csv -Path $CsvPath -Delimiter ";" -Encoding UTF8
@@ -156,12 +160,23 @@ foreach ($fila in $filas) {
     }
     if (-not $bucketPorClave.ContainsKey($fila.BucketClave)) { $omitidas++; continue }
 
+    # Un estado o una prioridad mal escritos en el CSV dejarían la tarea sin
+    # avance ni prioridad sin avisar: es mejor decirlo y seguir con el valor neutro.
+    if (-not $avancePorEstado.ContainsKey($fila.Estado)) {
+        Write-Warning "Estado desconocido '$($fila.Estado)' en '$($fila.Titulo)'. Se carga como Pendiente."
+    }
+    if (-not $prioridadPlanner.ContainsKey($fila.Prioridad)) {
+        Write-Warning "Prioridad desconocida '$($fila.Prioridad)' en '$($fila.Titulo)'. Se carga como Media."
+    }
+    $avance = if ($avancePorEstado.ContainsKey($fila.Estado)) { $avancePorEstado[$fila.Estado] } else { 0 }
+    $prioridad = if ($prioridadPlanner.ContainsKey($fila.Prioridad)) { $prioridadPlanner[$fila.Prioridad] } else { 5 }
+
     $params = @{
         PlanId          = $planId
         BucketId        = $bucketPorClave[$fila.BucketClave]
         Title           = $fila.Titulo
-        PercentComplete = $avancePorEstado[$fila.Estado]
-        Priority        = $prioridadPlanner[$fila.Prioridad]
+        PercentComplete = $avance
+        Priority        = $prioridad
     }
     $inicio = ComoFechaUtc $fila.Inicio
     $vence = ComoFechaUtc $fila.Vence
