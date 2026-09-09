@@ -89,6 +89,15 @@ El script asigna responsables si le pasas los dos correos institucionales:
 
 > El `.\` del principio es obligatorio en PowerShell: significa «el script que está en esta carpeta».
 
+**Si la terminal se queda en blanco después de «Modo código de dispositivo»**, el script está desactualizado: ese mensaje sale por la salida normal y no por consola, así que el `| Out-Null` que tenía se lo tragaba. Corregido el 9 de septiembre de 2026 — se comprueba con `git log -1 --oneline scripts/cargar-plan-planner.ps1`.
+
+También se puede iniciar sesión **antes** y correr el script después: si ya hay sesión con los permisos necesarios, el script no vuelve a pedirla.
+
+```powershell
+Connect-MgGraph -Scopes "Tasks.ReadWrite" -UseDeviceCode
+.\scripts\cargar-plan-planner.ps1 -SoloSimular
+```
+
 **Qué va a pasar, en orden:**
 
 1. La terminal imprime una dirección (`https://microsoft.com/devicelogin`) y un **código de nueve caracteres**.
