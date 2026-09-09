@@ -1,4 +1,8 @@
-# Guía paso a paso: cargar el plan en Planner
+# Guía paso a paso: cargar el plan en Planner con el script
+
+> ⚠ **Esta no es la ruta elegida.** Desde el 8 de septiembre de 2026 el tablero se completa **a mano**, siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf). Este documento queda como respaldo, por si alguna vez conviene cargar en lote.
+>
+> Y una advertencia si se usa: el script deduplica **por título exacto**, y el tablero ya tiene ocho tareas creadas a mano. Un acento distinto entre el CSV y el título real crearía la tarea dos veces. Correr siempre `-SoloSimular` primero y revisar la salida completa.
 
 Para alguien que nunca ha usado Planner ni ha corrido un script de PowerShell. Sigue los pasos en orden; ninguno borra nada y el paso 4 es una **simulación** que no escribe.
 

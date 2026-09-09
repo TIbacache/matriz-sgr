@@ -400,7 +400,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 
 | Pendiente | Dónde | Prioridad |
 |---|---|---|
-| 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner | `scripts/cargar-plan-planner.ps1` | Bloqueante |
+| 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner. El CSV ya quedó reescrito contra el estado real (87 tareas, ninguna bloqueada); falta cargarlo en el tablero, y lo hace Héctor a mano | [docs/entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf) | Bloqueante |
 | ~~Las evidencias del seed daban 410~~ ✅ **resuelto el 02-09-2026** | El seed inventaba `archivoRuta` (`/evidencias/COD.jpg`) en un formato que `rutaRelativa()` no resuelve, y nunca escribía el archivo. Ahora usa el mismo helper que el alta real y escribe 1.126 ilustraciones sintéticas (`prisma/imagen-demo.ts`, PNG generado sin dependencias) | — |
 | ~~Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1**~~ ✅ **resuelto el 04-09-2026**: se eliminaron la vista, la tabla `metas`, el modelo `Meta`, `/metas`, `/kpis/cumplimiento`, `/kpis/recalcular` y el cron. Ya no hay dos verdades | — | ✅ |
 | La ficha del rol consulta dice "usa la fila de arriba para registrar" y no hay fila (ese rol no registra): el vacío debe explicar su causa, no señalar algo que no existe | `FichaPage.tsx` | Media |

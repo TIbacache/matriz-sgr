@@ -3,29 +3,17 @@
 **Equipo**: Origami SpA (2 personas) · **Plan en Planner**: `DesarrolloSW-MuniLS-OrigamiSpA`
 **Actualizado**: 8 de septiembre de 2026 · **Estado del software**: `v0.15.0-control-actividad`, 332 comprobaciones en verde
 
-Este documento es la vista humana del plan; la fuente cargable es [plan-desarrollo.csv](plan-desarrollo.csv), que se sube con [`scripts/cargar-plan-planner.ps1`](../scripts/cargar-plan-planner.ps1). Las fechas son **editables**: se cambian en el CSV y se recarga, o se arrastran directamente en Planner.
+Este documento es la vista humana del plan; el mismo contenido en formato tabla está en [plan-desarrollo.csv](plan-desarrollo.csv). Las fechas son **editables**: se cambian aquí y en el CSV, o se arrastran directamente en Planner.
 
-> ⚠ **Antes de cargar, leer [entrega/planner-delta.md](entrega/planner-delta.md).** El tablero **no está vacío**: Héctor ya creó ocho tareas, y el script deduplica por título exacto. Ese documento explica qué se corrigió en el CSV, qué queda por hacer a mano y qué hay que coordinar antes de tocar el tablero compartido.
+## Cómo se carga en Planner
 
-## Cómo cargarlo
+👉 **A mano, siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**, que lo reparte en seis tandas con el contenido exacto de cada tarjeta.
 
-👉 Paso a paso detallado en [guia-cargar-planner.md](guia-cargar-planner.md) (incluye qué esperar en pantalla y los errores frecuentes).
+**Decisión del 8 de septiembre**: el tablero lo completa Héctor a mano, no un script. La razón es de equipo: cargar 87 tareas de un golpe se salta justo la parte donde se entiende cómo se organiza el proyecto y qué evalúa la rúbrica, y quien carga el tablero es quien después sabe qué hay dentro. De paso desaparece el riesgo del script, que deduplica por título exacto y duplicaría una tarea si un acento difiere.
 
-Resumen para quien ya conoce PowerShell, desde la raíz del repositorio:
+El tablero **no está vacío**: Héctor ya creó ocho tareas y **no se tocan**. Qué se corrigió del plan viejo y qué criterio de la rúbrica cuelga de qué tarea está en [entrega/planner-delta.md](entrega/planner-delta.md).
 
-```powershell
-# 1. Una sola vez: módulos y permiso de ejecución en esta sesión
-Install-Module Microsoft.Graph.Authentication, Microsoft.Graph.Planner -Scope CurrentUser -Force
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-# 2. Simular primero (no escribe nada, muestra qué crearía)
-.\scripts\cargar-plan-planner.ps1 -SoloSimular
-
-# 3. Cargar de verdad (los correos son opcionales, para asignar responsables)
-.\scripts\cargar-plan-planner.ps1 -EmailA tu@correo.cl -EmailB companero@correo.cl
-```
-
-El script solo pide el permiso `Tasks.ReadWrite`, que un usuario normal puede aprobar por sí mismo, y es re-ejecutable: omite las tareas que ya existen, así que después de editar el CSV se puede volver a correr para agregar solo lo nuevo.
+[`scripts/cargar-plan-planner.ps1`](../scripts/cargar-plan-planner.ps1) sigue en el repositorio, funcionando, como respaldo; su paso a paso está en [guia-cargar-planner.md](guia-cargar-planner.md).
 
 ## Reparto de trabajo
 

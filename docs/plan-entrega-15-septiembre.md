@@ -48,16 +48,17 @@ Eso cambia tres cosas del plan:
 
 **2. Falta la tarea del diagrama de requerimientos.** Las cinco tareas de Diseño cubren GIT (criterio 8), mockups (8), MER (6 y 7), UML (3 y 4) y clases (5). **El criterio 2 —Diagramas de requerimientos, 10 puntos— no tiene tarea que lo represente.**
 
-**3. NO ejecutar `cargar-plan-planner.ps1` a ciegas.** El script es idempotente *por título exacto*, y los títulos del CSV no coinciden con los que escribió Héctor: «Modelo entidad-relación inicial» (CSV) contra «Modelo Entidad-Relacion» (tablero) son la misma tarea con dos nombres, y quedarían las dos. Además el CSV es del 1 de septiembre y **marca como Bloqueado el modelo de datos v2 y las historias por funcionario, que están construidos y verificados**.
+**3. El CSV del 1 de septiembre no se podía cargar tal cual.** El script es idempotente *por título exacto*, y los títulos del CSV no coincidían con los que escribió Héctor: «Modelo entidad-relación inicial» (CSV) contra «Modelo Entidad-Relacion» (tablero) eran la misma tarea con dos nombres, y habrían quedado las dos. Además marcaba como Bloqueado el modelo de datos v2 y las historias por funcionario, que están construidos y verificados. **Corregido el 8 de septiembre**: el CSV quedó reescrito con 87 tareas, ninguna bloqueada y sin títulos que choquen. Y la carga pasó a ser a mano, con lo que el riesgo del acento desaparece.
 
-**Qué hacer entonces** (y hay que coordinarlo con Héctor, porque el tablero es suyo tanto como nuestro):
+**Qué hacer entonces**:
 
 - **Conservar sus cinco tareas de Diseño**: están bien planteadas, tienen fecha y responsables, y son exactamente los entregables de la rúbrica.
 - **Agregar la que falta**: «Diagrama de Requerimientos», mismo depósito, misma fecha.
-- **Poblar Desarrollo y Pruebas con lo ya hecho, marcado como Completado**, para que el tablero cuente la verdad. Salen del CSV y de las etiquetas de git: modelo v2, API del registro y la validación, metas por funcionario, ficha personal, bandeja del verificador, identidad visual, ficha del vecino, rutas endurecidas, atención social, solicitud en el tubo, dashboard v2 y control de actividad.
-- **Actualizar `plan-desarrollo.csv` antes de cargarlo**: revisar los 27 «Pendiente» y los 8 «Bloqueado» contra el estado real, y renombrar los títulos que chocan con los de Héctor.
+- **Poblar Desarrollo y Pruebas con lo ya hecho, marcado como Completado**, para que el tablero cuente la verdad: modelo v2, API del registro y la validación, metas por funcionario, ficha personal, bandeja del verificador, identidad visual, ficha del vecino, rutas endurecidas, atención social, solicitud en el tubo, dashboard v2, control de actividad y los siete verificadores.
 - **Estados**: Planner básico solo tiene *No iniciada / En curso / Completada*, y la rúbrica menciona cuatro («Por hacer, En desarrollo, En revisión, Finalizado»). Se cubre con **etiquetas de color** para «En revisión», y se explica en el informe. No es un problema real, pero conviene decirlo antes de que lo pregunten.
 - **Capturar el tablero** una vez poblado: la rúbrica pide la captura y el enlace.
+
+> **Decisión del 8 de septiembre — lo carga Héctor, a mano.** `plan-desarrollo.csv` quedó reescrito contra el estado real (87 tareas, ninguna bloqueada, sin títulos que choquen con los suyos), pero **no se carga con el script**: Héctor pidió aportar y aprender, y cargar 87 tareas de un golpe se salta justo la parte donde se entiende cómo se organiza el proyecto y qué evalúa la rúbrica. La guía es **[entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**, en seis tandas con el contenido exacto de cada tarjeta. El script queda como respaldo. Ventaja lateral: desaparece el riesgo de duplicar una tarea por una diferencia de acento, que es como el script deduplica.
 
 > ⚠ **El desfase no es casual.** Los diagramas son del 25 de agosto y describen el modelo v1: `metas` por unidad × categoría, la vista materializada `cumplimiento_ponderado_vista`, un cron que la refresca y umbrales «verde ≥80, amarillo 50-79, rojo <50». Nada de eso existe desde el Bloque C, y los umbrales nunca fueron esos. **Presentar esos diagramas sería entregar un sistema que no es el nuestro**, y el criterio transversal de la rúbrica es precisamente la coherencia entre artefactos.
 
@@ -199,7 +200,7 @@ Se conservan los identificadores que ya propuso la guía del 1 de septiembre, pa
 
 Las dependencias importan: el diagrama de requerimientos define los CU, los CU definen las clases y las pantallas, y el DER define el script. Hacerlo en otro orden obliga a rehacer.
 
-1. **Cargar el Planner.** No depende de nada y sin él la nota tiene techo.
+1. **Cargar el Planner.** No depende de nada y sin él la nota tiene techo. Lo hace Héctor a mano con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf); corre en paralelo a todo lo demás.
 2. **Diagrama de requerimientos** (38 RF + 18 RNF agrupados por épica, con `requirementDiagram` de mermaid, que es lo más cercano a la notación del ejemplo del docente).
 3. **Caso de uso general**: frontera, 6 actores, ~12 casos, sin flujos internos.
 4. **Los 12 diagramas específicos + sus 12 fichas**, con la estructura exacta de la rúbrica (ID, nombre, objetivo, actor principal, secundarios, precondiciones, disparador, flujo principal, alternativos, excepciones, postcondiciones, reglas). La ficha de CU-03 ya está redactada en la guía del 1 de septiembre: sirve de plantilla.
@@ -219,8 +220,8 @@ El trabajo se corta por artefacto, no por archivo, para que nadie espere a nadie
 
 | Persona | Se lleva | Por qué |
 |---|---|---|
-| **A** (Tomás) | Planner (1) junto con Héctor, diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
-| **B** (Héctor) | Clases (5), DER (6), script MySQL (7) | Es la cadena «cómo está construido» y sale del esquema real. **Ya tiene esas tres tareas creadas en el Planner** |
+| **A** (Tomás) | Diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
+| **B** (Héctor) | **Planner (1)**, clases (5), DER (6), script MySQL (7) | El Planner es suyo: lo carga a mano con [su guía](entrega/guia-planner-hector.pdf) y de paso queda sabiendo qué hay dentro. Las otras tres son la cadena «cómo está construido» y salen del esquema real. **Ya tiene esas tareas creadas en el tablero** |
 | **Ambos** | Las 12 fichas de CU (4) — seis cada uno, con la misma plantilla | Es el criterio más caro (20 pts) y el más divisible |
 | **Quien tenga el entorno arriba** | Escenarios del mockup (8) y el PDF de estado (11) | Necesitan los dos servidores y la base sembrada |
 

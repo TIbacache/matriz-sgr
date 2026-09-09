@@ -38,8 +38,9 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
 | **[docs/mockups/](docs/mockups/)** | **Las ocho pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
 | [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
-| [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
-| [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
+| [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | El plan en formato tabla: 87 tareas con fecha, responsable, estado y prioridad |
+| **[docs/entrega/guia-planner-hector.pdf](docs/entrega/guia-planner-hector.pdf)** | **Guía para completar el tablero de Planner a mano**, en seis tandas |
+| [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Cargar el plan con el script de Microsoft Graph (respaldo) |
 | [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Visión inicial del equipo (histórico, superado en parte) |
 
 ## Estructura

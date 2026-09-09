@@ -45,40 +45,42 @@ También se endureció `scripts/cargar-plan-planner.ps1`: acepta el estado **«E
 
 ---
 
-## 3. Cómo cargarlo, en orden
+## 3. Cómo se carga: a mano, y lo hace Héctor
 
-El script **es re-ejecutable y no borra nada**: omite toda tarea cuyo título ya exista. Las ocho de Héctor no se tocan.
+**Decisión del 8 de septiembre**: el tablero se completa **a mano**, tarea por tarea, y lo hace Héctor. El script queda como respaldo, no como la ruta.
+
+La razón es de equipo, no técnica. Héctor pidió explícitamente aportar y aprender; cargar 87 tareas de un golpe con un script le quita justo la parte donde se entiende cómo se organiza un proyecto y qué está evaluando la rúbrica. Además el tablero es suyo tanto como nuestro, y quien lo carga es quien después sabe qué hay dentro.
+
+👉 **La guía es [guia-planner-hector.pdf](guia-planner-hector.pdf)**: seis tandas, cada una con su duración, el contenido exacto de cada tarjeta y el porqué de cada bloque. Este documento sigue sirviendo para entender **qué se corrigió del plan viejo** (punto 2) y **qué criterio cuelga de qué tarea** (punto 5).
+
+Ventaja lateral: al hacerlo a mano desaparece el riesgo del script, que deduplica por **título exacto** — un acento distinto entre el CSV y una tarea del tablero crearía la tarea dos veces.
+
+### El script, si alguna vez hace falta
+
+Sigue en el repositorio, actualizado y funcionando:
 
 ```powershell
-# Una sola vez, si nunca se hizo
 Install-Module Microsoft.Graph.Authentication, Microsoft.Graph.Planner -Scope CurrentUser -Force
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# 1. SIMULAR. No escribe nada. Revisar la salida completa antes de seguir.
+# SIMULAR primero. No escribe nada.
 .\scripts\cargar-plan-planner.ps1 -SoloSimular
-
-# 2. Cargar de verdad, con los correos institucionales para asignar responsables
-.\scripts\cargar-plan-planner.ps1 -EmailA <correo de Tomás> -EmailB <correo de Héctor>
 ```
 
-**Qué mirar en la simulación, antes de cargar de verdad:**
-
-1. Que la lista «Buckets en el plan» muestre los seis depósitos emparejados. El depósito **Etapas Terminadas** no se empareja con ninguna clave del CSV y eso está bien: ahí solo vive lo que Héctor ya cerró.
-2. Que ninguna línea `+ [simulado]` repita un título que ya esté en el tablero. Si aparece «Modelo Entidad-Relación» o «Diseño MockUps», **parar**: significa que el título de Héctor difiere en un acento y quedaría duplicado.
-3. Que el recuento final diga **87 creadas** la primera vez, y **0 creadas / 87 omitidas** si se vuelve a correr.
-
-> ⚠ **El riesgo que queda es el acento.** La deduplicación compara el título carácter por carácter: «Modelo Entidad-Relación» y «Modelo Entidad-Relacion» son dos tareas distintas para el script. Ninguna tarea del CSV usa esos títulos, así que el riesgo es bajo, pero la simulación es la que lo confirma.
+Si se usara, en la simulación hay que comprobar que ninguna línea `+ [simulado]` repita un título ya presente en el tablero, y que el recuento final diga **87 creadas** la primera vez y **0 creadas / 87 omitidas** en la segunda.
 
 ---
 
-## 4. Lo que el script no hace y hay que hacer a mano
+## 4. Los cuatro pasos que ninguna ruta automatiza
 
-| Paso | Por qué a mano |
+Ni el script ni el CSV pueden con esto. Están desarrollados en la **tanda 6** de la guía.
+
+| Paso | Qué es |
 |---|---|
-| **Etiqueta «En revisión»** | Planner básico solo tiene No iniciada / En curso / Completada. La rúbrica menciona cuatro estados. Se cubre con una **etiqueta de color** llamada «En revisión», que se aplica a las tareas al 75%. Hay que crearla una vez en el tablero y explicarlo en el informe |
-| **Adjuntar cada artefacto a su tarea** | Es la condición del docente. Ver la tabla del punto 5 |
-| **Repartir responsables** si no se pasaron los correos | La columna `Responsable` del CSV usa A / B / Ambos; sin correos las tareas se crean sin asignar |
-| **Captura del tablero** | La pide la rúbrica, junto con el enlace directo. Se toma con los seis depósitos visibles, ya poblados |
+| **Etiqueta «En revisión»** | Planner básico solo tiene No iniciada / En curso / Completada. La rúbrica menciona cuatro estados. Se cubre con una **etiqueta de color** llamada «En revisión» y se explica en el informe |
+| **Adjuntar cada artefacto a su tarea** | Es la condición del docente: lo que no está adjunto, no se evalúa. Ver la tabla del punto 5 |
+| **Captura del tablero** | La pide la rúbrica, junto con el enlace directo. Se toma con los seis depósitos visibles, ya poblados. Conviene además una captura de la vista Gráficos, que evidencia responsables y estados de un vistazo |
+| **Enlace directo al plan** | Va en el informe, junto a la captura |
 
 ---
 
@@ -101,9 +103,9 @@ Esta tabla es la lista de comprobación final: si una fila queda sin adjunto, es
 
 ---
 
-## 6. Qué hay que coordinar con Héctor antes de tocar el tablero
+## 6. Las decisiones que quedan en manos de Héctor
 
-El tablero es compartido y estas cuatro decisiones son suyas tanto como nuestras:
+Carga él el tablero, así que estas cuatro las resuelve él. Están planteadas también en la guía, en el punto donde toca decidirlas:
 
 1. **Los 12 casos de uso, ¿tarea propia o checklist de «Diagramas UML»?** Recomendación: tarea propia, «Casos de uso específicos y fichas (12)», porque son 20 de los 100 puntos y porque son el trabajo que se reparte entre los dos.
 2. **El script SQL, ¿tarea propia o checklist de «Modelo Entidad-Relación»?** Recomendación: checklist, porque el DER y el script se hacen juntos y los valida la misma persona.
@@ -114,13 +116,20 @@ El tablero es compartido y estas cuatro decisiones son suyas tanto como nuestras
 
 ## 7. Estado de este paso
 
-- [x] `docs/plan-desarrollo.csv` reescrito contra el estado real: 87 tareas, ninguna bloqueada, sin choques de título
-- [x] `scripts/cargar-plan-planner.ps1` acepta «En revisión» y avisa de estados o prioridades desconocidos
-- [x] `docs/plan-desarrollo.md` actualizado como vista humana del mismo CSV
-- [ ] Simulación corrida y revisada (`-SoloSimular`) — **la corre quien tenga la cuenta institucional**
-- [ ] Carga real ejecutada
-- [ ] Etiqueta «En revisión» creada en el tablero
-- [ ] Artefactos adjuntos, uno por criterio (tabla del punto 5)
-- [ ] Captura del tablero tomada y enlace copiado al informe
+Hecho en el repositorio:
 
-> Los cinco últimos pasos **no se pueden hacer desde el repositorio**: exigen iniciar sesión en Microsoft 365 con la cuenta del equipo.
+- [x] `docs/plan-desarrollo.csv` reescrito contra el estado real: 87 tareas, ninguna bloqueada, sin choques de título
+- [x] `docs/plan-desarrollo.md` actualizado como vista humana del mismo plan
+- [x] `scripts/cargar-plan-planner.ps1` acepta «En revisión» y avisa de estados o prioridades desconocidos
+- [x] `docs/entrega/guia-planner-hector.pdf` — la guía de carga a mano, en seis tandas (fuente: el `.md` del mismo nombre; se regenera con `cd frontend && npm run guia:planner`)
+
+Pendiente en el tablero, y lo hace Héctor siguiendo la guía:
+
+- [ ] **Tanda 1** — Diseño: la tarea que falta y el mapa de criterios (~25 min)
+- [ ] **Tanda 2** — Desarrollo: las 31 tareas, 24 de ellas ya terminadas (~45 min)
+- [ ] **Tanda 3** — Pruebas: las 15 tareas, con las 332 comprobaciones (~20 min)
+- [ ] **Tanda 4** — Ámbito y Requisitos al día (~25 min)
+- [ ] **Tanda 5** — Piloto e implementación (~15 min)
+- [ ] **Tanda 6** — Etiqueta, adjuntos, captura y enlace (~20 min)
+
+> Nada de esto se puede hacer desde el repositorio: exige iniciar sesión en Microsoft 365 con la cuenta del equipo. Si el tiempo aprieta, el orden que más rinde es **1 → 2 → 6**.

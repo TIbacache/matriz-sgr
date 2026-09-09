@@ -72,6 +72,8 @@ node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas 
 npm run mockups               # .html autocontenido + .png de las 7 pantallas → docs/mockups (servers arriba)
 npm run verificar:mockups     # abre los .html desde file:// con la red bloqueada
 npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
+npm run pdf -- <archivo.md> [salida.pdf] [--conservar-html]   # cualquier .md del repo → PDF imprimible (Arial, ADR-010)
+npm run guia:planner          # regenera docs/entrega/guia-planner-hector.pdf
 ```
 
 ⚠ **Vite huérfano en 5173**: igual que el 4000, un `vite` de una sesión anterior puede seguir sirviendo. `Get-NetTCPConnection -LocalPort 5173 -State Listen` y `Stop-Process` antes de levantar el propio.

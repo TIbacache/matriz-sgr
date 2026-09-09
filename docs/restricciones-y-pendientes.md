@@ -16,7 +16,7 @@
 
 | Pendiente | Bloqueado por | Acción cuando se destrabe |
 |---|---|---|
-| ~~Cargar backlog en Planner~~ **DESBLOQUEADO 26-08-2026** | — | Ya hay acceso al plan `DesarrolloSW-MuniLS-OrigamiSpA` con la plantilla del profesor (buckets: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación). Plan completo en [plan-desarrollo.md](plan-desarrollo.md); cargar con `scripts/cargar-plan-planner.ps1` (usar `-SoloSimular` primero). |
+| ~~Cargar backlog en Planner~~ **DESBLOQUEADO 26-08-2026** | — | Ya hay acceso al plan `DesarrolloSW-MuniLS-OrigamiSpA` con la plantilla del profesor (buckets: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación). Plan completo en [plan-desarrollo.md](plan-desarrollo.md); se carga a mano siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf). |
 | ~~Fórmula de "Objetivo al día"~~ **DESBLOQUEADO 25-08-2026** | — | El cliente la explicó en la reunión (01:05:31 y 00:35:17); confirmada por RN-007 del PDF y **verificada con los datos reales** de la planilla. |
 | ~~Nombres exactos de las columnas~~ **DESBLOQUEADO 31-08-2026** | — | Estaban en las capturas del PPT que enviaron los profesores. Extraídas y documentadas en [estructura-planilla-real.md](estructura-planilla-real.md): columnas de pestaña personal, área social, tubo, semáforo y resumen, más los catálogos completos de tipo/subatención y gestiones. |
 | ~~Matriz de roles definitiva~~ **DESBLOQUEADO 31-08-2026** | — | El PDF §3 define 6 actores: Administrador, Coordinador del sistema, Delegado/jefatura, Funcionario, **Verificador** y **Usuario de consulta**. Faltan los dos últimos en nuestro enum `Rol`. |
