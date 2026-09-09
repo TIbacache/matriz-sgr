@@ -2,14 +2,13 @@
 
 **Para**: Héctor · **Entrega**: 15 de septiembre de 2026 · **Vale**: 15 de los 100 puntos de la evaluación
 
-> **Las 87 tareas se cargaron con el script.** Esta guía se escribió para armar el tablero a mano; al final se decidió cargar en lote. **Sigue sirviendo para dos cosas, y son las que deciden la nota:**
+> **Esta es la única ruta: el tablero se carga a mano.** Se intentó automatizarlo con un script de PowerShell y **INACAP no lo permite**: el tenant tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, que es la aplicación que usa cualquier script contra Microsoft 365, y el inicio de sesión termina en «Need admin approval». Se probó con el permiso mínimo y con código de dispositivo; el bloqueo es de la aplicación completa. El detalle está en [../guia-cargar-planner.md](../guia-cargar-planner.md).
 >
-> - **Saber qué es cada tarea y por qué está ahí.** Las tandas 2 a 5 describen tarjeta por tarjeta lo que quedó en el tablero: qué significa cada bloque, qué etiqueta de versión lo respalda y qué requisito cubre. Es lo que hay que poder responder si el profesor pregunta.
-> - **La tanda 6, que ningún script hace**: la etiqueta «En revisión», adjuntar cada artefacto a su tarea, la captura y el enlace. **Lo que no está adjunto en Planner, no se evalúa.**
->
-> Además, el punto 3.2 (el mapa de los ocho criterios) y el 3.3 (las listas de comprobación de las cinco tareas de Héctor) siguen pendientes y no salen del CSV.
+> Que quede claro para cuando pregunten: **no es que no quisimos automatizarlo**. Está escrito, probado y documentado por qué no se pudo.
 
-Está partida en **seis tandas**. Cada una dice cuánto demora y qué se gana con ella.
+Esta guía es para que armes el tablero **tú**, tarea por tarea, entendiendo qué estás poniendo y por qué.
+
+Está partida en **seis tandas** que se pueden hacer en días distintos y repartir entre los dos. Cada una dice cuánto demora y qué se gana con ella. Si el tiempo aprieta, la tanda 1 y la tanda 6 son las que no se pueden saltar.
 
 ---
 
@@ -473,7 +472,7 @@ No. Están cortadas para hacerse por separado. El orden que más rinde si el tie
 No: el trabajo está hecho y fechado en el repositorio. Cada tarea Completada lleva en sus notas la etiqueta de versión (`v0.2.0` … `v0.15.0`), que es el punto exacto del historial donde se puede comprobar. Cargarlas ahora es documentar, no inventar. Lo que sí sería un error es dejar el tablero diciendo que no hemos empezado.
 
 **¿Y si prefiero cargar todo de una en vez de a mano?**
-Existe `scripts/cargar-plan-planner.ps1`, que lee `docs/plan-desarrollo.csv` y crea las 87 tareas por ti. Está ahí como respaldo. Pero ojo con dos cosas: pide instalar módulos de Microsoft Graph e iniciar sesión, y **deduplica por título exacto**, así que un acento distinto entre el CSV y una tarea tuya crearía la tarea dos veces. A mano es más lento pero no tiene esa trampa, y de paso queda claro qué hay en el tablero.
+No se puede, y no por falta de ganas: existe `scripts/cargar-plan-planner.ps1`, que lee `docs/plan-desarrollo.csv` y crearía las 87 tareas de un golpe, pero **INACAP bloquea la aplicación que necesita para conectarse**. El 9 de septiembre de 2026 se probó con el permiso mínimo y con código de dispositivo, y siempre termina en «Need admin approval»: solo un administrador de INACAP podría concedérselo, para todo el tenant. El script queda en el repositorio con su documentación, por si el proyecto se mueve algún día a otra cuenta.
 
 **¿De dónde salen los textos de las notas?**
 De `docs/plan-desarrollo.csv`, que es la misma fuente que usa el script. Si prefieres copiar y pegar desde ahí en vez de desde esta guía, es exactamente el mismo contenido.

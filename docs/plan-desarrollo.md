@@ -7,11 +7,11 @@ Este documento es la vista humana del plan; el mismo contenido en formato tabla 
 
 ## Cómo se carga en Planner
 
-👉 **Con [`scripts/cargar-plan-planner.ps1`](../scripts/cargar-plan-planner.ps1), siguiendo [guia-cargar-planner.md](guia-cargar-planner.md)**: simulación previa, carga, comprobación posterior y cómo deshacer.
+👉 **A mano, siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**: seis tandas con el contenido exacto de cada tarjeta, repartibles entre los dos.
 
-El tablero **no está vacío**: Héctor ya creó ocho tareas y el script **no las toca** (omite todo título que ya exista). Qué se corrigió del plan viejo y qué criterio de la rúbrica cuelga de qué tarea está en [entrega/planner-delta.md](entrega/planner-delta.md).
+**No es por elección.** Se intentó automatizarlo con [`scripts/cargar-plan-planner.ps1`](../scripts/cargar-plan-planner.ps1) y el tenant de INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, la aplicación que usa cualquier script contra Microsoft 365: el inicio de sesión termina en «Need admin approval», incluso pidiendo solo el permiso mínimo. El script se conserva funcionando y el diagnóstico completo está en [guia-cargar-planner.md](guia-cargar-planner.md).
 
-La carga en lote resuelve el volumen, no el criterio: la etiqueta del cuarto estado, adjuntar cada artefacto a su tarea, la captura y el enlace **siguen siendo a mano**, y están en la tanda 6 de [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf) — que además explica qué es cada tarea y por qué está ahí.
+El tablero **no está vacío**: Héctor ya creó ocho tareas y no se tocan. Qué se corrigió del plan viejo y qué criterio de la rúbrica cuelga de qué tarea está en [entrega/planner-delta.md](entrega/planner-delta.md).
 
 ## Reparto de trabajo
 

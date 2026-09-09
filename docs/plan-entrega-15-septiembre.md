@@ -58,7 +58,7 @@ Eso cambia tres cosas del plan:
 - **Estados**: Planner básico solo tiene *No iniciada / En curso / Completada*, y la rúbrica menciona cuatro («Por hacer, En desarrollo, En revisión, Finalizado»). Se cubre con **etiquetas de color** para «En revisión», y se explica en el informe. No es un problema real, pero conviene decirlo antes de que lo pregunten.
 - **Capturar el tablero** una vez poblado: la rúbrica pide la captura y el enlace.
 
-> **Decisión del 8 de septiembre — se carga con el script.** `plan-desarrollo.csv` quedó reescrito contra el estado real (87 tareas, ninguna bloqueada, sin títulos que choquen con los de Héctor) y se carga con `scripts/cargar-plan-planner.ps1`, siguiendo **[guia-cargar-planner.md](guia-cargar-planner.md)**. Se evaluó primero la carga a mano —Héctor había pedido aportar y aprender— y él liberó esa ruta. Para cubrir el riesgo de la escritura masiva sobre un tablero compartido, el script incorporó `-Deshacer`, que borra solo las tareas cuyo título está en el CSV. **La carga en lote resuelve el volumen, no el criterio**: la etiqueta del cuarto estado, adjuntar cada artefacto a su tarea, la captura y el enlace siguen siendo a mano, en la tanda 6 de [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf).
+> **Decisión del 9 de septiembre — se carga a mano, porque INACAP no deja automatizarlo.** `plan-desarrollo.csv` quedó reescrito contra el estado real (87 tareas, ninguna bloqueada, sin títulos que choquen con los de Héctor), pero el script no puede cargarlo: el tenant de INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, y el inicio de sesión termina en «Need admin approval» incluso pidiendo solo `Tasks.ReadWrite`. Se descartó que fuera un permiso concreto o el intermediario de cuentas de Windows: está bloqueada la aplicación entera. La ruta es **[entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**, seis tandas con el contenido exacto de cada tarjeta. El diagnóstico completo queda en [guia-cargar-planner.md](guia-cargar-planner.md), porque «por qué no lo automatizaron» es una pregunta que hay que poder responder.
 
 > ⚠ **El desfase no es casual.** Los diagramas son del 25 de agosto y describen el modelo v1: `metas` por unidad × categoría, la vista materializada `cumplimiento_ponderado_vista`, un cron que la refresca y umbrales «verde ≥80, amarillo 50-79, rojo <50». Nada de eso existe desde el Bloque C, y los umbrales nunca fueron esos. **Presentar esos diagramas sería entregar un sistema que no es el nuestro**, y el criterio transversal de la rúbrica es precisamente la coherencia entre artefactos.
 
@@ -200,7 +200,7 @@ Se conservan los identificadores que ya propuso la guía del 1 de septiembre, pa
 
 Las dependencias importan: el diagrama de requerimientos define los CU, los CU definen las clases y las pantallas, y el DER define el script. Hacerlo en otro orden obliga a rehacer.
 
-1. **Cargar el Planner.** No depende de nada y sin él la nota tiene techo. Se carga con el script siguiendo [guia-cargar-planner.md](guia-cargar-planner.md); los adjuntos y la captura van después, a medida que cada artefacto queda listo.
+1. **Cargar el Planner.** No depende de nada y sin él la nota tiene techo. Va a mano con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf), en seis tandas repartibles entre los dos; los adjuntos y la captura van después, a medida que cada artefacto queda listo.
 2. **Diagrama de requerimientos** (38 RF + 18 RNF agrupados por épica, con `requirementDiagram` de mermaid, que es lo más cercano a la notación del ejemplo del docente).
 3. **Caso de uso general**: frontera, 6 actores, ~12 casos, sin flujos internos.
 4. **Los 12 diagramas específicos + sus 12 fichas**, con la estructura exacta de la rúbrica (ID, nombre, objetivo, actor principal, secundarios, precondiciones, disparador, flujo principal, alternativos, excepciones, postcondiciones, reglas). La ficha de CU-03 ya está redactada en la guía del 1 de septiembre: sirve de plantilla.
@@ -220,8 +220,9 @@ El trabajo se corta por artefacto, no por archivo, para que nadie espere a nadie
 
 | Persona | Se lleva | Por qué |
 |---|---|---|
-| **A** (Tomás) | **Carga del Planner (1)**, diagrama de requerimientos (2), caso de uso general (3), informe (9) | La carga es un comando; lo demás es la cadena «qué necesita el sistema» y no toca código |
-| **B** (Héctor) | Clases (5), DER (6), script MySQL (7), y los adjuntos y la captura del tablero (1) | Es la cadena «cómo está construido» y sale del esquema real. **Ya tiene esas tres tareas creadas en el Planner**. Lo que va a mano del tablero está en [su guía](entrega/guia-planner-hector.pdf), tanda 6 |
+| **A** (Tomás) | Diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
+| **B** (Héctor) | Clases (5), DER (6), script MySQL (7) | Es la cadena «cómo está construido» y sale del esquema real. **Ya tiene esas tres tareas creadas en el Planner** |
+| **Ambos** | **La carga del Planner (1)**, repartiéndose las seis tandas de [la guía](entrega/guia-planner-hector.pdf) | Son unas dos horas y media a mano, y las tandas son independientes. La 6 —etiqueta, adjuntos, captura— conviene dejarla para el final, cuando los artefactos existan |
 | **Ambos** | Las 12 fichas de CU (4) — seis cada uno, con la misma plantilla | Es el criterio más caro (20 pts) y el más divisible |
 | **Quien tenga el entorno arriba** | Escenarios del mockup (8) y el PDF de estado (11) | Necesitan los dos servidores y la base sembrada |
 

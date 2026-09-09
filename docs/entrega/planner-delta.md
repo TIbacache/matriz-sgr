@@ -45,23 +45,31 @@ También se endureció `scripts/cargar-plan-planner.ps1`: acepta el estado **«E
 
 ---
 
-## 3. Cómo se carga: con el script, y lo corre Tomás
+## 3. Cómo se carga: a mano, porque INACAP no deja automatizarlo
 
-**Decisión del 8 de septiembre.** Se evaluaron las dos rutas y la decisión cambió dos veces en el mismo día, así que conviene dejar el rastro:
+La decisión se movió tres veces en dos días. Conviene dejar el rastro completo, porque la pregunta «¿por qué no lo automatizaron?» tiene respuesta y hay que poder darla:
 
-1. Primero se decidió cargar **a mano**, porque Héctor pidió aportar y aprender, y 87 tareas de un golpe se saltan la parte donde se entiende cómo se organiza el proyecto.
-2. **Héctor liberó esa ruta**: prefiere que la carga masiva vaya con el script. La decisión final es esa.
+1. **8 de septiembre** — se decide cargar **a mano**: Héctor pidió aportar y aprender, y 87 tareas de un golpe se saltan la parte donde se entiende cómo se organiza el proyecto.
+2. **8 de septiembre** — Héctor libera esa ruta y se vuelve al **script**. Como es una escritura masiva sobre un tablero compartido, se le agrega `-Deshacer`.
+3. **9 de septiembre** — **el script no es viable en INACAP.** Se vuelve a la carga a mano, esta vez por obligación.
 
-Lo que **no** cambia: la carga en lote resuelve el volumen, no el criterio. Los pasos que deciden la nota —la etiqueta del cuarto estado, adjuntar cada artefacto a su tarea, la captura y el enlace— siguen siendo a mano y siguen en la **tanda 6** de [guia-planner-hector.pdf](guia-planner-hector.pdf). Esa guía tampoco pierde valor: explica **qué es cada tarea y por qué está ahí**, que es lo que hay que saber cuando el profesor pregunte.
+### Qué pasó exactamente
 
-👉 **El paso a paso del script es [../guia-cargar-planner.md](../guia-cargar-planner.md)**, con los correos institucionales, la simulación previa, la comprobación posterior y cómo deshacer.
+El tenant de INACAP tiene desactivado el consentimiento de usuario para **Microsoft Graph Command Line Tools**, la aplicación que usa cualquier script de PowerShell contra Microsoft 365. El inicio de sesión termina siempre en *«Need admin approval»*.
 
-### El riesgo que reaparece, y cómo se cubre
+Se descartaron una por una las explicaciones más simples:
 
-El script deduplica **por título exacto**: un acento distinto entre el CSV y una tarea del tablero crearía la tarea dos veces. Se cubre con dos cosas:
+| Se probó | Resultado |
+|---|---|
+| Con `-EmailA`/`-EmailB`, que agregan `User.ReadBasic.All` | Bloqueado. Cabía pensar que era ese permiso |
+| **Sin** los correos, pidiendo solo `Tasks.ReadWrite` —el mínimo, que en un tenant normal aprueba el propio usuario— | **Bloqueado igual**: no es el permiso, es la aplicación |
+| Con código de dispositivo, evitando la ventana nativa de Windows | Mismo bloqueo, así que tampoco era el intermediario de cuentas |
 
-- **La simulación previa** (`-SoloSimular`) lista lo que crearía. Si ahí aparece «Modelo Entidad-Relación», «Diseño MockUps», «Diagramas UML», «Diagramas de Clase», «GIT» o «Presentación Profesor», hay que parar.
-- **`-Deshacer`**, agregado el 8 de septiembre para esta carga. Borra del plan solo las tareas cuyo título está en el CSV, así que las ocho de Héctor quedan intactas. Sin `-Confirmo` solo las lista, y además imprime la lista de las que **no** tocaría.
+Desbloquearlo exige que un administrador de INACAP conceda consentimiento a esa aplicación para todo el tenant. No es una gestión razonable a una semana de la entrega.
+
+👉 **La ruta es [guia-planner-hector.pdf](guia-planner-hector.pdf)**: seis tandas con el contenido exacto de cada tarjeta, repartibles entre los dos.
+
+El script y su documentación ([../guia-cargar-planner.md](../guia-cargar-planner.md)) se conservan: dejan constancia de lo que se intentó, y servirían tal cual en un tenant donde el consentimiento esté permitido.
 
 ---
 
@@ -114,17 +122,17 @@ Hecho en el repositorio:
 
 - [x] `docs/plan-desarrollo.csv` reescrito contra el estado real: 87 tareas, ninguna bloqueada, sin choques de título
 - [x] `docs/plan-desarrollo.md` actualizado como vista humana del mismo plan
-- [x] `scripts/cargar-plan-planner.ps1`: acepta «En revisión», avisa de estados o prioridades desconocidos y trae `-Deshacer` para revertir la carga
-- [x] `docs/guia-cargar-planner.md` — el paso a paso del script, con los correos institucionales
-- [x] `docs/entrega/guia-planner-hector.pdf` — qué es cada tarea, por qué está ahí y los pasos que van a mano (fuente: el `.md` del mismo nombre; se regenera con `cd frontend && npm run guia:planner`)
+- [x] `docs/entrega/guia-planner-hector.pdf` — el contenido exacto de las 87 tarjetas, en seis tandas (fuente: el `.md` del mismo nombre; se regenera con `cd frontend && npm run guia:planner`)
+- [x] `docs/guia-cargar-planner.md` — constancia de la ruta automatizada y de por qué INACAP no la permite
+- [x] `scripts/cargar-plan-planner.ps1` — se conserva funcionando, con `-Deshacer` y código de dispositivo, por si el proyecto cambia de tenant
 
-Pendiente en el tablero:
+Pendiente en el tablero, y va a mano siguiendo la guía:
 
-- [ ] Simulación corrida y revisada (`-SoloSimular`), comprobando que ninguna tarea de Héctor aparece como «se crearía»
-- [ ] Carga real ejecutada: **87 creadas**
-- [ ] Comprobación posterior: la simulación vuelve a correr y dice **0 creadas / 87 omitidas**
-- [ ] Etiqueta «En revisión» creada
-- [ ] Artefactos adjuntos, uno por criterio (tabla del punto 5)
-- [ ] Captura del tablero y enlace directo copiados al informe
+- [ ] **Tanda 1** — Diseño: la tarea que falta, el mapa de criterios y las listas de comprobación (~25 min)
+- [ ] **Tanda 2** — Desarrollo: las 31 tareas, 24 de ellas ya terminadas (~45 min)
+- [ ] **Tanda 3** — Pruebas: las 15 tareas, con las 332 comprobaciones (~20 min)
+- [ ] **Tanda 4** — Ámbito y Requisitos al día (~25 min)
+- [ ] **Tanda 5** — Piloto e implementación (~15 min)
+- [ ] **Tanda 6** — Etiqueta, adjuntos, captura y enlace (~20 min)
 
-> Nada de esto se puede hacer desde el repositorio: exige iniciar sesión en Microsoft 365 con la cuenta INACAP.
+> Nada de esto se puede hacer desde el repositorio: exige iniciar sesión en Planner con la cuenta INACAP. Si el tiempo aprieta, el orden que más rinde es **1 → 2 → 6**. Las tandas son independientes, así que se pueden repartir entre los dos.

@@ -1,12 +1,22 @@
-# Cargar el plan en Planner con el script — paso a paso
+# Cargar el plan en Planner con el script — no se puede en INACAP
 
-**Actualizado**: 8 de septiembre de 2026 · **Qué carga**: las **87 tareas** de [plan-desarrollo.csv](plan-desarrollo.csv) en el plan `DesarrolloSW-MuniLS-OrigamiSpA`
-
-Sigue los pasos en orden. El paso 5 es una **simulación que no escribe nada**, y existe una forma de **deshacer** la carga (paso 8), así que ningún paso es irreversible.
-
-> ⚠ **El tablero no está vacío y es compartido.** Héctor ya creó ocho tareas: «Presentación Profesor», las cinco de Diseño (GIT, Diseño MockUps, Modelo Entidad-Relación, Diagramas UML, Diagramas de Clase) y las dos de Etapas Terminadas. **El script no las toca**: omite toda tarea cuyo título ya exista. Lo que hace es llenar Ámbito, Requisitos, Desarrollo, Pruebas y Piloto, que hoy están casi vacíos.
+> # 🚫 Esta ruta está descartada
 >
-> Lo que el script **no** hace está en la **tanda 6** de [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf): la etiqueta «En revisión», adjuntar cada artefacto a su tarea, la captura del tablero y el enlace. Eso sigue siendo a mano, y es lo que decide si el trabajo se evalúa.
+> **Probado el 9 de septiembre de 2026 y no funciona con las cuentas `@inacapmail.cl`.** El tenant de INACAP tiene desactivado el consentimiento de usuario para la aplicación **Microsoft Graph Command Line Tools**, que es la que usa cualquier script de PowerShell contra Microsoft 365. El inicio de sesión termina siempre en:
+>
+> > **Need admin approval** — *Microsoft Graph Command Line Tools needs permission to access resources in your organization that only an admin can grant.*
+>
+> No es un problema del script ni de un permiso concreto. Se probó **sin** `-EmailA`/`-EmailB`, pidiendo solo `Tasks.ReadWrite` —el permiso mínimo, que en un tenant normal aprueba el propio usuario— y también lo bloquea. Se probó además con código de dispositivo, que evita la ventana nativa de Windows: mismo resultado. **Está bloqueada la aplicación entera, no el permiso.**
+>
+> Desbloquearlo exige que un administrador de INACAP conceda consentimiento a esa aplicación para todo el tenant. No es una gestión razonable a una semana de la entrega, y tampoco es nuestra decisión pedirla.
+>
+> 👉 **La ruta que sí funciona es cargar el tablero a mano: [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**, que trae el contenido exacto de cada una de las 87 tarjetas repartido en seis tandas.
+>
+> Este documento se conserva por dos razones: deja constancia de lo que se intentó y por qué no se pudo —que es justo lo que hay que poder responder si preguntan por qué no se automatizó— y sirve tal cual si algún día el proyecto se mueve a un tenant donde el consentimiento esté permitido.
+
+**Qué cargaría**: las **87 tareas** de [plan-desarrollo.csv](plan-desarrollo.csv) en el plan `DesarrolloSW-MuniLS-OrigamiSpA`.
+
+> ⚠ **El tablero no está vacío y es compartido.** Héctor ya creó ocho tareas: «Presentación Profesor», las cinco de Diseño (GIT, Diseño MockUps, Modelo Entidad-Relación, Diagramas UML, Diagramas de Clase) y las dos de Etapas Terminadas. **El script no las tocaría**: omite toda tarea cuyo título ya exista.
 
 ---
 
