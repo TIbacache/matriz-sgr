@@ -1,0 +1,58 @@
+@startuml m1-configuracion
+' M1 - Configuración organizacional y de medición (RF-001 a RF-007)
+title M1 · Configuración organizacional y de medición
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #F4F4F2
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+left to right direction
+
+rectangle "<<requirement>>\n**EP-08**\nAdministración, seguridad\ny trazabilidad" as EP08 #EFEDE8
+rectangle "<<requirement>>\n**EP-02**\nMedición y desempeño" as EP02 #EFEDE8
+
+rectangle "<<requirement>>\n**RF-001**\nAdministrar delegaciones" as RF001
+rectangle "<<requirement>>\n**RF-002**\nAdministrar usuarios y roles\n//parcial//" as RF002
+rectangle "<<requirement>>\n**RF-003**\nConfigurar cargos y sus ítems" as RF003
+rectangle "<<requirement>>\n**RF-004**\nCatálogo de actividades\ny atenciones por área\n//parcial//" as RF004
+rectangle "<<requirement>>\n**RF-005**\nConfigurar períodos\ny días computables" as RF005
+rectangle "<<requirement>>\n**RF-006**\nPonderaciones por ítem,\ncargo y período" as RF006
+rectangle "<<requirement>>\n**RF-007**\nMetas y umbrales versionados" as RF007
+
+usecase "CU-04\nConfigurar metas\ny ponderadores" as CU04
+
+EP08 --> RF001 : <<refine>>
+EP08 --> RF002 : <<refine>>
+EP08 --> RF003 : <<refine>>
+EP08 --> RF004 : <<refine>>
+EP08 --> RF005 : <<refine>>
+EP02 --> RF006 : <<refine>>
+EP02 --> RF007 : <<refine>>
+
+RF003 ..> RF006 : <<deriveReqt>>
+RF005 ..> RF007 : <<deriveReqt>>
+
+CU04 -[#5B6166,bold]-> RF006 : <<satisfy>>
+CU04 -[#5B6166,bold]-> RF007 : <<satisfy>>
+
+note bottom of RF006
+  No se puede ponderar un ítem que no
+  está asociado al cargo: por eso el alta
+  de una meta rechaza un ítem ajeno.
+end note
+
+@enduml

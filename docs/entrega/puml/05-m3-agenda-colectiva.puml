@@ -1,0 +1,62 @@
+@startuml m3-agenda-colectiva
+' M3 - Agenda colectiva, el tubo de trabajo (RF-016 a RF-021)
+title M3 · Agenda colectiva (el tubo de trabajo)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #F4F4F2
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+left to right direction
+
+rectangle "<<requirement>>\n**EP-04**\nAgenda colectiva\ny compromisos" as EP04 #EFEDE8
+
+rectangle "<<requirement>>\n**RF-016**\nCompromisos de solicitudes\ninternas o externas" as RF016
+rectangle "<<requirement>>\n**RF-017**\nSolicitante, territorio,\nárea y fecha comprometida" as RF017
+rectangle "<<requirement>>\n**RF-018**\nEstados con transiciones\ncontroladas\n//parcial//" as RF018
+rectangle "<<requirement>>\n**RF-019**\nControl de plazos\n//parcial//" as RF019
+rectangle "<<requirement>>\n**RF-020**\nEl cierre alimenta el\nindicador una sola vez\n//pendiente//" as RF020 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RF-021**\nResumen colectivo por\nfuncionario y estado\n//pendiente//" as RF021 #FFFFFF;line.dashed
+
+usecase "CU-06\nRegistrar un compromiso\nen el tubo" as CU06
+usecase "CU-07\nMover un compromiso\nde estado" as CU07
+
+EP04 --> RF016 : <<refine>>
+EP04 --> RF017 : <<refine>>
+EP04 --> RF018 : <<refine>>
+EP04 --> RF019 : <<refine>>
+EP04 --> RF020 : <<refine>>
+EP04 --> RF021 : <<refine>>
+
+RF016 ..> RF017 : <<deriveReqt>>
+RF018 ..> RF019 : <<deriveReqt>>
+RF018 ..> RF020 : <<deriveReqt>>
+RF018 ..> RF021 : <<deriveReqt>>
+
+CU06 -[#5B6166,bold]-> RF016 : <<satisfy>>
+CU06 -[#5B6166,bold]-> RF017 : <<satisfy>>
+CU07 -[#5B6166,bold]-> RF018 : <<satisfy>>
+CU07 -[#5B6166,bold]-> RF019 : <<satisfy>>
+
+note bottom of RF018
+  **Tres requisitos dependen de RF-018.**
+  Sin el estado Ingresado y sin historial de
+  transiciones no se puede saber si algo se
+  realizó fuera de plazo, ni contar el cierre
+  una sola vez, ni armar el resumen por estado.
+end note
+
+@enduml

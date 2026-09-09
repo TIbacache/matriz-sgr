@@ -1,0 +1,50 @@
+@startuml panorama
+' Diagrama de requerimientos - Panorama del sistema y sus ocho épicas
+' SGR - Sistema de Gestión de Resultados - Origami SpA
+title Panorama: el sistema y sus ocho épicas
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+rectangle "<<requirement>>\n**SGR**\nMedir y trazar la gestión de las delegaciones\nmunicipales con evidencia validada" as SGR #EFEDE8
+
+rectangle "<<requirement>>\n**EP-01**\nRegistro y gestión de actividades" as EP01
+rectangle "<<requirement>>\n**EP-02**\nMedición y desempeño" as EP02
+rectangle "<<requirement>>\n**EP-03**\nEvidencias y verificación" as EP03
+rectangle "<<requirement>>\n**EP-04**\nAgenda colectiva y compromisos" as EP04
+rectangle "<<requirement>>\n**EP-05**\nMonitoreo y control de gestión" as EP05
+rectangle "<<requirement>>\n**EP-06**\nReportabilidad y toma de decisiones" as EP06
+rectangle "<<requirement>>\n**EP-07**\nPlataforma colaborativa" as EP07
+rectangle "<<requirement>>\n**EP-08**\nAdministración, seguridad y trazabilidad" as EP08
+
+SGR --> EP01 : <<contains>>
+SGR --> EP02 : <<contains>>
+SGR --> EP03 : <<contains>>
+SGR --> EP04 : <<contains>>
+SGR --> EP05 : <<contains>>
+SGR --> EP06 : <<contains>>
+SGR --> EP07 : <<contains>>
+SGR --> EP08 : <<contains>>
+
+EP01 ..> EP02 : <<deriveReqt>>
+EP03 ..> EP02 : <<deriveReqt>>
+EP02 ..> EP05 : <<deriveReqt>>
+EP05 ..> EP06 : <<deriveReqt>>
+
+legend left
+  |= Trazo |= Significa |
+  | línea continua | <<contains>> y <<refine>> |
+  | línea punteada | <<deriveReqt>>, dependencia entre requisitos |
+endlegend
+
+@enduml

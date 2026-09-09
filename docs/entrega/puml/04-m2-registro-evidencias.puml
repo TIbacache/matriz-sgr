@@ -1,0 +1,74 @@
+@startuml m2-registro-evidencias
+' M2 - Registro personal y evidencias (RF-008 a RF-015)
+' Es el corazón del sistema: aquí nace el dato que después se mide.
+title M2 · Registro personal y evidencias
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #F4F4F2
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+left to right direction
+
+rectangle "<<requirement>>\n**EP-01**\nRegistro y gestión\nde actividades" as EP01 #EFEDE8
+rectangle "<<requirement>>\n**EP-03**\nEvidencias y verificación" as EP03 #EFEDE8
+rectangle "<<requirement>>\n**EP-02**\nMedición y desempeño" as EP02 #EFEDE8
+
+rectangle "<<requirement>>\n**RF-009**\nRegistrar actividades" as RF009
+rectangle "<<requirement>>\n**RF-010**\nValidar campos, formatos\ny coherencia" as RF010
+rectangle "<<requirement>>\n**RF-011**\nCódigo de evidencia\núnico e inmutable" as RF011
+rectangle "<<requirement>>\n**RF-015**\nAtención social con\nhasta tres gestiones" as RF015
+rectangle "<<requirement>>\n**RF-012**\nAsociar la evidencia\nal código" as RF012
+rectangle "<<requirement>>\n**RF-013**\nValidar evidencia con\nobservación obligatoria" as RF013
+rectangle "<<requirement>>\n**RF-014**\nSolo lo validado suma" as RF014
+rectangle "<<requirement>>\n**RF-008**\nFicha personal con metas,\navance y ponderado" as RF008
+
+usecase "CU-01\nRegistrar actividad\ndiaria" as CU01
+usecase "CU-02\nAdjuntar evidencia" as CU02
+usecase "CU-03\nValidar o rechazar\nuna evidencia" as CU03
+usecase "CU-05\nConsultar la ficha\ny el semáforo" as CU05
+usecase "CU-08\nRegistrar una\natención social" as CU08
+
+EP01 --> RF009 : <<refine>>
+EP01 --> RF010 : <<refine>>
+EP01 --> RF011 : <<refine>>
+EP01 --> RF015 : <<refine>>
+EP03 --> RF012 : <<refine>>
+EP03 --> RF013 : <<refine>>
+EP03 --> RF014 : <<refine>>
+EP02 --> RF008 : <<refine>>
+
+RF011 ..> RF012 : <<deriveReqt>>
+RF013 ..> RF014 : <<deriveReqt>>
+RF014 ..> RF008 : <<deriveReqt>>
+
+CU01 -[#5B6166,bold]-> RF009 : <<satisfy>>
+CU01 -[#5B6166,bold]-> RF010 : <<satisfy>>
+CU01 -[#5B6166,bold]-> RF011 : <<satisfy>>
+CU02 -[#5B6166,bold]-> RF012 : <<satisfy>>
+CU03 -[#5B6166,bold]-> RF013 : <<satisfy>>
+CU03 -[#5B6166,bold]-> RF014 : <<satisfy>>
+CU05 -[#5B6166,bold]-> RF008 : <<satisfy>>
+CU08 -[#5B6166,bold]-> RF015 : <<satisfy>>
+
+note bottom of RF014
+  La cadena RF-011 → RF-012 → RF-013 → RF-014 → RF-008
+  es el requisito más importante del sistema.
+  El código no se puede cambiar, la foto cuelga de él,
+  otra persona la valida, y **solo entonces suma**.
+end note
+
+@enduml
