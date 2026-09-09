@@ -15,7 +15,7 @@ Fuentes que mandan, en orden:
 
 | # | Criterio | Pts | Qué hay hoy | Veredicto |
 |---|---|---|---|---|
-| 1 | **Planner / Jira** | 15 | 58 tareas listas en `plan-desarrollo.csv` + script de carga. **El tablero está vacío** | 🔴 **0 pts si no se carga.** Es lo primero |
+| 1 | **Planner / Jira** | 15 | **El tablero existe y lo construyó Héctor**: 7 depósitos y 8 tareas, 5 de ellas de esta entrega con vencimiento 15/9. Pero Desarrollo, Pruebas y Piloto están vacíos | 🟠 **No está vacío: está incompleto y desactualizado.** Ver §1.bis |
 | 2 | **Diagramas de requerimientos** | 10 | **No existe** ningún artefacto de este tipo | 🔴 Hay que crearlo de cero |
 | 3 | **Caso de uso general** | 10 | `diagramas.md §2`, del 25 de agosto: 4 actores de 6, 12 casos del modelo v1, sin frontera ni «include»/«extend» | 🟠 Rehacer |
 | 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **Cero fichas.** La guía propone 10 CU con actor y RF, y desarrolla CU-03 como plantilla | 🔴 El criterio más caro y el más vacío |
@@ -25,6 +25,39 @@ Fuentes que mandan, en orden:
 | 8 | **Mockup funcional + Git** | 10 | 8 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | 🟢 **Es lo más fuerte que tenemos.** Faltan los escenarios alternativos |
 
 **Lectura del cuadro**: de 100 puntos, **85 dependen de artefactos de análisis y diseño que hoy no existen o están obsoletos**, y solo 10 dependen del software, que es justamente lo que está terminado. La entrega no se juega en el código: se juega en documentar lo construido.
+
+---
+
+## 1.bis El Planner real, y por qué el plan de carga ya no sirve tal cual
+
+El tablero `P2-C1/DesarrolloSW-MuniLS-OrigamiSpA` **no está vacío**. Tiene los siete depósitos de la plantilla del profesor y ocho tareas:
+
+| Depósito | Tareas |
+|---|---|
+| Ámbito | — |
+| Requisitos de análisis o software | ✅ Presentación Profesor |
+| **Diseño** | **GIT** (0/1) · **Diseño MockUps** (0/3) · **Modelo Entidad-Relación** (0/3) · **Diagramas UML** (0/1) · **Diagramas de Clase** (0/1) — las cinco con vencimiento **15/9** y responsables asignados |
+| Desarrollo | — |
+| Pruebas | — |
+| Piloto e implementación | — |
+| Etapas Terminadas | ✅ Entrega de Requerimientos funcionales-No funcionales · ✅ Presentación Problemática (marcada urgente) |
+
+Eso cambia tres cosas del plan:
+
+**1. El problema no es que el tablero esté vacío: es que dice algo que no es cierto.** Desarrollo, Pruebas y Piloto sin una sola tarea describen un proyecto que todavía no empieza a construir, cuando hay **quince bloques cerrados, 332 comprobaciones en verde y quince etiquetas de versión**. La rúbrica pide «backlog del proyecto organizado y priorizado» y «estados de trabajo claramente diferenciados»: un tablero que solo muestra la entrega en curso deja fuera el 80% del trabajo hecho, y es justo lo que da los 15 puntos.
+
+**2. Falta la tarea del diagrama de requerimientos.** Las cinco tareas de Diseño cubren GIT (criterio 8), mockups (8), MER (6 y 7), UML (3 y 4) y clases (5). **El criterio 2 —Diagramas de requerimientos, 10 puntos— no tiene tarea que lo represente.**
+
+**3. NO ejecutar `cargar-plan-planner.ps1` a ciegas.** El script es idempotente *por título exacto*, y los títulos del CSV no coinciden con los que escribió Héctor: «Modelo entidad-relación inicial» (CSV) contra «Modelo Entidad-Relacion» (tablero) son la misma tarea con dos nombres, y quedarían las dos. Además el CSV es del 1 de septiembre y **marca como Bloqueado el modelo de datos v2 y las historias por funcionario, que están construidos y verificados**.
+
+**Qué hacer entonces** (y hay que coordinarlo con Héctor, porque el tablero es suyo tanto como nuestro):
+
+- **Conservar sus cinco tareas de Diseño**: están bien planteadas, tienen fecha y responsables, y son exactamente los entregables de la rúbrica.
+- **Agregar la que falta**: «Diagrama de Requerimientos», mismo depósito, misma fecha.
+- **Poblar Desarrollo y Pruebas con lo ya hecho, marcado como Completado**, para que el tablero cuente la verdad. Salen del CSV y de las etiquetas de git: modelo v2, API del registro y la validación, metas por funcionario, ficha personal, bandeja del verificador, identidad visual, ficha del vecino, rutas endurecidas, atención social, solicitud en el tubo, dashboard v2 y control de actividad.
+- **Actualizar `plan-desarrollo.csv` antes de cargarlo**: revisar los 27 «Pendiente» y los 8 «Bloqueado» contra el estado real, y renombrar los títulos que chocan con los de Héctor.
+- **Estados**: Planner básico solo tiene *No iniciada / En curso / Completada*, y la rúbrica menciona cuatro («Por hacer, En desarrollo, En revisión, Finalizado»). Se cubre con **etiquetas de color** para «En revisión», y se explica en el informe. No es un problema real, pero conviene decirlo antes de que lo pregunten.
+- **Capturar el tablero** una vez poblado: la rúbrica pide la captura y el enlace.
 
 > ⚠ **El desfase no es casual.** Los diagramas son del 25 de agosto y describen el modelo v1: `metas` por unidad × categoría, la vista materializada `cumplimiento_ponderado_vista`, un cron que la refresca y umbrales «verde ≥80, amarillo 50-79, rojo <50». Nada de eso existe desde el Bloque C, y los umbrales nunca fueron esos. **Presentar esos diagramas sería entregar un sistema que no es el nuestro**, y el criterio transversal de la rúbrica es precisamente la coherencia entre artefactos.
 
@@ -70,7 +103,7 @@ El mapa del docente incluye «Modal de error», «Mensaje de búsqueda sin resul
 
 ### 3.1 Lo primero, y sin ello nada cuenta
 
-- **Cargar el Planner** (15 pts). 58 tareas, con responsable, estado, prioridad y fechas. El docente dijo que solo revisará el Planner: **un entregable que no está adjunto ahí no se evalúa**.
+- **Completar el Planner** (15 pts) según §1.bis: conservar lo que hay, agregar la tarea del diagrama de requerimientos, poblar Desarrollo y Pruebas con lo ya construido y capturar el tablero. El docente dijo que solo revisará el Planner: **un entregable que no está adjunto ahí no se evalúa**, y cada artefacto de esta entrega debe quedar colgado de su tarea.
 
 ### 3.2 Artefactos nuevos (los 85 puntos restantes)
 
@@ -107,7 +140,7 @@ Hay que separar dos cosas que se confunden fácil:
 
 | Pendiente | Por qué se resuelve ahora |
 |---|---|
-| 🔴 **El Planner no está cargado** | Es el criterio 1 de la rúbrica |
+| **El Planner no refleja el trabajo hecho** (Desarrollo, Pruebas y Piloto vacíos) y le falta la tarea del diagrama de requerimientos | Es el criterio 1 de la rúbrica, 15 pts |
 | **`docs/diagramas.md` describe el modelo v1** | Es el criterio 6, y presentarlo sería incoherente |
 | **No hay diagrama de clases** | Es el criterio 5 (15 pts) |
 | **No hay casos de uso** | Es el criterio 4 (20 pts) |
@@ -186,8 +219,8 @@ El trabajo se corta por artefacto, no por archivo, para que nadie espere a nadie
 
 | Persona | Se lleva | Por qué |
 |---|---|---|
-| **A** | Planner (1), diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
-| **B** | Clases (5), DER (6), script MySQL (7) | Es la cadena «cómo está construido» y sale del esquema real |
+| **A** (Tomás) | Planner (1) junto con Héctor, diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
+| **B** (Héctor) | Clases (5), DER (6), script MySQL (7) | Es la cadena «cómo está construido» y sale del esquema real. **Ya tiene esas tres tareas creadas en el Planner** |
 | **Ambos** | Las 12 fichas de CU (4) — seis cada uno, con la misma plantilla | Es el criterio más caro (20 pts) y el más divisible |
 | **Quien tenga el entorno arriba** | Escenarios del mockup (8) y el PDF de estado (11) | Necesitan los dos servidores y la base sembrada |
 
@@ -195,7 +228,8 @@ El trabajo se corta por artefacto, no por archivo, para que nadie espere a nadie
 
 ## 7. Comprobación final, antes de entregar
 
-- [ ] El Planner tiene las 58 tareas con responsable, estado y prioridad, y hay captura del tablero.
+- [ ] El Planner refleja el trabajo real: Desarrollo y Pruebas dejaron de estar vacíos, existe la tarea del diagrama de requerimientos, y hay captura del tablero y enlace.
+- [ ] Cada artefacto de la entrega está adjunto o enlazado desde su tarea de Planner.
 - [ ] Cada RF y RNF tiene código único y aparece en el diagrama de requerimientos.
 - [ ] El caso de uso general muestra la frontera del sistema y los seis actores.
 - [ ] Hay **al menos 10** CU específicos con diagrama **y** ficha completa. Son 12.

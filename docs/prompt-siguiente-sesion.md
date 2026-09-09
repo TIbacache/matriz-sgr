@@ -3,7 +3,7 @@
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
 **Última actualización**: 6 de septiembre de 2026 · `main` en la etiqueta `v0.15.0-control-actividad`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts) y, antes que nada, el **Planner**. El código está terminado para esta entrega; lo que falta son los artefactos de análisis y diseño.
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). El código está terminado para esta entrega; lo que falta son los artefactos de análisis y diseño. El Planner **ya existe** (lo construyó Héctor) y hay que completarlo, no cargarlo de cero.
 
 ---
 
@@ -59,12 +59,32 @@ TAREA — en este orden, porque las dependencias importan (el diagrama de
 requerimientos define los CU, los CU definen las clases y las pantallas, y el
 DER define el script; hacerlo al revés obliga a rehacer):
 
-  1. CARGAR EL PLANNER. 15 puntos, no depende de nada y sin él la nota tiene
-     techo: el docente dijo que SOLO revisará el Planner. Están las 58 tareas
-     en docs/plan-desarrollo.csv, el script scripts/cargar-plan-planner.ps1 y
-     la guía docs/guia-cargar-planner.md. La rúbrica pide backlog priorizado,
-     épicas, historias, responsables, estados diferenciados, fechas/hitos,
-     prioridad y captura del tablero.
+  1. COMPLETAR EL PLANNER (15 pts). ⚠ EL TABLERO NO ESTÁ VACÍO: lo construyó
+     Héctor y tiene los siete depósitos de la plantilla del profesor más ocho
+     tareas — cinco de esta entrega en el depósito Diseño (GIT, Diseño
+     MockUps, Modelo Entidad-Relación, Diagramas UML, Diagramas de Clase),
+     todas con vencimiento 15/9, con checklists y responsables. Lee §1.bis del
+     plan antes de tocarlo. Lo que hay que hacer:
+       a) Agregar la tarea que FALTA: «Diagrama de Requerimientos» (criterio 2,
+          10 pts, hoy sin dueño en el tablero).
+       b) Poblar Desarrollo y Pruebas con lo YA CONSTRUIDO, marcado como
+          Completado. Hoy están vacíos, así que el tablero describe un proyecto
+          que no ha empezado a desarrollar cuando hay 15 bloques cerrados y 332
+          comprobaciones en verde. Eso es lo que resta puntos.
+       c) NO ejecutar scripts/cargar-plan-planner.ps1 a ciegas. Es idempotente
+          por título EXACTO, y los títulos del CSV no coinciden con los de
+          Héctor («Modelo entidad-relación inicial» vs «Modelo
+          Entidad-Relacion»): quedarían pares duplicados. Además el CSV es del
+          1 de septiembre y marca como Bloqueado el modelo v2 y las historias
+          por funcionario, que están construidos. Hay que actualizar el CSV
+          antes, o cargar a mano lo que falte.
+       d) El tablero es COMPARTIDO: coordinar con Héctor antes de reorganizar
+          lo suyo.
+       e) Planner básico solo tiene No iniciada / En curso / Completada, y la
+          rúbrica menciona cuatro estados. Cubrir «En revisión» con etiqueta de
+          color y explicarlo en el informe.
+       f) Capturar el tablero y dejar cada artefacto adjunto o enlazado desde
+          su tarea: lo que no está en Planner, no se evalúa.
 
   2. DIAGRAMA DE REQUERIMIENTOS (10 pts). No existe. Los 38 RF y 18 RNF con
      código único, agrupados por épica, relacionados con actores y módulos, y
