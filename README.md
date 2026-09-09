@@ -14,7 +14,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 12 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
 | [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md) | Columnas, catálogos, códigos y fórmulas extraídos de la planilla en producción |
 | [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) | HU ↔ requisito ↔ commit ↔ prueba (exigida por los profesores) |
-| [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | 11 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, ítems, tipografía y los dos rojos |
+| [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | 15 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, ítems, tipografía, los dos rojos, la ficha del vecino (ADR-012), las tres gestiones (ADR-013), la consolidación por delegación (ADR-014) y el control de actividad (ADR-015) |
 
 ### Diseño y desarrollo
 
@@ -23,6 +23,8 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | [DESIGN.md](DESIGN.md) | Guía visual normativa: identidad de la Municipalidad de La Serena (§10), tipografías, paleta, accesibilidad, criterios por pantalla, lista negra |
 | [docs/estado-proyecto.md](docs/estado-proyecto.md) | Estado por fase, contrato de API y Socket.io, deuda técnica |
 | **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** | **Qué sigue, en qué orden, cabos sueltos y trampas del entorno** |
+| **[docs/plan-entrega-15-septiembre.md](docs/plan-entrega-15-septiembre.md)** | **Plan de la primera evaluación**: la rúbrica criterio por criterio, las decisiones tomadas, los 12 casos de uso y el reparto |
+| [docs/rubrica-entrega-15-septiembre.md](docs/rubrica-entrega-15-septiembre.md) | La rúbrica oficial y el ejemplo del docente, transcritos |
 | [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) | Prompt listo para abrir una sesión nueva sin perder contexto |
 | [docs/diagramas.md](docs/diagramas.md) | Contexto, casos de uso, ERD y secuencia de tiempo real |
 | [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente con citas de la reunión |

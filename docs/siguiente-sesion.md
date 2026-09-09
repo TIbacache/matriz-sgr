@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 6 de septiembre de 2026 (cierre del panel de control de actividad, RF-030)
+**Actualizado**: 6 de septiembre de 2026 (cierre del panel RF-030 y plan de la entrega del 15 de septiembre)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -186,7 +186,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 **Lo que sigue, en este orden** (acordado el 3 de septiembre al cerrar el Bloque C):
 
 1. 🔴 **El Planner** — bloqueante y no depende de nada del código. El docente dijo que **solo** revisará el Planner: lo que no esté adjunto ahí no se evalúa, por mucho que esté en el repositorio. Receta lista en [guia-cargar-planner.md](guia-cargar-planner.md) y `scripts/cargar-plan-planner.ps1`.
-2. **Entrega del 15 de septiembre** — mockups, MER, modelo de datos, diagrama de clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en [Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx). Tiene fecha encima y el dashboard nuevo hay que volver a capturar (`npm run mockups`).
+2. **Entrega del 15 de septiembre** — plan operativo completo en **[plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md)**, escrito contra la rúbrica oficial (100 pts, 8 criterios). Lo esencial: **85 de los 100 puntos dependen de artefactos que hoy no existen o describen el modelo v1**, y solo 10 dependen del software, que es lo que está terminado. Hay que crear de cero el diagrama de requerimientos, el de clases y los 12 casos de uso con sus fichas, y rehacer el caso de uso general y el DER. El script se pide en **MySQL** y el sistema corre en PostgreSQL: decisión D-1 del plan y **consulta abierta nº 13**.
 3. ~~**Panel de actividad de usuarios** (RF-030, HU-19)~~ ✅ **terminado el 4 de septiembre**: `/actividad` responde las tres preguntas del docente —quién registró, **quién no** y quién está conectado—, con presencia a nivel de organización y alcance restringido a admin y coordinador ([ADR-015](decisiones-tecnicas.md)).
 4. **Bloque D — pruebas formales y CI**, y después el **Bloque E — despliegue**.
 
@@ -219,7 +219,10 @@ Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo q
 | Exportación de informes (RF-033, HU-20) sin implementar | — | Media |
 | ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |
 | 🔴 **El plan del Planner no está cargado, y el docente dijo que SOLO revisará el Planner** (clase del 1-09-2026). Lo que no esté adjunto ahí no se evalúa, por mucho que esté en el repositorio. Receta lista en [guia-cargar-planner.md](guia-cargar-planner.md) | `scripts/cargar-plan-planner.ps1` | **Bloqueante** |
-| **Entrega del 15 de septiembre**: mockups, MER, modelo de datos, diagrama de clases, diagramas UML, historias y 10 casos de uso. Guía paso a paso en [Guia-Entregables-15-septiembre.docx](Guia-Entregables-15-septiembre.docx) | documentación | Alta |
+| **Entrega del 15 de septiembre**: plan operativo en [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md), contra la rúbrica oficial. La [guía en .docx](Guia-Entregables-15-septiembre.docx) es del 1 de septiembre (`v0.7.1`) y quedó desfasada: sirve su paso a paso y su ficha de ejemplo de CU-03, no su estado | documentación | **Alta, con fecha** |
+| 🔴 **`docs/diagramas.md` describe el modelo v1**: `metas`, la vista materializada, el cron y umbrales «50-79» que nunca existieron. Cuatro diagramas del 25 de agosto. Presentarlos en la entrega sería describir un sistema que no es el nuestro | `docs/diagramas.md` | **Alta** |
+| **No existe diagrama de clases** (15 pts de la rúbrica) ni **casos de uso con ficha** (20 pts). Es el 35% de la nota de la primera evaluación | `docs/entrega/` | **Alta** |
+| `README.md` dice «11 ADR» y son 15; `historias-usuario.md` sigue en las 20 historias propias sin decir que las 31 oficiales mandan | README, docs | Media |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | **`GET /cumplimiento/:periodoId` entrega el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11. Detectado en el Bloque C, anotado y no cambiado en silencio | `cumplimiento.routes.ts` | Media |
 | **El seed tarda ~15 minutos**: genera y escribe ~2.400 PNG de evidencia uno por uno. Se arregla escribiendo en paralelo; no bloquea nada, pero conviene saberlo antes de correrlo | `prisma/seed.ts` | Baja |
