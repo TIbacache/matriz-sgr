@@ -45,29 +45,23 @@ También se endureció `scripts/cargar-plan-planner.ps1`: acepta el estado **«E
 
 ---
 
-## 3. Cómo se carga: a mano, y lo hace Héctor
+## 3. Cómo se carga: con el script, y lo corre Tomás
 
-**Decisión del 8 de septiembre**: el tablero se completa **a mano**, tarea por tarea, y lo hace Héctor. El script queda como respaldo, no como la ruta.
+**Decisión del 8 de septiembre.** Se evaluaron las dos rutas y la decisión cambió dos veces en el mismo día, así que conviene dejar el rastro:
 
-La razón es de equipo, no técnica. Héctor pidió explícitamente aportar y aprender; cargar 87 tareas de un golpe con un script le quita justo la parte donde se entiende cómo se organiza un proyecto y qué está evaluando la rúbrica. Además el tablero es suyo tanto como nuestro, y quien lo carga es quien después sabe qué hay dentro.
+1. Primero se decidió cargar **a mano**, porque Héctor pidió aportar y aprender, y 87 tareas de un golpe se saltan la parte donde se entiende cómo se organiza el proyecto.
+2. **Héctor liberó esa ruta**: prefiere que la carga masiva vaya con el script. La decisión final es esa.
 
-👉 **La guía es [guia-planner-hector.pdf](guia-planner-hector.pdf)**: seis tandas, cada una con su duración, el contenido exacto de cada tarjeta y el porqué de cada bloque. Este documento sigue sirviendo para entender **qué se corrigió del plan viejo** (punto 2) y **qué criterio cuelga de qué tarea** (punto 5).
+Lo que **no** cambia: la carga en lote resuelve el volumen, no el criterio. Los pasos que deciden la nota —la etiqueta del cuarto estado, adjuntar cada artefacto a su tarea, la captura y el enlace— siguen siendo a mano y siguen en la **tanda 6** de [guia-planner-hector.pdf](guia-planner-hector.pdf). Esa guía tampoco pierde valor: explica **qué es cada tarea y por qué está ahí**, que es lo que hay que saber cuando el profesor pregunte.
 
-Ventaja lateral: al hacerlo a mano desaparece el riesgo del script, que deduplica por **título exacto** — un acento distinto entre el CSV y una tarea del tablero crearía la tarea dos veces.
+👉 **El paso a paso del script es [../guia-cargar-planner.md](../guia-cargar-planner.md)**, con los correos institucionales, la simulación previa, la comprobación posterior y cómo deshacer.
 
-### El script, si alguna vez hace falta
+### El riesgo que reaparece, y cómo se cubre
 
-Sigue en el repositorio, actualizado y funcionando:
+El script deduplica **por título exacto**: un acento distinto entre el CSV y una tarea del tablero crearía la tarea dos veces. Se cubre con dos cosas:
 
-```powershell
-Install-Module Microsoft.Graph.Authentication, Microsoft.Graph.Planner -Scope CurrentUser -Force
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-# SIMULAR primero. No escribe nada.
-.\scripts\cargar-plan-planner.ps1 -SoloSimular
-```
-
-Si se usara, en la simulación hay que comprobar que ninguna línea `+ [simulado]` repita un título ya presente en el tablero, y que el recuento final diga **87 creadas** la primera vez y **0 creadas / 87 omitidas** en la segunda.
+- **La simulación previa** (`-SoloSimular`) lista lo que crearía. Si ahí aparece «Modelo Entidad-Relación», «Diseño MockUps», «Diagramas UML», «Diagramas de Clase», «GIT» o «Presentación Profesor», hay que parar.
+- **`-Deshacer`**, agregado el 8 de septiembre para esta carga. Borra del plan solo las tareas cuyo título está en el CSV, así que las ocho de Héctor quedan intactas. Sin `-Confirmo` solo las lista, y además imprime la lista de las que **no** tocaría.
 
 ---
 
@@ -120,16 +114,17 @@ Hecho en el repositorio:
 
 - [x] `docs/plan-desarrollo.csv` reescrito contra el estado real: 87 tareas, ninguna bloqueada, sin choques de título
 - [x] `docs/plan-desarrollo.md` actualizado como vista humana del mismo plan
-- [x] `scripts/cargar-plan-planner.ps1` acepta «En revisión» y avisa de estados o prioridades desconocidos
-- [x] `docs/entrega/guia-planner-hector.pdf` — la guía de carga a mano, en seis tandas (fuente: el `.md` del mismo nombre; se regenera con `cd frontend && npm run guia:planner`)
+- [x] `scripts/cargar-plan-planner.ps1`: acepta «En revisión», avisa de estados o prioridades desconocidos y trae `-Deshacer` para revertir la carga
+- [x] `docs/guia-cargar-planner.md` — el paso a paso del script, con los correos institucionales
+- [x] `docs/entrega/guia-planner-hector.pdf` — qué es cada tarea, por qué está ahí y los pasos que van a mano (fuente: el `.md` del mismo nombre; se regenera con `cd frontend && npm run guia:planner`)
 
-Pendiente en el tablero, y lo hace Héctor siguiendo la guía:
+Pendiente en el tablero:
 
-- [ ] **Tanda 1** — Diseño: la tarea que falta y el mapa de criterios (~25 min)
-- [ ] **Tanda 2** — Desarrollo: las 31 tareas, 24 de ellas ya terminadas (~45 min)
-- [ ] **Tanda 3** — Pruebas: las 15 tareas, con las 332 comprobaciones (~20 min)
-- [ ] **Tanda 4** — Ámbito y Requisitos al día (~25 min)
-- [ ] **Tanda 5** — Piloto e implementación (~15 min)
-- [ ] **Tanda 6** — Etiqueta, adjuntos, captura y enlace (~20 min)
+- [ ] Simulación corrida y revisada (`-SoloSimular`), comprobando que ninguna tarea de Héctor aparece como «se crearía»
+- [ ] Carga real ejecutada: **87 creadas**
+- [ ] Comprobación posterior: la simulación vuelve a correr y dice **0 creadas / 87 omitidas**
+- [ ] Etiqueta «En revisión» creada
+- [ ] Artefactos adjuntos, uno por criterio (tabla del punto 5)
+- [ ] Captura del tablero y enlace directo copiados al informe
 
-> Nada de esto se puede hacer desde el repositorio: exige iniciar sesión en Microsoft 365 con la cuenta del equipo. Si el tiempo aprieta, el orden que más rinde es **1 → 2 → 6**.
+> Nada de esto se puede hacer desde el repositorio: exige iniciar sesión en Microsoft 365 con la cuenta INACAP.

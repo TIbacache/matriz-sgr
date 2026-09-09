@@ -39,8 +39,8 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | **[docs/mockups/](docs/mockups/)** | **Las ocho pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
 | [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | El plan en formato tabla: 87 tareas con fecha, responsable, estado y prioridad |
-| **[docs/entrega/guia-planner-hector.pdf](docs/entrega/guia-planner-hector.pdf)** | **Guía para completar el tablero de Planner a mano**, en seis tandas |
-| [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Cargar el plan con el script de Microsoft Graph (respaldo) |
+| **[docs/guia-cargar-planner.md](docs/guia-cargar-planner.md)** | **Cargar las 87 tareas en Planner**: simulación, carga, comprobación y cómo deshacer |
+| [docs/entrega/guia-planner-hector.pdf](docs/entrega/guia-planner-hector.pdf) | Qué es cada tarea del tablero y por qué está ahí, y los pasos que van a mano (etiqueta, adjuntos, captura) |
 | [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Visión inicial del equipo (histórico, superado en parte) |
 
 ## Estructura

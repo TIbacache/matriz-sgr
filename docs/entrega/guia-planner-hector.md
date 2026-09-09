@@ -2,11 +2,14 @@
 
 **Para**: Héctor · **Entrega**: 15 de septiembre de 2026 · **Vale**: 15 de los 100 puntos de la evaluación
 
-> **Este archivo es la fuente; para leerlo usa el PDF**: `docs/entrega/guia-planner-hector.pdf`. Si hay que corregir algo, se corrige aquí y se regenera con `cd frontend && npm run guia:planner` — editar el PDF a mano lo dejaría desincronizado.
+> **Las 87 tareas se cargaron con el script.** Esta guía se escribió para armar el tablero a mano; al final se decidió cargar en lote. **Sigue sirviendo para dos cosas, y son las que deciden la nota:**
+>
+> - **Saber qué es cada tarea y por qué está ahí.** Las tandas 2 a 5 describen tarjeta por tarjeta lo que quedó en el tablero: qué significa cada bloque, qué etiqueta de versión lo respalda y qué requisito cubre. Es lo que hay que poder responder si el profesor pregunta.
+> - **La tanda 6, que ningún script hace**: la etiqueta «En revisión», adjuntar cada artefacto a su tarea, la captura y el enlace. **Lo que no está adjunto en Planner, no se evalúa.**
+>
+> Además, el punto 3.2 (el mapa de los ocho criterios) y el 3.3 (las listas de comprobación de las cinco tareas de Héctor) siguen pendientes y no salen del CSV.
 
-Esta guía es para que armes el tablero **tú**, tarea por tarea, entendiendo qué estás poniendo y por qué. No hay ningún script involucrado: todo se hace a mano en Planner, en el navegador.
-
-Está partida en **seis tandas** que se pueden hacer en días distintos. Cada una dice cuánto demora y qué se gana con ella. Si el tiempo aprieta, la tanda 1 y la tanda 6 son las que no se pueden saltar.
+Está partida en **seis tandas**. Cada una dice cuánto demora y qué se gana con ella.
 
 ---
 

@@ -26,6 +26,15 @@ editar el CSV para agregar solo lo nuevo.
   # Cargar de verdad, asignando responsables:
   .\scripts\cargar-plan-planner.ps1 -EmailA tomas@dominio.cl -EmailB companero@dominio.cl
 
+.EXAMPLE
+  # Ver qué borraría si hubiera que deshacer la carga (no borra nada):
+  .\scripts\cargar-plan-planner.ps1 -Deshacer
+
+.EXAMPLE
+  # Deshacer de verdad. Solo borra tareas cuyo título esté en el CSV, así que
+  # las que se crearon a mano en el tablero quedan intactas:
+  .\scripts\cargar-plan-planner.ps1 -Deshacer -Confirmo
+
 .NOTES
 En el CSV, la columna Responsable usa A / B / Ambos. Si no pasas los correos,
 las tareas se crean sin asignar (se pueden asignar a mano en Planner).
@@ -35,7 +44,12 @@ param(
     [string]$CsvPath = "$PSScriptRoot\..\docs\plan-desarrollo.csv",
     [string]$EmailA,
     [string]$EmailB,
-    [switch]$SoloSimular
+    [switch]$SoloSimular,
+    # Deshacer una carga: borra del plan las tareas cuyo título esté en el CSV.
+    # Como compara por título exacto, no toca las tareas creadas a mano que no
+    # estén en el CSV. Sin -Confirmo solo las lista.
+    [switch]$Deshacer,
+    [switch]$Confirmo
 )
 
 $ErrorActionPreference = "Stop"
@@ -151,6 +165,47 @@ function ComoFechaUtc([string]$fecha) {
 $existentes = Get-MgPlannerPlanTask -PlannerPlanId $planId
 $titulosExistentes = @($existentes | ForEach-Object { $_.Title })
 $creadas = 0; $omitidas = 0
+
+# ------------------------------------------------------------------ Deshacer
+if ($Deshacer) {
+    $titulosCsv = @($filas | ForEach-Object { $_.Titulo })
+    $aBorrar = @($existentes | Where-Object { $titulosCsv -contains $_.Title })
+
+    if (-not $aBorrar) {
+        Write-Host "No hay ninguna tarea del CSV en el plan. Nada que deshacer." -ForegroundColor Green
+        return
+    }
+
+    Write-Host ""
+    Write-Host "Tareas del plan que coinciden con el CSV ($($aBorrar.Count)):" -ForegroundColor Yellow
+    $aBorrar | ForEach-Object { Write-Host "  - $($_.Title)" }
+
+    $intactas = @($existentes | Where-Object { $titulosCsv -notcontains $_.Title })
+    Write-Host ""
+    Write-Host "NO se tocan ($($intactas.Count)):" -ForegroundColor Cyan
+    $intactas | ForEach-Object { Write-Host "  - $($_.Title)" }
+
+    if (-not $Confirmo) {
+        Write-Host ""
+        Write-Host "Esto fue solo un listado. Para borrarlas de verdad, repite el comando agregando -Confirmo" -ForegroundColor Yellow
+        return
+    }
+
+    $borradas = 0
+    foreach ($t in $aBorrar) {
+        try {
+            Remove-MgPlannerTask -PlannerTaskId $t.Id -IfMatch $t.AdditionalProperties["@odata.etag"] -ErrorAction Stop
+            Write-Host "  - borrada: $($t.Title)" -ForegroundColor DarkGray
+            $borradas++
+        }
+        catch {
+            Write-Warning "No se pudo borrar '$($t.Title)': $($_.Exception.Message)"
+        }
+    }
+    Write-Host ""
+    Write-Host "Borradas: $borradas de $($aBorrar.Count)." -ForegroundColor Cyan
+    return
+}
 
 foreach ($fila in $filas) {
     if ($titulosExistentes -contains $fila.Titulo) {

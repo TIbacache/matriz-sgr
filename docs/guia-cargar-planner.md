@@ -1,85 +1,101 @@
-# Guía paso a paso: cargar el plan en Planner con el script
+# Cargar el plan en Planner con el script — paso a paso
 
-> ⚠ **Esta no es la ruta elegida.** Desde el 8 de septiembre de 2026 el tablero se completa **a mano**, siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf). Este documento queda como respaldo, por si alguna vez conviene cargar en lote.
+**Actualizado**: 8 de septiembre de 2026 · **Qué carga**: las **87 tareas** de [plan-desarrollo.csv](plan-desarrollo.csv) en el plan `DesarrolloSW-MuniLS-OrigamiSpA`
+
+Sigue los pasos en orden. El paso 5 es una **simulación que no escribe nada**, y existe una forma de **deshacer** la carga (paso 8), así que ningún paso es irreversible.
+
+> ⚠ **El tablero no está vacío y es compartido.** Héctor ya creó ocho tareas: «Presentación Profesor», las cinco de Diseño (GIT, Diseño MockUps, Modelo Entidad-Relación, Diagramas UML, Diagramas de Clase) y las dos de Etapas Terminadas. **El script no las toca**: omite toda tarea cuyo título ya exista. Lo que hace es llenar Ámbito, Requisitos, Desarrollo, Pruebas y Piloto, que hoy están casi vacíos.
 >
-> Y una advertencia si se usa: el script deduplica **por título exacto**, y el tablero ya tiene ocho tareas creadas a mano. Un acento distinto entre el CSV y el título real crearía la tarea dos veces. Correr siempre `-SoloSimular` primero y revisar la salida completa.
-
-Para alguien que nunca ha usado Planner ni ha corrido un script de PowerShell. Sigue los pasos en orden; ninguno borra nada y el paso 4 es una **simulación** que no escribe.
+> Lo que el script **no** hace está en la **tanda 6** de [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf): la etiqueta «En revisión», adjuntar cada artefacto a su tarea, la captura del tablero y el enlace. Eso sigue siendo a mano, y es lo que decide si el trabajo se evalúa.
 
 ---
 
-## Antes de empezar: ¿qué vamos a hacer?
+## Paso 1 — Abrir la terminal en la carpeta del proyecto
 
-Tienes un plan en Planner (`DesarrolloSW-MuniLS-OrigamiSpA`) con **6 columnas vacías** (Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto). En Planner esas columnas se llaman **depósitos** (buckets).
+El script debe correr **dentro de la carpeta del repositorio**, si no, no encuentra el CSV.
 
-Vamos a llenar esas columnas con las 58 tareas del plan, cada una con su fecha, en vez de escribirlas a mano una por una. Eso lo hace el script `cargar-plan-planner.ps1`, que lee el archivo `docs/plan-desarrollo.csv` y las va creando por ti.
+**En VS Code** (lo más fácil, ya está abierto):
 
----
-
-## Paso 1 — Abrir la terminal en la carpeta correcta
-
-El script debe correr **dentro de la carpeta del proyecto**, si no, no encuentra el CSV.
-
-**En VS Code** (lo más fácil, ya lo tienes abierto):
-1. Menú **Terminal → Nuevo terminal** (o el atajo `Ctrl` + `` ` ``, la tecla del acento grave, arriba a la izquierda del teclado).
-2. Abajo se abre un panel negro. Mira que en la esquina derecha de ese panel diga **PowerShell**. Si dice otra cosa, haz clic en la flechita `∨` del `+` y elige *PowerShell*.
-3. Escribe esto y presiona Enter para confirmar dónde estás parado:
+1. Menú **Terminal → Nuevo terminal**, o el atajo `Ctrl` + `` ` `` (la tecla del acento grave, arriba a la izquierda).
+2. Abajo se abre un panel. Mira que en la esquina derecha diga **PowerShell**. Si dice *bash* o *cmd*, haz clic en la flechita `∨` junto al `+` y elige **PowerShell**.
+3. Confirma dónde estás:
 
 ```powershell
 cd c:\Users\zgf\Documents\Scripts\matriz-sgr
 ```
 
-Para comprobar que estás bien, escribe `ls` y presiona Enter: deberías ver las carpetas `backend`, `frontend`, `docs`, `scripts`.
+Para comprobarlo, escribe `ls` y Enter: deberías ver `backend`, `frontend`, `docs`, `scripts`.
 
 ---
 
-## Paso 2 — Instalar los módulos (solo la primera vez)
+## Paso 2 — Preparar PowerShell (solo la primera vez)
 
-Son las "piezas" que le permiten a PowerShell hablar con Microsoft 365. Copia y pega esta línea completa, Enter:
+Los tres comandos van **uno por uno**, esperando que termine cada uno.
 
 ```powershell
+# Que la galería de módulos se pueda alcanzar por TLS 1.2 (PowerShell 5.1 lo necesita)
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# El proveedor que descarga módulos
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force
+
+# Los dos módulos de Microsoft Graph que usa el script
 Install-Module Microsoft.Graph.Authentication, Microsoft.Graph.Planner -Scope CurrentUser -Force
 ```
 
-- Demora **2 a 5 minutos**. Verás una barra de progreso; es normal.
-- Si pregunta *"¿Está seguro de que desea instalar los módulos desde 'PSGallery'?"* escribe `S` (o `Y`) y Enter.
-- Si dice que el repositorio "no es de confianza", es normal: acepta.
-
-**Esto se hace una sola vez.** La próxima vez saltas directo al paso 4.
+- El último demora **2 a 5 minutos** y muestra una barra de progreso. Es normal.
+- Si pregunta si confías en el repositorio `PSGallery`, responde `S` (o `Y`) y Enter.
+- `-Scope CurrentUser` significa que **no hace falta ser administrador** del equipo.
 
 ---
 
-## Paso 3 — Permitir la ejecución de scripts (solo la primera vez)
+## Paso 3 — Permitir la ejecución de scripts (cada vez que abras una terminal nueva)
 
-Windows bloquea scripts por defecto. Esta línea lo permite **solo en esta ventana de terminal** (al cerrarla vuelve todo como estaba, así que es seguro):
+Windows bloquea los scripts por defecto. Esta línea lo permite **solo en esta ventana**; al cerrarla vuelve todo como estaba:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 ```
 
-No muestra nada si funcionó. Si te aparece un error rojo, avísame.
+No muestra nada si funcionó.
 
 ---
 
-## Paso 4 — LA SIMULACIÓN (esto no escribe nada) 🔍
+## Paso 4 — Los correos del equipo
 
-Aquí está lo que preguntaste. El "modo simulación" es el texto `-SoloSimular` al final de la línea. Con eso el script **lee todo, se conecta, revisa tu plan y te muestra qué haría, pero no crea ninguna tarea**:
+El script asigna responsables si le pasas los dos correos institucionales:
+
+| Letra en el CSV | Persona | Correo |
+|---|---|---|
+| `A` | Tomás | `tomas.ibacache@inacapmail.cl` |
+| `B` | Héctor | `hector.vergara24@inacapmail.cl` |
+| `Ambos` | los dos | — |
+
+> ⚠ **Pasar los correos cambia los permisos que se piden.** Sin correos, el script solo pide `Tasks.ReadWrite`, que cualquier usuario aprueba por sí mismo. Con correos pide además `User.ReadBasic.All`, y **algunos tenants universitarios exigen aprobación del administrador para ese permiso**. Si INACAP lo bloquea, el inicio de sesión falla con un mensaje de «necesita aprobación del administrador» (`AADSTS65001` o similar).
+>
+> **No es un problema**: se corre sin correos y las 87 tareas se crean igual, sin asignar; después se asignan en Planner, que además permite seleccionar varias tarjetas a la vez. Por eso el paso 5 se hace **con** los correos: para que, si el permiso está bloqueado, lo descubras en la simulación y no a mitad de la carga real.
+
+---
+
+## Paso 5 — LA SIMULACIÓN (no escribe nada)
 
 ```powershell
-.\scripts\cargar-plan-planner.ps1 -SoloSimular
+.\scripts\cargar-plan-planner.ps1 -SoloSimular -EmailA tomas.ibacache@inacapmail.cl -EmailB hector.vergara24@inacapmail.cl
 ```
 
-> El `.\` del principio es obligatorio en PowerShell: significa "el script que está en esta carpeta".
+> El `.\` del principio es obligatorio en PowerShell: significa «el script que está en esta carpeta».
 
 **Qué va a pasar, en orden:**
 
-1. Se abre una **ventana del navegador** pidiéndote iniciar sesión → usa tu **cuenta de la universidad** (la misma con la que entras a Planner).
-2. Aparece una pantalla de permisos que dice algo como *"Microsoft Graph Command Line Tools quiere: Leer y escribir sus tareas"*. Haz clic en **Aceptar / Consentir**.
+1. Se abre una ventana del navegador pidiendo iniciar sesión → usa **tu cuenta INACAP**, la misma con la que entras a Planner.
+2. Aparece una pantalla de permisos de *Microsoft Graph Command Line Tools*. Haz clic en **Aceptar**.
 3. Vuelves a la terminal y verás algo así:
 
 ```
-Filas leídas del CSV: 58
-Conectado como: tunombre@universidad.cl
+Filas leídas del CSV: 87
+Conectado como: tomas.ibacache@inacapmail.cl
+Responsable A: Tomás Ibacache
+Responsable B: Héctor Vergara
 Plan encontrado: DesarrolloSW-MuniLS-OrigamiSpA
 Buckets en el plan:
   - Ámbito
@@ -88,81 +104,99 @@ Buckets en el plan:
   - Desarrollo
   - Pruebas
   - Piloto e implementación
-  + [simulado] AMBITO | Reunión de levantamiento con el cliente | 2026-08-25 -> 2026-08-25 | Completado
-  + [simulado] AMBITO | Documento maestro del proyecto | 2026-08-20 -> 2026-08-25 | Completado
-  ... (58 líneas)
+  - Etapas Terminadas
+  + [simulado] AMBITO | Reunión de levantamiento con el cliente (Muni La Serena) | ...
+  ... (87 líneas)
 
-Listo. Creadas: 58 | Omitidas: 0
+Listo. Creadas: 87 | Omitidas: 0
 (Fue una simulación: no se escribió nada en Planner)
 ```
 
-**Revisa dos cosas antes de seguir:**
-- Que los 6 buckets aparezcan en la lista (si alguno falta, saldría un aviso amarillo).
-- Que diga *Creadas: 58*.
+### Las cuatro cosas que hay que revisar antes de seguir
 
-Si en vez de eso ves un error, cópiamelo y lo resolvemos.
+1. **`Filas leídas del CSV: 87`.** Si dice otro número, el CSV no es el que corresponde.
+2. **Los seis depósitos aparecen emparejados.** «Etapas Terminadas» aparece en la lista pero **no se empareja con ninguna clave del CSV, y eso está bien**: ahí solo vive lo que Héctor ya cerró. Si sale un aviso amarillo *«No se encontró bucket para la clave...»*, para: ese depósito fue renombrado y sus tareas se perderían.
+3. **`Creadas: 87 | Omitidas: 0`.**
+4. **Ninguna línea `+ [simulado]` repite un título que ya esté en el tablero.** Busca en la salida `Modelo Entidad`, `Diseño MockUps`, `Diagramas UML`, `Diagramas de Clase`, `GIT` y `Presentación Profesor`. **No deberían aparecer.** Si alguno aparece, es que el título de Héctor difiere en un acento del que trae el CSV y quedaría duplicado: avísame antes de cargar.
 
----
-
-## Paso 5 — La carga de verdad
-
-Cuando la simulación se vea bien, corre lo mismo **sin** `-SoloSimular`:
-
-```powershell
-.\scripts\cargar-plan-planner.ps1
-```
-
-Demora **1 a 3 minutos** (crea las tareas una por una). Al terminar dirá `Creadas: 58`.
-
-### Si quieres que además asigne responsables
-
-Reemplaza los correos por el tuyo y el de tu compañero (los de la universidad):
-
-```powershell
-.\scripts\cargar-plan-planner.ps1 -EmailA tunombre@universidad.cl -EmailB compañero@universidad.cl
-```
-
-Si tu universidad no permite buscar usuarios, el script te avisará y creará las tareas **sin asignar** — no falla, y luego las asignas a mano en Planner.
+> **Si el inicio de sesión falla por permisos**, quita los dos correos y repite:
+> ```powershell
+> .\scripts\cargar-plan-planner.ps1 -SoloSimular
+> ```
 
 ---
 
-## Paso 6 — Mirar el resultado en Planner
+## Paso 6 — La carga de verdad
 
-Abre tu plan y prueba las cuatro vistas de arriba:
+Cuando la simulación se vea bien, **exactamente el mismo comando sin `-SoloSimular`**:
 
-| Vista | Para qué sirve |
+```powershell
+.\scripts\cargar-plan-planner.ps1 -EmailA tomas.ibacache@inacapmail.cl -EmailB hector.vergara24@inacapmail.cl
+```
+
+Demora **2 a 5 minutos**: crea las tareas una por una y a cada una le escribe su descripción. Verás una línea verde por tarea creada. Al terminar dirá `Creadas: 87 | Omitidas: 0`.
+
+---
+
+## Paso 7 — Comprobar que quedó bien
+
+**Vuelve a correr la simulación.** Es la comprobación más barata que hay:
+
+```powershell
+.\scripts\cargar-plan-planner.ps1 -SoloSimular
+```
+
+Ahora debe decir **`Creadas: 0 | Omitidas: 87`** y listar las 87 como `= ya existe`. Si dice que crearía alguna, esa no se creó en el paso 6 y hay que revisar por qué.
+
+Después abre el plan en el navegador y revisa:
+
+| Qué mirar | Cómo debería verse |
 |---|---|
-| **Panel** | Las columnas que ya conoces. Ahora cada depósito tendrá sus tarjetas. |
-| **Cuadrícula** | Vista de tabla, la más cómoda para **cambiar fechas rápido**. |
-| **Calendario** | Ve las tareas en un calendario mensual, útil para ver la carga por semana. |
-| **Gráficos** | Muestra avance y reparto — es lo que le vas a mostrar al profesor. |
-
-**Cosas útiles que puedes hacer:**
-- **Clic en una tarjeta** → se abre el detalle con fecha de inicio, vencimiento, avance y las notas que escribí.
-- **Arrastrar una tarjeta** de un depósito a otro, igual que en nuestro tubo de trabajo.
-- **Cambiar una fecha**: clic en la tarea → campos *Fecha de inicio* y *Fecha de vencimiento*.
-- **Marcar avance**: en la tarea, el campo *Progreso* (No iniciada / En curso / Completada).
-- Las 23 tareas de las fases ya hechas llegan marcadas al **100%**, así el profesor ve el avance real.
+| Ningún depósito vacío | Ámbito 9 · Requisitos 11 · Diseño 11 + las 5 de Héctor · Desarrollo 31 · Pruebas 15 · Piloto 10 |
+| Las tareas terminadas | Aparecen tachadas y al fondo de su columna. Son 53 |
+| Las tareas de Héctor | Intactas, con sus listas de comprobación |
+| Vista **Gráficos** | Muestra el reparto por estado y por persona — es una buena captura para el informe |
 
 ---
 
-## Si necesitas cambiar el plan después
+## Paso 8 — Si algo sale mal: deshacer
 
-Tienes dos caminos, ambos válidos:
+El script puede revertir su propia carga. **Borra solo las tareas cuyo título está en el CSV**, así que las ocho de Héctor y cualquier otra creada a mano quedan intactas.
 
-**A) Cambios sueltos** → hazlos directo en Planner (arrastrar, cambiar fecha, marcar completada). Es lo normal día a día.
+Primero, ver qué borraría (**no borra nada**):
 
-**B) Cambios grandes** (agregar 10 tareas, mover todo un sprint) → edita `docs/plan-desarrollo.csv` con Excel o VS Code y vuelve a correr el script. **No duplica nada**: las tareas que ya existen las omite y solo agrega las nuevas. Verás `= ya existe: ...` en gris para cada una que salta.
+```powershell
+.\scripts\cargar-plan-planner.ps1 -Deshacer
+```
+
+Imprime dos listas: las que borraría y las que **no** se tocan. Revisa que las de Héctor estén en la segunda. Si está todo bien:
+
+```powershell
+.\scripts\cargar-plan-planner.ps1 -Deshacer -Confirmo
+```
+
+Después de deshacer se puede corregir el CSV y volver al paso 5.
 
 ---
 
-## Problemas frecuentes
+## Paso 9 — Lo que el script no hace
 
-| Lo que ves | Qué significa | Solución |
-|---|---|---|
-| `No se reconoce el término '.\scripts\...'` | No estás en la carpeta del proyecto | Repite el paso 1 (`cd c:\Users\zgf\Documents\Scripts\matriz-sgr`) |
-| `No se puede cargar el archivo ... está deshabilitada la ejecución de scripts` | Falta el permiso de ejecución | Repite el paso 3 |
-| `No se encontró el plan '...'` | El nombre no coincide exactamente | El script imprime la lista de tus planes: copia el nombre tal cual y agrégalo con `-NombrePlan "nombre exacto"` |
-| `Connect-MgGraph : ... AADSTS65001` o "necesita aprobación del administrador" | Tu universidad restringe permisos | Corre sin `-EmailA/-EmailB`; si aun así falla, pide al profesor o a soporte TI que apruebe el permiso *Tasks.ReadWrite* |
-| Aviso amarillo `No se encontró bucket para la clave X` | Un depósito tiene otro nombre | Dime cómo se llama exactamente y ajusto el script |
-| Se cargaron tareas repetidas | Corriste el script dos veces con títulos distintos en el CSV | En Planner selecciona y elimina las sobrantes |
+Esto es lo que decide si el trabajo se evalúa, y va a mano. Está desarrollado en la **tanda 6** de [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf):
+
+- **Crear la etiqueta «En revisión»**, que es como cubrimos el cuarto estado que pide la rúbrica (Planner básico solo tiene tres).
+- **Adjuntar cada artefacto a su tarea.** El docente dijo que solo revisará el Planner: lo que no esté adjunto ahí, no se evalúa. El mapa de qué va en cada tarea está en [entrega/planner-delta.md](entrega/planner-delta.md) §5.
+- **Capturar el tablero** con los seis depósitos poblados, y copiar el **enlace directo** al plan. Los dos van en el informe.
+
+---
+
+## Errores frecuentes
+
+| Lo que ves | Qué pasa |
+|---|---|
+| `No se encontró el plan 'DesarrolloSW-MuniLS-OrigamiSpA'` | El script lista los planes visibles para tu cuenta. Copia el nombre exacto de esa lista y pásalo con `-NombrePlan "<nombre>"` |
+| `Tu cuenta no tiene planes visibles en Planner` | Iniciaste sesión con otra cuenta. Cierra sesión con `Disconnect-MgGraph` y repite |
+| `AADSTS65001` o «necesita aprobación del administrador» | Es el permiso `User.ReadBasic.All`. Corre sin `-EmailA`/`-EmailB` y asigna los responsables a mano |
+| `No se pudo buscar a <correo>` | El correo está mal escrito o el permiso está denegado. Las tareas se crean igual, sin asignar |
+| `No se encontró bucket para la clave 'X'` | Un depósito fue renombrado en el tablero. **Esas tareas se omiten**: hay que ajustar el patrón en el script o el nombre del depósito |
+| `Tarea creada pero sin descripción` | La tarea existe pero le faltó la nota. Se puede escribir a mano, o deshacer y repetir |
+| `no se puede cargar porque la ejecución de scripts está deshabilitada` | Falta el paso 3, y hay que repetirlo en cada terminal nueva |

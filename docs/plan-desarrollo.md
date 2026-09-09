@@ -7,13 +7,11 @@ Este documento es la vista humana del plan; el mismo contenido en formato tabla 
 
 ## Cómo se carga en Planner
 
-👉 **A mano, siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**, que lo reparte en seis tandas con el contenido exacto de cada tarjeta.
+👉 **Con [`scripts/cargar-plan-planner.ps1`](../scripts/cargar-plan-planner.ps1), siguiendo [guia-cargar-planner.md](guia-cargar-planner.md)**: simulación previa, carga, comprobación posterior y cómo deshacer.
 
-**Decisión del 8 de septiembre**: el tablero lo completa Héctor a mano, no un script. La razón es de equipo: cargar 87 tareas de un golpe se salta justo la parte donde se entiende cómo se organiza el proyecto y qué evalúa la rúbrica, y quien carga el tablero es quien después sabe qué hay dentro. De paso desaparece el riesgo del script, que deduplica por título exacto y duplicaría una tarea si un acento difiere.
+El tablero **no está vacío**: Héctor ya creó ocho tareas y el script **no las toca** (omite todo título que ya exista). Qué se corrigió del plan viejo y qué criterio de la rúbrica cuelga de qué tarea está en [entrega/planner-delta.md](entrega/planner-delta.md).
 
-El tablero **no está vacío**: Héctor ya creó ocho tareas y **no se tocan**. Qué se corrigió del plan viejo y qué criterio de la rúbrica cuelga de qué tarea está en [entrega/planner-delta.md](entrega/planner-delta.md).
-
-[`scripts/cargar-plan-planner.ps1`](../scripts/cargar-plan-planner.ps1) sigue en el repositorio, funcionando, como respaldo; su paso a paso está en [guia-cargar-planner.md](guia-cargar-planner.md).
+La carga en lote resuelve el volumen, no el criterio: la etiqueta del cuarto estado, adjuntar cada artefacto a su tarea, la captura y el enlace **siguen siendo a mano**, y están en la tanda 6 de [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf) — que además explica qué es cada tarea y por qué está ahí.
 
 ## Reparto de trabajo
 
