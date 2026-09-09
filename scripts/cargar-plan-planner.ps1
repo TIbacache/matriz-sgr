@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Carga el plan de desarrollo de Matriz SGR en el Planner del equipo, usando los
 buckets de la plantilla del profesor (Ámbito, Requisitos, Diseño, Desarrollo,
@@ -115,6 +115,10 @@ if ($Dispositivo) {
     if ($conectar.Parameters.ContainsKey("UseDeviceCode")) { $conexion.UseDeviceCode = $true }
     elseif ($conectar.Parameters.ContainsKey("UseDeviceAuthentication")) { $conexion.UseDeviceAuthentication = $true }
     else { Write-Warning "Este módulo no admite el código de dispositivo. Se abrirá la ventana normal (revisa Alt+Tab)." }
+    # El mensaje con la URL y el código lo emite MSAL por el flujo de
+    # Information, que PowerShell silencia por defecto: sin esto la terminal
+    # se queda en blanco esperando un código que nunca imprime.
+    $conexion.InformationAction = "Continue"
     Write-Host "Modo código de dispositivo: copia la URL y el código que aparecen abajo." -ForegroundColor Yellow
 }
 else {

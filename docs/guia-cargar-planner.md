@@ -71,53 +71,35 @@ El script asigna responsables si le pasas los dos correos institucionales:
 | `B` | Héctor | `hector.vergara24@inacapmail.cl` |
 | `Ambos` | los dos | — |
 
-> ⚠ **Pasar los correos cambia los permisos que se piden.** Sin correos, el script solo pide `Tasks.ReadWrite`, que cualquier usuario aprueba por sí mismo. Con correos pide además `User.ReadBasic.All`, y **algunos tenants universitarios exigen aprobación del administrador para ese permiso**. Si INACAP lo bloquea, el inicio de sesión falla con un mensaje de «necesita aprobación del administrador» (`AADSTS65001` o similar).
+> ⚠ **INACAP bloquea el permiso que hace falta para asignar. Confirmado el 9 de septiembre de 2026.**
 >
-> **No es un problema**: se corre sin correos y las 87 tareas se crean igual, sin asignar; después se asignan en Planner, que además permite seleccionar varias tarjetas a la vez. Por eso el paso 5 se hace **con** los correos: para que, si el permiso está bloqueado, lo descubras en la simulación y no a mitad de la carga real.
+> Sin correos, el script solo pide `Tasks.ReadWrite`, que cualquier usuario aprueba por sí mismo. Con correos pide además `User.ReadBasic.All`, y ahí el inicio de sesión termina en **«Se necesita la aprobación del administrador»**: solo un administrador de INACAP puede concederlo.
+>
+> **Entonces la carga va sin correos.** Las 87 tareas se crean igual, sin responsable asignado, y los responsables se ponen después en Planner, que permite seleccionar varias tarjetas a la vez. La columna `Responsable` del CSV (A / B / Ambos) queda además escrita en la descripción de cada tarea, así que no se pierde la información: solo hay que aplicarla.
 
 ---
 
 ## Paso 5 — LA SIMULACIÓN (no escribe nada)
 
 ```powershell
-.\scripts\cargar-plan-planner.ps1 -SoloSimular -EmailA tomas.ibacache@inacapmail.cl -EmailB hector.vergara24@inacapmail.cl
+.\scripts\cargar-plan-planner.ps1 -SoloSimular -Dispositivo
 ```
+
+> **Por qué así y no con los correos**: `-Dispositivo` evita el intermediario de cuentas de Windows, que en el terminal de VS Code esconde la ventana o falla con «Unexpected response from the server». Y sin `-EmailA`/`-EmailB` no se pide `User.ReadBasic.All`, que INACAP no deja aprobar (paso 4).
 
 > El `.\` del principio es obligatorio en PowerShell: significa «el script que está en esta carpeta».
 
-### Si el inicio de sesión no aparece y parece que se colgó
-
-Es lo primero que pasa en el terminal de VS Code, y el propio script lo avisa:
-
-```
-ADVERTENCIA: Sign in by Web Account Manager (WAM) is enabled by default on Windows.
-If using an embedded terminal, the interactive browser window may be hidden behind other windows.
-```
-
-En Windows, el inicio de sesión abre una **ventana nativa del sistema**, no una pestaña del navegador, y en un terminal incrustado queda **detrás** de VS Code.
-
-1. **Prueba `Alt` + `Tab`** o mira la barra de tareas: busca una ventana «Iniciar sesión» / «Sign in to your account». Casi siempre está ahí esperando.
-2. Si no está, corta con `Ctrl` + `C` y repite el comando con **`-Dispositivo`**:
-
-```powershell
-.\scripts\cargar-plan-planner.ps1 -SoloSimular -Dispositivo -EmailA tomas.ibacache@inacapmail.cl -EmailB hector.vergara24@inacapmail.cl
-```
-
-Eso usa el **código de dispositivo**: en vez de abrir una ventana, imprime en la terminal una dirección (`https://microsoft.com/devicelogin`) y un código de nueve caracteres. Abres esa dirección en el navegador que quieras, pegas el código, inicias sesión con tu cuenta INACAP, y la terminal sigue sola. No hay ventanas que se escondan.
-
-3. La otra salida es correr el comando en una **ventana de PowerShell fuera de VS Code** (tecla Windows → escribe `PowerShell` → Enter, y luego `cd c:\Users\zgf\Documents\Scripts\matriz-sgr`). Ahí la ventana de inicio de sesión sí aparece al frente. Recuerda repetir el paso 3 (`Set-ExecutionPolicy`) en esa terminal nueva.
-
 **Qué va a pasar, en orden:**
 
-1. Se abre una ventana pidiendo iniciar sesión → usa **tu cuenta INACAP**, la misma con la que entras a Planner.
-2. Aparece una pantalla de permisos de *Microsoft Graph Command Line Tools*. Haz clic en **Aceptar**.
-3. Vuelves a la terminal y verás algo así:
+1. La terminal imprime una dirección (`https://microsoft.com/devicelogin`) y un **código de nueve caracteres**.
+2. Abres esa dirección en el navegador, pegas el código e inicias sesión. Si te pregunta el tipo de cuenta, es **«Cuenta laboral o educativa»**: `tomas.ibacache@inacapmail.cl` la asigna INACAP, no es una cuenta personal de Microsoft.
+3. Aparece la pantalla de permisos de *Microsoft Graph Command Line Tools* pidiendo leer y escribir tus tareas. **Aceptar**.
+4. La terminal sigue sola y verás algo así:
 
 ```
 Filas leídas del CSV: 87
+Modo código de dispositivo: copia la URL y el código que aparecen abajo.
 Conectado como: tomas.ibacache@inacapmail.cl
-Responsable A: Tomás Ibacache
-Responsable B: Héctor Vergara
 Plan encontrado: DesarrolloSW-MuniLS-OrigamiSpA
 Buckets en el plan:
   - Ámbito
@@ -141,10 +123,17 @@ Listo. Creadas: 87 | Omitidas: 0
 3. **`Creadas: 87 | Omitidas: 0`.**
 4. **Ninguna línea `+ [simulado]` repite un título que ya esté en el tablero.** Busca en la salida `Modelo Entidad`, `Diseño MockUps`, `Diagramas UML`, `Diagramas de Clase`, `GIT` y `Presentación Profesor`. **No deberían aparecer.** Si alguno aparece, es que el título de Héctor difiere en un acento del que trae el CSV y quedaría duplicado: avísame antes de cargar.
 
-> **Si el inicio de sesión falla por permisos**, quita los dos correos y repite:
-> ```powershell
-> .\scripts\cargar-plan-planner.ps1 -SoloSimular
-> ```
+### Si el inicio de sesión se cuelga o falla
+
+Los tres tropiezos que aparecieron de verdad el 9 de septiembre de 2026, en orden:
+
+| Lo que pasa | Por qué | Qué hacer |
+|---|---|---|
+| La terminal se queda quieta tras `ADVERTENCIA: Sign in by Web Account Manager (WAM) is enabled...` | El inicio de sesión abre una **ventana nativa de Windows**, no una pestaña, y en el terminal de VS Code queda **detrás** | `Alt`+`Tab`, o mirar la barra de tareas. Casi siempre está ahí esperando |
+| «Se necesita la aprobación del administrador» | Se pasaron los correos, y eso agrega el permiso `User.ReadBasic.All` que INACAP no deja aprobar | Correr **sin** `-EmailA`/`-EmailB`, como en el comando de arriba |
+| «Se produjo un error» · `Unexpected response from the server` | El intermediario de cuentas de Windows, que suele quedar en mal estado tras cancelar un consentimiento | `Disconnect-MgGraph -ErrorAction SilentlyContinue` y repetir con `-Dispositivo`, que no lo usa |
+
+También sirve correr todo en una **ventana de PowerShell fuera de VS Code** (tecla Windows → `PowerShell` → Enter → `cd c:\Users\zgf\Documents\Scripts\matriz-sgr`), donde la ventana de inicio de sesión sí aparece al frente. Recuerda repetir el paso 3 en esa terminal nueva.
 
 ---
 
@@ -153,7 +142,7 @@ Listo. Creadas: 87 | Omitidas: 0
 Cuando la simulación se vea bien, **exactamente el mismo comando sin `-SoloSimular`**:
 
 ```powershell
-.\scripts\cargar-plan-planner.ps1 -EmailA tomas.ibacache@inacapmail.cl -EmailB hector.vergara24@inacapmail.cl
+.\scripts\cargar-plan-planner.ps1 -Dispositivo
 ```
 
 Demora **2 a 5 minutos**: crea las tareas una por una y a cada una le escribe su descripción. Verás una línea verde por tarea creada. Al terminar dirá `Creadas: 87 | Omitidas: 0`.
@@ -165,7 +154,7 @@ Demora **2 a 5 minutos**: crea las tareas una por una y a cada una le escribe su
 **Vuelve a correr la simulación.** Es la comprobación más barata que hay:
 
 ```powershell
-.\scripts\cargar-plan-planner.ps1 -SoloSimular
+.\scripts\cargar-plan-planner.ps1 -SoloSimular -Dispositivo
 ```
 
 Ahora debe decir **`Creadas: 0 | Omitidas: 87`** y listar las 87 como `= ya existe`. Si dice que crearía alguna, esa no se creó en el paso 6 y hay que revisar por qué.
@@ -179,6 +168,12 @@ Después abre el plan en el navegador y revisa:
 | Las tareas de Héctor | Intactas, con sus listas de comprobación |
 | Vista **Gráficos** | Muestra el reparto por estado y por persona — es una buena captura para el informe |
 
+### Asignar los responsables
+
+Como la carga va sin correos, las 87 tareas quedan **sin asignar**. La información no se perdió: cada tarea lleva al final de su descripción una línea `Responsable: A / B / Ambos`, y el reparto completo está en la columna `Responsable` de [plan-desarrollo.csv](plan-desarrollo.csv) — **A es Tomás, B es Héctor**.
+
+Lo más rápido es la vista **Cuadrícula** de Planner: agrupa por depósito, permite seleccionar varias tareas a la vez y asignarlas de una. Conviene hacerlo antes de la captura del tablero, porque «responsables asignados» es uno de los puntos que la rúbrica evalúa.
+
 ---
 
 ## Paso 8 — Si algo sale mal: deshacer
@@ -188,13 +183,13 @@ El script puede revertir su propia carga. **Borra solo las tareas cuyo título e
 Primero, ver qué borraría (**no borra nada**):
 
 ```powershell
-.\scripts\cargar-plan-planner.ps1 -Deshacer
+.\scripts\cargar-plan-planner.ps1 -Deshacer -Dispositivo
 ```
 
 Imprime dos listas: las que borraría y las que **no** se tocan. Revisa que las de Héctor estén en la segunda. Si está todo bien:
 
 ```powershell
-.\scripts\cargar-plan-planner.ps1 -Deshacer -Confirmo
+.\scripts\cargar-plan-planner.ps1 -Deshacer -Confirmo -Dispositivo
 ```
 
 Después de deshacer se puede corregir el CSV y volver al paso 5.
@@ -223,3 +218,6 @@ Esto es lo que decide si el trabajo se evalúa, y va a mano. Está desarrollado 
 | `Tarea creada pero sin descripción` | La tarea existe pero le faltó la nota. Se puede escribir a mano, o deshacer y repetir |
 | `no se puede cargar porque la ejecución de scripts está deshabilitada` | Falta el paso 3, y hay que repetirlo en cada terminal nueva |
 | `Sign in by Web Account Manager (WAM) is enabled...` y no pasa nada más | La ventana de inicio de sesión quedó detrás de VS Code. `Alt`+`Tab`, o repetir con `-Dispositivo`. Ver el recuadro del paso 5 |
+| «Se necesita la aprobación del administrador» | El permiso `User.ReadBasic.All`. **Confirmado en INACAP el 9 de septiembre de 2026.** Correr sin `-EmailA`/`-EmailB` y asignar los responsables a mano en Planner |
+| «Se produjo un error» · `Unexpected response from the server` | El intermediario de cuentas de Windows, no INACAP. `Disconnect-MgGraph -ErrorAction SilentlyContinue` y repetir con `-Dispositivo` |
+| Los acentos salen rotos (`leÃ­das`, `cÃ³digo`) | PowerShell 5.1 lee el `.ps1` como ANSI si no tiene BOM. El script se guarda **con BOM UTF-8** justamente por esto; si alguien lo reescribe sin BOM, vuelve a pasar |
