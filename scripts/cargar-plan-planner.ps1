@@ -27,6 +27,10 @@ editar el CSV para agregar solo lo nuevo.
   .\scripts\cargar-plan-planner.ps1 -EmailA tomas@dominio.cl -EmailB companero@dominio.cl
 
 .EXAMPLE
+  # Si la ventana de inicio de sesión no aparece (terminal de VS Code):
+  .\scripts\cargar-plan-planner.ps1 -SoloSimular -Dispositivo
+
+.EXAMPLE
   # Ver qué borraría si hubiera que deshacer la carga (no borra nada):
   .\scripts\cargar-plan-planner.ps1 -Deshacer
 
@@ -45,6 +49,10 @@ param(
     [string]$EmailA,
     [string]$EmailB,
     [switch]$SoloSimular,
+    # Inicia sesión con código de dispositivo en vez de abrir una ventana. Útil
+    # en el terminal de VS Code, donde la ventana de inicio de sesión queda
+    # detrás y parece que el script se colgó.
+    [switch]$Dispositivo,
     # Deshacer una carga: borra del plan las tareas cuyo título esté en el CSV.
     # Como compara por título exacto, no toca las tareas creadas a mano que no
     # estén en el CSV. Sin -Confirmo solo las lista.
@@ -93,7 +101,27 @@ Write-Host "Filas leídas del CSV: $($filas.Count)" -ForegroundColor Cyan
 # los que ya tienes acceso. El de personas solo se pide si vas a asignar.
 $permisos = @("Tasks.ReadWrite")
 if ($EmailA -or $EmailB) { $permisos += "User.ReadBasic.All" }
-Connect-MgGraph -Scopes $permisos | Out-Null
+
+$conexion = @{ Scopes = $permisos }
+
+# En Windows, Connect-MgGraph abre por defecto la ventana nativa del Web Account
+# Manager, que en un terminal incrustado (VS Code) queda DETRÁS de la ventana y
+# parece que el script se colgó. Con -Dispositivo se usa el flujo de código de
+# dispositivo: imprime una URL y un código para pegar en el navegador, sin
+# ventanas que se escondan. El nombre del parámetro cambió entre versiones del
+# módulo, así que se detecta cuál acepta el que está instalado.
+if ($Dispositivo) {
+    $conectar = Get-Command Connect-MgGraph
+    if ($conectar.Parameters.ContainsKey("UseDeviceCode")) { $conexion.UseDeviceCode = $true }
+    elseif ($conectar.Parameters.ContainsKey("UseDeviceAuthentication")) { $conexion.UseDeviceAuthentication = $true }
+    else { Write-Warning "Este módulo no admite el código de dispositivo. Se abrirá la ventana normal (revisa Alt+Tab)." }
+    Write-Host "Modo código de dispositivo: copia la URL y el código que aparecen abajo." -ForegroundColor Yellow
+}
+else {
+    Write-Host "Se abrirá una ventana de inicio de sesión. Si no la ves, prueba Alt+Tab: en VS Code suele quedar detrás." -ForegroundColor Yellow
+}
+
+Connect-MgGraph @conexion | Out-Null
 Write-Host "Conectado como: $((Get-MgContext).Account)" -ForegroundColor Green
 
 # Buscar el plan entre los que el usuario ya tiene (/me/planner/plans).

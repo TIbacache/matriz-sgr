@@ -85,9 +85,31 @@ El script asigna responsables si le pasas los dos correos institucionales:
 
 > El `.\` del principio es obligatorio en PowerShell: significa «el script que está en esta carpeta».
 
+### Si el inicio de sesión no aparece y parece que se colgó
+
+Es lo primero que pasa en el terminal de VS Code, y el propio script lo avisa:
+
+```
+ADVERTENCIA: Sign in by Web Account Manager (WAM) is enabled by default on Windows.
+If using an embedded terminal, the interactive browser window may be hidden behind other windows.
+```
+
+En Windows, el inicio de sesión abre una **ventana nativa del sistema**, no una pestaña del navegador, y en un terminal incrustado queda **detrás** de VS Code.
+
+1. **Prueba `Alt` + `Tab`** o mira la barra de tareas: busca una ventana «Iniciar sesión» / «Sign in to your account». Casi siempre está ahí esperando.
+2. Si no está, corta con `Ctrl` + `C` y repite el comando con **`-Dispositivo`**:
+
+```powershell
+.\scripts\cargar-plan-planner.ps1 -SoloSimular -Dispositivo -EmailA tomas.ibacache@inacapmail.cl -EmailB hector.vergara24@inacapmail.cl
+```
+
+Eso usa el **código de dispositivo**: en vez de abrir una ventana, imprime en la terminal una dirección (`https://microsoft.com/devicelogin`) y un código de nueve caracteres. Abres esa dirección en el navegador que quieras, pegas el código, inicias sesión con tu cuenta INACAP, y la terminal sigue sola. No hay ventanas que se escondan.
+
+3. La otra salida es correr el comando en una **ventana de PowerShell fuera de VS Code** (tecla Windows → escribe `PowerShell` → Enter, y luego `cd c:\Users\zgf\Documents\Scripts\matriz-sgr`). Ahí la ventana de inicio de sesión sí aparece al frente. Recuerda repetir el paso 3 (`Set-ExecutionPolicy`) en esa terminal nueva.
+
 **Qué va a pasar, en orden:**
 
-1. Se abre una ventana del navegador pidiendo iniciar sesión → usa **tu cuenta INACAP**, la misma con la que entras a Planner.
+1. Se abre una ventana pidiendo iniciar sesión → usa **tu cuenta INACAP**, la misma con la que entras a Planner.
 2. Aparece una pantalla de permisos de *Microsoft Graph Command Line Tools*. Haz clic en **Aceptar**.
 3. Vuelves a la terminal y verás algo así:
 
@@ -200,3 +222,4 @@ Esto es lo que decide si el trabajo se evalúa, y va a mano. Está desarrollado 
 | `No se encontró bucket para la clave 'X'` | Un depósito fue renombrado en el tablero. **Esas tareas se omiten**: hay que ajustar el patrón en el script o el nombre del depósito |
 | `Tarea creada pero sin descripción` | La tarea existe pero le faltó la nota. Se puede escribir a mano, o deshacer y repetir |
 | `no se puede cargar porque la ejecución de scripts está deshabilitada` | Falta el paso 3, y hay que repetirlo en cada terminal nueva |
+| `Sign in by Web Account Manager (WAM) is enabled...` y no pasa nada más | La ventana de inicio de sesión quedó detrás de VS Code. `Alt`+`Tab`, o repetir con `-Dispositivo`. Ver el recuadro del paso 5 |
