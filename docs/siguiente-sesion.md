@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 6 de septiembre de 2026 (cierre del panel RF-030 y plan de la entrega del 15 de septiembre)
+**Actualizado**: 10 de septiembre de 2026 (criterio 3 de la entrega: caso de uso general y casos de extensión)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -20,7 +20,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
-| **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **25 de 100 puntos.** Criterio 1 preparado y criterio 2 hecho; faltan los criterios 3 a 7 y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |
+| **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **35 de 100 puntos.** Criterio 1 preparado, criterios 2 y 3 hechos; faltan los criterios 4 a 7 y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |
 
 Cumplimiento contra los 38 RF oficiales: **23 ✅ · 8 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 

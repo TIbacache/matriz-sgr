@@ -47,7 +47,7 @@ rectangle "**SGR — Sistema de Gestión de Resultados**" #FFFFFF {
     usecase "CU-03\nValidar o rechazar\nuna evidencia" as CU03
     usecase "CU-05\nConsultar la ficha personal\ny el semáforo" as CU05
     usecase "CU-08\nRegistrar una atención\nsocial y sus gestiones" as CU08
-    usecase "CU-I1\nValidar RUT y teléfono" as CUI1
+    usecase "CU-I1\nValidar los datos\ndel registro" as CUI1
     usecase "CU-I2\nGenerar el código único\nde la actividad" as CUI2
   }
 

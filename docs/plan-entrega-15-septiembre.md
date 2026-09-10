@@ -17,7 +17,7 @@ Fuentes que mandan, en orden:
 |---|---|---|---|---|
 | 1 | **Planner / Jira** | 15 | El CSV quedó reescrito contra el estado real: **87 tareas**, ninguna bloqueada, con la tarea que faltaba del diagrama de requerimientos. Falta cargarlo en el tablero | 🟠 **Preparado, sin cargar.** INACAP no deja automatizarlo: va a mano con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf). Ver §1.bis |
 | 2 | **Diagramas de requerimientos** | 10 | **[entrega/requerimientos.md](entrega/requerimientos.md)**: los 38 RF y 18 RNF por módulo y por épica, con actores y trazados a los CU, en 8 diagramas PlantUML | ✅ **Hecho** (9-09-2026) |
-| 3 | **Caso de uso general** | 10 | `diagramas.md §2`, del 25 de agosto: 4 actores de 6, 12 casos del modelo v1, sin frontera ni «include»/«extend» | 🟠 **En curso.** Rehacer en PlantUML |
+| 3 | **Caso de uso general** | 10 | **[entrega/casos-uso-general.md](entrega/casos-uso-general.md)**: frontera, seis actores, doce casos con sus RF y su pantalla, tres «include» y seis «extend», en 2 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **Cero fichas.** La guía propone 10 CU con actor y RF, y desarrolla CU-03 como plantilla | 🔴 El criterio más caro y el más vacío |
 | 5 | **Diagrama de clases** | 15 | **No existe** | 🔴 Hay que crearlo de cero |
 | 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El modelo real tiene 16 entidades | 🔴 Está mal, no solo incompleto |
@@ -26,7 +26,7 @@ Fuentes que mandan, en orden:
 
 **Lectura del cuadro**: de 100 puntos, **85 dependen de artefactos de análisis y diseño que hoy no existen o están obsoletos**, y solo 10 dependen del software, que es justamente lo que está terminado. La entrega no se juega en el código: se juega en documentar lo construido.
 
-> **Avance al 9 de septiembre de 2026**: cerrados los criterios **1** (preparado, falta cargarlo a mano) y **2**. Quedan **75 puntos** en artefactos por construir, y el más caro sigue siendo el 4, con 20.
+> **Avance al 10 de septiembre de 2026**: cerrados los criterios **1** (preparado, falta cargarlo a mano), **2** y **3**. Quedan **65 puntos** en artefactos por construir, y el más caro sigue siendo el 4, con 20.
 
 ---
 
@@ -184,17 +184,22 @@ Se conservan los identificadores que ya propuso la guía del 1 de septiembre, pa
 
 | ID | Tipo | Caso base | Condición / resultado |
 |---|---|---|---|
-| CU-I1 | «include» | CU-01, CU-06 | **Validar RUT y teléfono** (ADR-001, RF-010) |
+| CU-I1 | «include» | CU-01, CU-06 | **Validar los datos del registro**: obligatoriedad, formato y coherencia (RF-010, ADR-001) |
 | CU-I2 | «include» | CU-01 | **Generar el código único de la actividad** (RF-011, inmutable) |
 | CU-I3 | «include» | transversal a todo write | **Registrar en la bitácora de auditoría** (RNF-008, RF-036) |
-| CU-E1 | «extend» | CU-01, CU-06 | **Avisar posible atención duplicada** entre delegaciones (ADR-008) — el caso que el cliente vino a buscar |
+| CU-E1 | «extend» | CU-01, CU-06, CU-11 | **Avisar posible atención duplicada** entre delegaciones (ADR-008) — el caso que el cliente vino a buscar |
 | CU-E2 | «extend» | CU-03 | **Exigir observación** cuando la decisión no es aprobar (RF-013) |
 | CU-E3 | «extend» | CU-03 | **Rechazar validación propia** por segregación de funciones (RNF-005) |
 | CU-E4 | «extend» | CU-07, CU-04 | **Informar conflicto de versión** (409) sin sobrescribir (CA-08, ADR-005) |
 | CU-E5 | «extend» | CU-11, CU-12 | **Denegar por alcance** con el motivo escrito (ADR-012, ADR-015) |
 | CU-E6 | «extend» | CU-09 | **Informar delegación sin medición** en vez de 0% (ADR-014) |
 
-**Cobertura de actores**: Funcionario (CU-01, 02, 05, 06, 07, 08, 10, 11), Verificador (CU-03), Administrador (CU-04, CU-12), Coordinador (CU-04, CU-11, CU-12), Delegado (CU-06, 07, 09), Usuario de consulta (CU-09). **Los seis actores del PDF §3 aparecen.**
+**Cobertura de actores**: Funcionario (CU-01, 02, 05, 06, 07, 08, 10, 11), Verificador (CU-03), Administrador (CU-04, CU-12), Coordinador (CU-04, CU-11, CU-12), Delegado (CU-06, 07, 09, 10), Usuario de consulta (CU-09). **Los seis actores del PDF §3 aparecen.**
+
+> **Dos correcciones del 10 de septiembre, al dibujar el criterio 3.** Esta tabla se escribió el 6 de septiembre, antes de contrastarla con el código. Al hacerlo (regla 1 del proyecto) aparecieron dos diferencias, ya aplicadas arriba y explicadas en [entrega/casos-uso-general.md §9](entrega/casos-uso-general.md):
+>
+> 1. **CU-I1 dejó de llamarse «Validar RUT y teléfono».** Un `«include»` se ejecuta *siempre*, y validar el RUT no siempre ocurre: una actividad puede no llevar vecino asociado, y el alta del tubo **no pide RUT**. Lo que sí ocurre siempre es la validación de obligatoriedad, formato y coherencia, que es lo que dice RF-010.
+> 2. **CU-E1 tiene tres casos base.** El aviso de duplicidad existe también en CU-11, con la ventana del parámetro; en el alta (CU-01, CU-06) avisa sin ventana de tiempo. Es la misma regla en dos momentos.
 
 ---
 

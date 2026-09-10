@@ -1,0 +1,90 @@
+@startuml casos-uso-extensiones
+' Casos de extensión - los seis «extend» del sistema, con su caso base y su
+' condición. Van en un diagrama aparte del general a propósito: son caminos
+' condicionales, y sumarlos al general lo llenan de ramas que solo ocurren a
+' veces. Los «include», que sí son comportamiento compartido, están en el
+' general (09-casos-uso-general.puml).
+'
+' ⚠ El orden de declaración está INVERTIDO (CU-12 → CU-03, CU-E6 → CU-E1) a
+' propósito: con `left to right direction` PlantUML apila de abajo hacia
+' arriba, y declararlos al derecho dejaba los identificadores desordenados.
+title Casos de extensión — SGR
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam actorStyle awesome
+skinparam actor {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam rectangle {
+  BackgroundColor #FAFAF8
+  BorderColor #B9BDBF
+  FontColor #5B6166
+}
+
+left to right direction
+
+rectangle "**SGR — Sistema de Gestión de Resultados**" #FFFFFF {
+
+  rectangle "Casos de extensión\n(ocurren solo si se cumple la condición)" as EXT {
+    usecase "CU-E6\nInformar delegación\nsin medición" as CUE6
+    usecase "CU-E5\nDenegar por alcance\ncon el motivo escrito" as CUE5
+    usecase "CU-E4\nInformar conflicto\nde versión" as CUE4
+    usecase "CU-E3\nRechazar la\nvalidación propia" as CUE3
+    usecase "CU-E2\nExigir observación\nde la decisión" as CUE2
+    usecase "CU-E1\nAvisar posible\natención duplicada" as CUE1
+  }
+
+  rectangle "Casos base\n(los mismos del diagrama general)" as BASE {
+    usecase "CU-12\nControlar la actividad\nde usuarios" as CU12
+    usecase "CU-11\nBuscar el historial de un\nvecino entre delegaciones" as CU11
+    usecase "CU-09\nConsultar el tablero\nconsolidado" as CU09
+    usecase "CU-07\nMover un compromiso\nde estado" as CU07
+    usecase "CU-04\nConfigurar metas\ny ponderadores" as CU04
+    usecase "CU-03\nValidar o rechazar\nuna evidencia" as CU03
+    usecase "CU-06\nRegistrar un compromiso\ndel vecino en el tubo" as CU06
+    usecase "CU-01\nRegistrar actividad diaria" as CU01
+  }
+}
+
+CUE1 ..> CU11 : <<extend>>\n[dos hechos de la misma clasificación\ndentro de la ventana de duplicidad]
+CUE1 ..> CU06 : <<extend>>\n[el vecino ya registra atenciones\no compromisos en otra delegación]
+CUE1 ..> CU01 : <<extend>>\n[el vecino ya registra\natenciones en otra delegación]
+
+CUE2 ..> CU03 : <<extend>>\n[la decisión\nno es aprobar]
+
+CUE3 ..> CU03 : <<extend>>\n[quien valida\nes quien registró]
+
+CUE4 ..> CU04 : <<extend>>\n[la versión enviada\nya no es la vigente]
+CUE4 ..> CU07 : <<extend>>\n[la versión enviada\nya no es la vigente]
+
+CUE5 ..> CU12 : <<extend>>\n[el rol no alcanza\nese dato]
+CUE5 ..> CU11 : <<extend>>\n[el rol no alcanza\nese dato]
+
+CUE6 ..> CU09 : <<extend>>\n[la delegación no tiene\na nadie con metas]
+
+note bottom of EXT
+  **La flecha va del caso de extensión al caso base**, que es la dirección que
+  fija UML: el caso base se completa sin saber que la extensión existe.
+  La condición entre corchetes es el punto de extensión.
+end note
+
+note top of BASE
+  **Los actores no se repiten aquí.** Cada uno de estos seis casos ya aparece
+  unido a su actor en el diagrama general. Este diagrama responde otra
+  pregunta: qué pasa cuando el camino normal no se puede seguir.
+end note
+
+@enduml

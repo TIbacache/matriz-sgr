@@ -2,7 +2,7 @@
 
 Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este archivo es el estado: qué está listo, qué falta y dónde está cada cosa.
 
-**Actualizado**: 9 de septiembre de 2026 · rama `entrega/analisis-diseno`
+**Actualizado**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`
 
 - El plan de trabajo está en [../plan-entrega-15-septiembre.md](../plan-entrega-15-septiembre.md).
 - La rúbrica transcrita, en [../rubrica-entrega-15-septiembre.md](../rubrica-entrega-15-septiembre.md). Los dos PDF originales del docente están versionados en `docs/`.
@@ -15,7 +15,7 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 |---|---|---|---|---|
 | 1 | Planner | 15 | 🟠 **Preparado, falta cargarlo** | [guia-planner-hector.pdf](guia-planner-hector.pdf) · [planner-delta.md](planner-delta.md) |
 | 2 | Diagramas de requerimientos | 10 | ✅ **Hecho** | [requerimientos.md](requerimientos.md) · [puml/](puml/) |
-| 3 | Caso de uso general | 10 | 🟠 **Empezado** | [puml/09-casos-uso-general.puml](puml/09-casos-uso-general.puml) |
+| 3 | Caso de uso general | 10 | ✅ **Hecho** | [casos-uso-general.md](casos-uso-general.md) · [puml/09](puml/09-casos-uso-general.puml) y [puml/10](puml/10-casos-uso-extensiones.puml) |
 | 4 | Casos de uso específicos + fichas | 20 | 🔴 Pendiente | — |
 | 5 | Diagrama de clases | 15 | 🔴 Pendiente | — |
 | 6 | DER MySQL | 10 | 🔴 Pendiente | — |
@@ -23,25 +23,28 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | 8 | Mockup funcional + Git | 10 | 🟢 Hecho, faltan escenarios alternativos | [../mockups/](../mockups/) |
 | — | Informe de la entrega | — | 🔴 Pendiente | — |
 
-**25 de 100 puntos cubiertos.** El criterio 4 es el más caro y el más vacío.
+**35 de 100 puntos cubiertos.** El criterio 4 es el más caro y el más vacío.
 
-### Dónde quedó el criterio 3 (para retomar)
+### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
-El **diagrama general está listo y revisado**: [puml/09-casos-uso-general.puml](puml/09-casos-uso-general.puml). Cumple los cinco puntos que la rúbrica pide en su §5.3 — frontera explícita, los seis actores del PDF §3 con su nombre, los doce casos sin flujos internos, las relaciones actor–caso de uso y los `«include»`.
+Son **dos diagramas y un documento**, y el documento es el que se entrega: [casos-uso-general.md](casos-uso-general.md).
 
-Se rehizo tres veces, y las dos correcciones vale la pena no repetirlas:
+- **[puml/09-casos-uso-general.puml](puml/09-casos-uso-general.puml)** — la frontera, los seis actores del PDF §3, los doce casos sin flujos internos, las relaciones actor–caso de uso y los `«include»`. Cumple los cinco puntos de la rúbrica §5.3.
+- **[puml/10-casos-uso-extensiones.puml](puml/10-casos-uso-extensiones.puml)** — los seis `«extend»`, con su caso base y su condición entre corchetes.
+
+Cuatro decisiones que **no conviene rediscutir**, porque cada una costó un rehecho:
 
 - **Los casos van agrupados por los mismos cinco módulos (M1 a M5) del diagrama de requerimientos.** Sin agrupar, los doce quedaban en una columna y el dibujo se leía como una lista. Agrupados, además, la correspondencia entre artefactos queda a la vista, que es el criterio transversal de la rúbrica.
 - **Los seis actores van todos a la izquierda.** Se probó repartirlos a ambos lados de la frontera y PlantUML mandó tres al fondo, con flechas cruzando el diagrama entero.
-
-Falta:
-
-1. Un **segundo diagrama con los seis `«extend»`** (CU-E1 a CU-E6), definidos en el [plan §4](../plan-entrega-15-septiembre.md). Van aparte porque son caminos condicionales y de excepción: sumarlos al general lo llena de ramas que solo ocurren a veces. Los `«include»` sí están en el general, porque son comportamiento compartido y ahí se ve la reutilización.
-2. El documento **`casos-uso-general.md`** que los envuelve, con la tabla actor ↔ caso de uso y la correspondencia con los RF.
-
-⚠ **Decisión pendiente de confirmar**: *no* se dibuja generalización entre actores. Los seis roles no forman una jerarquía sino conjuntos que se solapan (el Verificador valida pero no ve el tubo; el Coordinador ve el panel de actividad y el Administrador también). Dibujar una herencia afirmaría algo que el código no cumple. La rúbrica pide «include», «extend» **o** generalización, y las dos primeras están cubiertas.
+- **Los `«extend»` van en un diagrama aparte.** Son caminos condicionales: sumarlos al general lo llenaban de ramas que solo ocurren a veces. Los `«include»` sí están en el general, porque son comportamiento compartido y ahí se ve la reutilización.
+- **No se dibuja generalización entre actores** (decisión confirmada). Los seis roles no forman una jerarquía sino conjuntos que se solapan: el Verificador valida pero no ve el tubo; el Coordinador ve el panel de actividad y el Administrador también. Dibujar una herencia afirmaría algo que el código no cumple. La rúbrica pide «include», «extend» **o** generalización, y las dos primeras están usadas de verdad: tres «include» y seis «extend». El argumento está redactado en [casos-uso-general.md §3.2](casos-uso-general.md) por si lo preguntan.
 
 **CU-I3 (auditar) no se dibuja en el general**: lo incluyen las diez operaciones que escriben, más CU-11 y CU-12, que se auditan aunque solo consulten. Diez flechas al mismo óvalo dirían menos que la nota que lleva el diagrama. Va en el diagrama de cada caso de uso, en el criterio 4.
+
+⚠ **Dos correcciones al [plan §4](../plan-entrega-15-septiembre.md) salieron de contrastarlo con el código**, y el criterio 4 tiene que partir de ellas, no del plan:
+
+1. **CU-I1 ya no es «Validar RUT y teléfono» sino «Validar los datos del registro»** (obligatoriedad, formato y coherencia — RF-010). Un `«include»` se ejecuta *siempre*, y validar el RUT no siempre ocurre: una actividad puede no llevar vecino, y el alta del tubo **no pide RUT**.
+2. **CU-E1 tiene tres casos base, no dos**: CU-01, CU-06 **y CU-11**. El aviso existe en el alta (`alertaTrazabilidad`, sin ventana de tiempo) y en la ficha del vecino (con la ventana de duplicidad del parámetro). Es la misma regla en dos momentos.
 
 ---
 
@@ -98,7 +101,7 @@ Para que nadie lo abra «ya que estamos»:
 - **RF-025** ajustes, **RF-028** tablero personal, **RF-031** vista por cargos, **RF-033** exportación, **RF-035** comentarios, **RF-037** alertas.
 - **Bloque D** (Jest, RTL, CI) y **Bloque E** (despliegue).
 - Los cabos sueltos de prioridad Media listados en [../siguiente-sesion.md](../siguiente-sesion.md).
-- **Las 13 consultas abiertas al docente**: no se responden por cuenta propia ([requerimientos-oficiales §10](../requerimientos-oficiales.md)).
+- **Las 14 consultas abiertas al docente**: no se responden por cuenta propia ([requerimientos-oficiales §10](../requerimientos-oficiales.md)).
 
 ---
 
@@ -107,6 +110,7 @@ Para que nadie lo abra «ya que estamos»:
 | Archivo | Qué es |
 |---|---|
 | [requerimientos.md](requerimientos.md) | **Criterio 2.** Los 38 RF y 18 RNF por módulo y épica, con actores y trazados a los CU |
+| [casos-uso-general.md](casos-uso-general.md) | **Criterio 3.** La frontera, los seis actores, los doce casos con sus RF y su pantalla, y las nueve relaciones `«include»` y `«extend»` |
 | [puml/](puml/) | Los `.puml` y sus PNG. La fuente de todo diagrama de la entrega |
 | [guia-planner-hector.pdf](guia-planner-hector.pdf) | **Criterio 1.** Cómo cargar las 87 tareas a mano, en seis tandas |
 | [guia-planner-hector.md](guia-planner-hector.md) | La fuente del PDF anterior. Se edita acá y se regenera |

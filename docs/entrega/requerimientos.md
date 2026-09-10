@@ -207,7 +207,7 @@ Las columnas son las que muestra el ejemplo del PDF: `ID | Requerimiento | Actor
 | RF-007 | Configurar metas y umbrales versionados, que rigen desde el período | Administrador · Coordinador | M1 | EP-02 | **CU-04** | ✅ |
 | RF-008 | Ficha personal con funcionario, cargo, delegación, ítems, metas y avance | Funcionario | M2 | EP-02 | **CU-05** | ✅ |
 | RF-009 | Registrar actividades con fecha, acción, contacto, ítem e ingreso al tubo | Funcionario | M2 | EP-01 | **CU-01** | ✅ |
-| RF-010 | Validar campos en obligatoriedad, formato y coherencia | Funcionario | M2 | EP-01 | **CU-01**, CU-I1 | ✅ |
+| RF-010 | Validar campos en obligatoriedad, formato y coherencia | Funcionario | M2 | EP-01 | **CU-01**, CU-06, CU-I1 | ✅ |
 | RF-011 | Generar un código de evidencia único e inmutable | Funcionario · Sistema | M2 | EP-01 | **CU-01**, CU-I2 | ✅ |
 | RF-012 | Asociar la evidencia fotográfica al código, con fecha y autor de carga | Funcionario | M2 | EP-03 | **CU-02** | ✅ |
 | RF-013 | Validar la evidencia aprobando, rechazando o pidiendo corrección | Verificador | M2 | EP-03 | **CU-03**, CU-E2 | ✅ |
