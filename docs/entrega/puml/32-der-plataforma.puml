@@ -1,0 +1,141 @@
+@startuml der-plataforma
+' DER — detalle de la plataforma: multi-tenant, identidad, rol y bitácora.
+' Fuente: backend/prisma/schema.prisma.
+title DER · Plataforma, identidad y bitácora (4 tablas)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 10
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+hide circle
+hide empty methods
+
+entity "organizations" as organizations {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * nombre : VARCHAR(160)
+  * tipo : ENUM('municipio','empresa')
+  * configuracion_terminologia : JSON
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+}
+
+entity "users" as users {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * email : VARCHAR(180)
+  * password_hash : VARCHAR(255)
+  * nombre : VARCHAR(200)
+  o nombres : VARCHAR(100)
+  o apellido_paterno : VARCHAR(100)
+  o apellido_materno : VARCHAR(100)
+  o rut : VARCHAR(12)
+  * activo : TINYINT(1) = 1
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  --
+  <<UQ>> email
+  <<UQ>> rut
+  <<CHECK>> rut REGEXP '^[0-9]{7,8}-[0-9K]$'
+}
+
+entity "organization_members" as miembros <<asociativa>> {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * user_id : CHAR(36) <<FK>>
+  o unidad_territorial_id : CHAR(36) <<FK>>
+  o cargo_id : CHAR(36) <<FK>>
+  * rol : ENUM('admin','supervisor','gerente','usuario','verificador','consulta')
+  o cargo : VARCHAR(120)
+  --
+  <<UQ>> (organization_id, user_id)
+  <<IDX>> (organization_id, unidad_territorial_id)
+}
+
+entity "auditoria" as auditoria {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o usuario_id : CHAR(36) <<sin FK>>
+  * accion : ENUM('crear','actualizar','eliminar','validar','cambiar_estado','cerrar_periodo','reabrir_periodo','consultar')
+  * entidad : VARCHAR(60)
+  * entidad_id : CHAR(36) <<sin FK>>
+  o valor_anterior : JSON
+  o valor_nuevo : JSON
+  o ip : VARCHAR(45)
+  o origen : VARCHAR(160)
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  --
+  <<IDX>> (organization_id, entidad, entidad_id)
+  <<IDX>> (organization_id, created_at)
+}
+
+entity "unidades_territoriales" as unidades <<en 31-der-agenda>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "cargos" as cargos <<en 29-der-medicion>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+organizations ||--o{ miembros : agrupa >
+users ||--o{ miembros : pertenece a >
+unidades |o--o{ miembros : adscribe >
+cargos |o--o{ miembros : desempeña >
+organizations ||--o{ auditoria #DDDDDA
+organizations ||--o{ unidades #DDDDDA
+organizations ||--o{ cargos #DDDDDA
+
+note bottom of miembros
+  **Tabla asociativa: resuelve el N:M entre `users` y `organizations`**,
+  y lleva atributos propios — el rol, la delegación y el cargo. Por eso
+  `users` **no tiene** `organization_id`: es la única tabla global del
+  modelo, y un mismo correo puede pertenecer a varias organizaciones
+  con roles distintos.
+
+  **`unidad_territorial_id` nulo significa nivel central**: ve todas las
+  delegaciones. Es un valor con significado, no un dato faltante.
+end note
+
+note right of users
+  **`email` y `rut` son únicos GLOBALES**, no por organización: son la
+  identidad de la persona, y la misma persona no cambia de RUT al
+  entrar a otro municipio. El RUT se guarda canónico —sin puntos, con
+  guion, DV en mayúscula (ADR-001)— y el CHECK garantiza la forma; el
+  módulo 11 lo valida la aplicación, porque un CHECK no puede calcularlo.
+end note
+
+note bottom of auditoria
+  **Es una tabla de SOLO INSERCIÓN.** En PostgreSQL dos disparadores
+  revocan `UPDATE` y `DELETE`; el script MySQL los reproduce. Una
+  bitácora que la propia aplicación puede modificar no es una bitácora
+  (RNF-008, ADR-006).
+
+  **`usuario_id` no tiene clave foránea, y es deliberado**: la bitácora
+  debe sobrevivir al borrado del usuario. Un `CASCADE` borraría la
+  prueba junto con el responsable y un `RESTRICT` impediría dar de baja
+  a nadie. `entidad_id` es polimórfico, como en `comentarios`.
+
+  Registra también la acción `consultar`, porque las Leyes 19.628 /
+  21.719 y la Ley 21.663 exigen trazabilidad del **acceso** a datos
+  personales, no solo de su modificación (ADR-012).
+end note
+
+@enduml

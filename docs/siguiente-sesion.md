@@ -193,17 +193,20 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo que los contiene, no como bloque propio.
 
-### 4.bis Tres desvíos entre el requerimiento y el código, encontrados al escribir las fichas
+### 4.bis Cuatro desvíos entre el requerimiento y el código, encontrados al escribir los artefactos de la entrega
 
-Salieron de contrastar cada caso de uso con su RF oficial (criterio 4 de la entrega, 10 de septiembre). **No son decisiones de diseño: son incumplimientos**, y están declarados como tales en [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) en vez de disimularse describiendo el código como si fuera el requisito.
+Los tres primeros salieron de contrastar cada caso de uso con su RF oficial (criterio 4 de la entrega, 10 de septiembre); el cuarto, de extraer las 52 claves foráneas una por una para el DER (criterio 6, el mismo día). **No son decisiones de diseño: son incumplimientos**, y están declarados como tales en [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) y en [entrega/der.md §14](entrega/der.md) en vez de disimularse describiendo el código como si fuera el requisito.
 
 | # | RF | Qué pide | Qué hay | Costo estimado |
 |---|---|---|---|---|
 | **D-a** | **RF-016** | La creación de compromisos del tubo es del **Funcionario** y del Delegado | `POST /tareas` la restringe a `admin`, `supervisor` y `gerente`: el funcionario **mueve** sus compromisos pero no puede **crearlos**. La restricción viene de la matriz de permisos del Documento Maestro —la fuente más baja de la jerarquía— y quedó por encima del RF sin que nadie lo decidiera | Bajo: un rol más en `requireRol`, más la prueba de alcance |
 | **D-b** | **RF-018** y **RF-019** | Cuatro estados (Ingresado → Pendiente → En proceso → Realizado) con **historial de transiciones**; alertas de «próximo a vencer» y «realizado fuera de plazo» | Tres estados y solo se marcan los vencidos. ⚠ **`tarea_historial` existe y el seed la llena, pero `src/` nunca escribe en ella**: el historial se ve poblado en la demo y no se llenaría en uso real. El recorrido se reconstruye desde la bitácora | Bajo para el historial (un `create` en el PATCH de tareas); medio para los estados y las alertas |
 | **D-c** | **RF-036** | Trazabilidad **consultable** | Se audita todo write crítico, pero falta la pantalla para leer la bitácora | Medio: una pantalla nueva con filtros |
+| **D-d** | Integridad referencial | `periodos.cerrado_por_id` guarda **quién cerró el período** y debería ser clave foránea a `users` | **No la tiene.** No estaba declarado en ninguna parte: apareció al extraer las 52 FK de las migraciones para el DER. Hoy nada impide que ese `id` apunte a un usuario borrado o inexistente, y RN-013 exige poder responder quién cerró y reabrió un período | Bajo: una FK con `ON DELETE RESTRICT`, igual que `ajustes.registrado_por_id`, que es el caso análogo y sí la tiene. Requiere migración |
 
 **D-a es el más barato y el que más se nota**, porque contradice el uso diario que el cliente describió. Conviene resolverlo antes de que el desvío se consolide como si fuera la regla.
+
+**D-d entra en la lista de «tablas y columnas sin dueño»** de más abajo, y confirma que esa auditoría vale la pena: la encontró un artefacto de documentación, no una prueba.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|

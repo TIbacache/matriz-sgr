@@ -1,0 +1,192 @@
+@startuml der-agenda
+' DER — detalle de la organización territorial, la agenda colectiva (el tubo)
+' y los catálogos configurables. Fuente: backend/prisma/schema.prisma.
+title DER · Territorio, agenda colectiva y catálogos (6 tablas)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 10
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+hide circle
+hide empty methods
+
+entity "unidades_territoriales" as unidades {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o responsable_id : CHAR(36) <<FK>>
+  * nombre : VARCHAR(160)
+  * activo : TINYINT(1) = 1
+  * version : INT = 1
+  --
+  <<IDX>> (organization_id)
+}
+
+entity "categorias_gestion" as categorias {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * nombre : VARCHAR(160)
+  * orden_prioridad : INT
+  * version : INT = 1
+  --
+  <<IDX>> (organization_id)
+}
+
+entity "tareas" as tareas {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * unidad_territorial_id : CHAR(36) <<FK>>
+  * categoria_id : CHAR(36) <<FK>>
+  o responsable_id : CHAR(36) <<FK>>
+  o persona_usuaria_id : CHAR(36) <<FK>>
+  * titulo : VARCHAR(200)
+  o descripcion : TEXT
+  * estado : VARCHAR(40) = 'ingresado'
+  o fecha_compromiso : DATE
+  * interes_externo : TINYINT(1) = 1
+  o fecha_solicitud : DATE
+  o solicitante : VARCHAR(200)
+  o territorio : VARCHAR(120)
+  o area_apoyo : VARCHAR(120)
+  o observaciones : TEXT
+  * cerrada_fuera_plazo : TINYINT(1) = 0
+  o fecha_cierre : DATE
+  * computada_en_meta : TINYINT(1) = 0
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<IDX>> (organization_id, unidad_territorial_id, estado)
+  <<IDX>> (organization_id, fecha_compromiso)
+}
+
+entity "tarea_historial" as tarea_historial #FFFFFF;line.dashed {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * tarea_id : CHAR(36) <<FK>>
+  * autor_id : CHAR(36) <<FK>>
+  o estado_anterior : VARCHAR(40)
+  * estado_nuevo : VARCHAR(40)
+  o observacion : TEXT
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  --
+  <<IDX>> (organization_id, tarea_id)
+}
+
+entity "catalogo_items" as catalogo {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * catalogo : VARCHAR(60)
+  * valor : VARCHAR(160)
+  o area : VARCHAR(60)
+  * orden : INT = 0
+  * vigente : TINYINT(1) = 1
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (organization_id, catalogo, valor)
+  <<IDX>> (organization_id, catalogo, vigente)
+}
+
+entity "comentarios" as comentarios #FFFFFF;line.dashed {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * autor_id : CHAR(36) <<FK>>
+  * entidad : VARCHAR(40)
+  * entidad_id : CHAR(36) <<sin FK>>
+  * texto : TEXT
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  --
+  <<IDX>> (organization_id, entidad, entidad_id)
+}
+
+entity "users" as users <<en 32-der-plataforma>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "organizations" as organizations <<en 32-der-plataforma>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "personas_usuarias" as personas <<en 30-der-registro>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+organizations ||--o{ unidades #DDDDDA
+organizations ||--o{ categorias #DDDDDA
+organizations ||--o{ tareas #DDDDDA
+organizations ||--o{ tarea_historial #DDDDDA
+organizations ||--o{ catalogo #DDDDDA
+organizations ||--o{ comentarios #DDDDDA
+
+users |o--o{ unidades : es responsable de >
+unidades ||--o{ tareas : agenda >
+categorias ||--o{ tareas : clasifica >
+users |o--o{ tareas : responde por >
+personas |o--o{ tareas : solicita >
+tareas ||--o{ tarea_historial : deja huella en >
+users ||--o{ tarea_historial : mueve >
+users ||--o{ comentarios : escribe >
+
+note bottom of tareas
+  **`estado` es VARCHAR y no ENUM a propósito**: las columnas del tubo
+  son configurables por organización. Un enumerado obligaría a migrar
+  la base para agregar una columna al kanban.
+
+  ⚠ **RF-018 pide cuatro estados con historial; hoy hay tres.** Y
+  `cerrada_fuera_plazo` cubre solo la mitad de RF-019: se marca el
+  vencido, no se avisa el «próximo a vencer». El desvío se declara,
+  no se disimula.
+
+  **`unidad_territorial_id` no se borra: se desactiva** (`activo`),
+  porque RF-001 exige no perder la historia de la delegación.
+end note
+
+note right of tarea_historial
+  **Borde punteado, y por una razón distinta a la de `ajustes`.** Aquí
+  la tabla existe y **el seed la llena**, pero la aplicación nunca
+  escribe en ella: en la demostración el historial se ve poblado y en
+  uso real no se llenaría. Es el desvío declarado de RF-018.
+end note
+
+note bottom of comentarios
+  **`entidad_id` no puede ser clave foránea.** El vínculo es
+  polimórfico: apunta a `tareas`, `actividades` o `metas_item` según
+  `entidad`. Ninguna base relacional declara una FK hacia varias
+  tablas, así que la integridad la sostiene la aplicación. Se dibuja
+  sin flecha y se explica, en vez de simularla.
+  **RF-035 no está implementado**: no hay API de comentarios.
+end note
+
+note right of catalogo
+  **Los catálogos configurables salen de aquí** (RF-004): tipos de
+  atención, sub-atenciones, las tres gestiones y los territorios.
+  Ningún valor de negocio vive en el código.
+  Se desactivan con `vigente = 0`, nunca se borran: una fila borrada
+  dejaría sin nombre a los registros históricos que la usaron.
+end note
+
+@enduml

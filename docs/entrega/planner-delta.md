@@ -95,9 +95,9 @@ Esta tabla es la lista de comprobación final: si una fila queda sin adjunto, es
 | 1 | Planner | 15 | (el tablero mismo) | Captura del tablero poblado y enlace directo, en el informe |
 | 2 | Diagramas de requerimientos | 10 | **Diagrama de Requerimientos** (nueva) | `docs/entrega/requerimientos.md` y su PNG |
 | 3 | Caso de uso general | 10 | Diagramas UML | `docs/entrega/casos-uso-general.md` y su PNG |
-| 4 | Casos de uso específicos + fichas | 20 | Diagramas UML | Los 12 diagramas y las 12 fichas de `docs/entrega/casos-uso/` |
+| 4 | Casos de uso específicos + fichas | 20 | Diagramas UML | Los 12 diagramas y las 12 fichas de `docs/entrega/casos-uso-detalle.md` |
 | 5 | Diagrama de clases | 15 | Diagramas de Clase | `docs/entrega/clases.md` y su PNG |
-| 6 | DER MySQL | 10 | Modelo Entidad-Relación | `docs/entrega/der-mysql.md` y su PNG |
+| 6 | DER MySQL | 10 | Modelo Entidad-Relación | `docs/entrega/der.md` y sus cinco PNG (`puml/28` a `puml/32`) |
 | 7 | Script SQL | 10 | Modelo Entidad-Relación | `docs/entrega/sgr-mysql.sql` |
 | 8 | Mockup funcional + Git | 10 | Diseño MockUps · GIT | Los `.html` autocontenidos de `docs/mockups/` y el enlace al repositorio |
 

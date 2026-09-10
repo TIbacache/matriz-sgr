@@ -313,5 +313,114 @@ if (!existsSync(rutaClases)) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// 8. Criterio 6 — el DER contra el esquema real y contra las migraciones.
+//
+// La rúbrica valida a mano que «toda FK representada en el DER exista en el
+// script SQL». La otra mitad del trato es que toda FK del DER exista en el
+// SISTEMA: un DER con una clave foránea inventada es peor que uno incompleto,
+// porque el script la copiaría y nadie lo notaría. Las FK se extraen de las
+// sentencias de backend/prisma/migrations, no del texto del documento.
+// ---------------------------------------------------------------------------
+titulo("Criterio 6 · DER ↔ esquema ↔ migraciones");
+
+const rutaDer = path.join(entrega, "der.md");
+if (!existsSync(rutaDer)) {
+  console.log("  ··   todavía no existe der.md; nada que comprobar");
+} else {
+  const der = readFileSync(rutaDer, "utf8");
+  const schemaDer = readFileSync(path.join(raiz, "backend/prisma/schema.prisma"), "utf8");
+  const tablasEsquema = new Set([...schemaDer.matchAll(/@@map\("([^"]+)"\)/g)].map((m) => m[1]));
+
+  verificar(
+    `der.md nombra las ${tablasEsquema.size} tablas del esquema`,
+    [...tablasEsquema].every((t) => der.includes(t)),
+    [...tablasEsquema].filter((t) => !der.includes(t)).join(", ")
+  );
+
+  // Las tablas dibujadas en los cinco .puml del DER.
+  const pumlsDer = pumls.filter((f) => /^\d+-der-/.test(f));
+  verificar("están los cinco diagramas del DER", pumlsDer.length === 5, `son ${pumlsDer.length}`);
+
+  const dibujadasDer = new Set();
+  const detalladas = new Set();
+  for (const archivo of pumlsDer) {
+    for (const m of leer(`puml/${archivo}`).matchAll(/^entity\s+"(\w+)"\s+as\s+\w+(.*)$/gm)) {
+      dibujadasDer.add(m[1]);
+      // Una tabla reducida a su `id` con el estereotipo «en NN-der-...» es una
+      // referencia a otro diagrama, no el detalle de esa tabla. El mapa general
+      // tampoco detalla: muestra solo las claves.
+      if (!/<<en \d+-der-/.test(m[2]) && archivo !== "28-der-general.puml") detalladas.add(m[1]);
+    }
+  }
+  const inventadasDer = [...dibujadasDer].filter((t) => !tablasEsquema.has(t));
+  verificar("ninguna tabla dibujada en el DER falta en schema.prisma", inventadasDer.length === 0, inventadasDer.join(", "));
+
+  const sinDibujar = [...tablasEsquema].filter((t) => !dibujadasDer.has(t));
+  verificar("ninguna tabla del esquema queda fuera del DER", sinDibujar.length === 0, sinDibujar.join(", "));
+
+  const sinDetalle = [...tablasEsquema].filter((t) => !detalladas.has(t));
+  verificar("cada tabla trae sus columnas en un diagrama de detalle", sinDetalle.length === 0, sinDetalle.join(", "));
+
+  // Las claves foráneas reales, tomadas de las migraciones. Quedan fuera las de
+  // `metas`, la tabla del modelo v1 que eliminó el Bloque C: ya no está en el
+  // esquema, así que el filtro por `tablasEsquema` la descarta sola.
+  const dirMigraciones = path.join(raiz, "backend/prisma/migrations");
+  let sqlMigraciones = "";
+  for (const d of readdirSync(dirMigraciones)) {
+    const f = path.join(dirMigraciones, d, "migration.sql");
+    if (existsSync(f)) sqlMigraciones += `${readFileSync(f, "utf8")}\n`;
+  }
+  const fkReales = new Set();
+  // Ojo: `ON DELETE CASCADE ON UPDATE CASCADE`. La acción se enumera en vez de
+  // leerse como «una o dos palabras», o se lleva puesto el `ON` del `ON UPDATE`.
+  const patronFk = /ALTER TABLE "(\w+)" ADD CONSTRAINT "\w+" FOREIGN KEY \("(\w+)"\) REFERENCES "(\w+)"\("\w+"\) ON DELETE (CASCADE|RESTRICT|SET NULL|SET DEFAULT|NO ACTION)/g;
+  for (const m of sqlMigraciones.matchAll(patronFk)) {
+    if (!tablasEsquema.has(m[1])) continue;
+    fkReales.add(`${m[1]}.${m[2]}->${m[3]}:${m[4]}`);
+  }
+  verificar("las migraciones declaran 52 claves foráneas vigentes", fkReales.size === 52, `son ${fkReales.size}`);
+
+  // Las filas de la tabla de §9. La primera celda se hereda cuando va vacía,
+  // que es como se escribe una tabla agrupada por tabla hija.
+  const limpiar = (x) => x.replace(/[`*]/g, "").trim();
+  const fkDocumentadas = new Set();
+  let tablaActual = "";
+  for (const linea of der.split("\n")) {
+    if (!/^\|[^|]*\|\s*`\w+`\s*\|\s*`\w+`\s*\|/.test(linea)) continue;
+    const c = celdas(linea);
+    if (c.length !== 4) continue;
+    const accion = limpiar(c[3]).toUpperCase();
+    if (!/^(CASCADE|RESTRICT|SET NULL)$/.test(accion)) continue;
+    if (limpiar(c[0])) tablaActual = limpiar(c[0]);
+    fkDocumentadas.add(`${tablaActual}.${limpiar(c[1])}->${limpiar(c[2])}:${accion}`);
+  }
+  const sobranFk = [...fkDocumentadas].filter((f) => !fkReales.has(f));
+  const faltanFk = [...fkReales].filter((f) => !fkDocumentadas.has(f));
+  verificar("der.md documenta las 52 claves foráneas", fkDocumentadas.size === 52, `documenta ${fkDocumentadas.size}`);
+  verificar("ninguna clave foránea del DER está inventada", sobranFk.length === 0, sobranFk.join(", "));
+  verificar("ninguna clave foránea real queda sin documentar", faltanFk.length === 0, faltanFk.join(", "));
+
+  // Los enumerados del esquema, con su nombre.
+  const enums = [...schemaDer.matchAll(/^enum\s+(\w+)\s*\{/gm)].map((m) => m[1]);
+  verificar(
+    `der.md nombra los ${enums.length} enumerados`,
+    enums.every((e) => der.includes(e)),
+    enums.filter((e) => !der.includes(e)).join(", ")
+  );
+
+  // Las cuatro columnas que parecen clave foránea y no lo son. Si alguien
+  // "arregla" el DER agregándoselas, el script las copiaría y el modelo
+  // entregado dejaría de ser el del sistema.
+  for (const columna of ["comentarios.entidad_id", "auditoria.entidad_id", "auditoria.usuario_id", "periodos.cerrado_por_id"]) {
+    const [tabla, campo] = columna.split(".");
+    const tieneFk = [...fkReales].some((f) => f.startsWith(`${tabla}.${campo}->`));
+    verificar(`${columna} sigue siendo una referencia sin FK`, !tieneFk && der.includes(campo));
+  }
+
+  // El modelo v1 se eliminó: nombrarlo como tabla vigente sería incoherente.
+  verificar("el DER no resucita la tabla `metas` del modelo v1", !/\|\s*`metas`\s*\|/.test(der));
+}
+
 console.log(`\n${total - fallas}/${total} verificaciones de la entrega en verde`);
 process.exit(fallas ? 1 : 0);

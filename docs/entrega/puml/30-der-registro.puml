@@ -1,0 +1,210 @@
+@startuml der-registro
+' DER — detalle del registro personal, la evidencia y su validación.
+' Es la cadena que da el puntaje: actividad → evidencia → validación aprobada.
+' Fuente: backend/prisma/schema.prisma.
+title DER · Registro, evidencia y personas atendidas (5 tablas)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 10
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+hide circle
+hide empty methods
+
+entity "personas_usuarias" as personas {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o rut : VARCHAR(12)
+  * nombres : VARCHAR(100)
+  * apellido_paterno : VARCHAR(100)
+  o apellido_materno : VARCHAR(100)
+  o telefono : VARCHAR(20)
+  o direccion : VARCHAR(255)
+  o sector : VARCHAR(120)
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (organization_id, rut)
+  <<IDX>> (organization_id, apellido_paterno)
+  <<CHECK>> rut REGEXP '^[0-9]{7,8}-[0-9K]$'
+}
+
+entity "actividades" as actividades {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * unidad_territorial_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  o item_id : CHAR(36) <<FK>>
+  o persona_usuaria_id : CHAR(36) <<FK>>
+  o tarea_id : CHAR(36) <<FK>>
+  * codigo : VARCHAR(40) <<inmutable>>
+  * fecha : DATE
+  * descripcion : TEXT
+  o accion : TEXT
+  o contacto_nombre : VARCHAR(160)
+  o contacto_fono : VARCHAR(20)
+  * ingreso_a_tubo : TINYINT(1) = 0
+  * anulada : TINYINT(1) = 0
+  o motivo_anulacion : VARCHAR(255)
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (organization_id, codigo)
+  <<IDX>> (organization_id, periodo_id, funcionario_id)
+  <<IDX>> (organization_id, item_id)
+  <<IDX>> (organization_id, fecha)
+}
+
+entity "evidencias" as evidencias {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * actividad_id : CHAR(36) <<FK>>
+  * subida_por_id : CHAR(36) <<FK>>
+  * archivo_nombre : VARCHAR(255)
+  * archivo_ruta : VARCHAR(500)
+  * mime_type : VARCHAR(120)
+  * tamano_bytes : INT
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  --
+  <<IDX>> (organization_id, actividad_id)
+}
+
+entity "validaciones" as validaciones <<asociativa>> {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * evidencia_id : CHAR(36) <<FK>>
+  * verificador_id : CHAR(36) <<FK>>
+  * decision : ENUM('pendiente','aprobada','rechazada','correccion_solicitada') = 'pendiente'
+  o observacion : TEXT
+  o decidida_en : DATETIME(3)
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  --
+  <<IDX>> (organization_id, evidencia_id)
+  <<IDX>> (organization_id, decision)
+}
+
+entity "atenciones_sociales" as atenciones {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * actividad_id : CHAR(36) <<FK, UQ>>
+  * tipo_atencion : VARCHAR(120)
+  o sub_atencion : VARCHAR(120)
+  * requiere_visita : TINYINT(1) = 0
+  o primera_gestion : VARCHAR(120)
+  o fecha_programada_visita : DATE
+  o observacion : TEXT
+  o segunda_gestion : VARCHAR(120)
+  o fecha_visita : DATE
+  o fecha_entrega_informe : DATE
+  o tercera_gestion : VARCHAR(120)
+  o fecha_entrega_beneficio : DATE
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<IDX>> (organization_id)
+}
+
+entity "users" as users <<en 32-der-plataforma>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "organizations" as organizations <<en 32-der-plataforma>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "periodos" as periodos <<en 29-der-medicion>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "items_medicion" as items <<en 29-der-medicion>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "unidades_territoriales" as unidades <<en 31-der-agenda>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "tareas" as tareas <<en 31-der-agenda>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+organizations ||--o{ personas #DDDDDA
+organizations ||--o{ actividades #DDDDDA
+organizations ||--o{ evidencias #DDDDDA
+organizations ||--o{ validaciones #DDDDDA
+organizations ||--o{ atenciones #DDDDDA
+
+periodos ||--o{ actividades : contiene >
+unidades ||--o{ actividades : ocurre en >
+users ||--o{ actividades : registra >
+items |o--o{ actividades : suma a >
+personas |o--o{ actividades : es atendida en >
+tareas |o--o{ actividades : origina >
+
+actividades ||--o{ evidencias : respalda >
+users ||--o{ evidencias : sube >
+
+evidencias ||--o{ validaciones : se decide en >
+users ||--o{ validaciones : decide >
+
+actividades ||--o| atenciones : abre caso >
+
+note bottom of actividades
+  **`codigo` es único por organización e inmutable** (RF-011, ADR-004).
+  En PostgreSQL lo garantiza un disparador `BEFORE UPDATE`; en MySQL el
+  script lo reproduce con un `TRIGGER` equivalente. Un UNIQUE solo
+  impide repetirlo: no impide **cambiarlo**, que es lo que la norma exige.
+
+  **No se edita ni se borra: se anula** con `anulada` + `motivo_anulacion`
+  (ADR-006). Por eso `periodo_id` es `ON DELETE RESTRICT`: borrar un
+  período con actividades registradas debe fallar, no arrastrarlas.
+end note
+
+note right of evidencias
+  **`subida_por_id` y `verificador_id` son `ON DELETE RESTRICT`.**
+  No es decoración: es lo que impide borrar a quien subió una evidencia
+  o decidió una validación, y con ello perder la trazabilidad de quién
+  respondió por un dato (RNF-008). Un `CASCADE` aquí borraría la prueba.
+end note
+
+note bottom of atenciones
+  **1:1 con la actividad**, porque `actividad_id` es UNIQUE. La escalera
+  de tres gestiones vive en columnas y no en filas: la planilla real
+  tiene esas fechas en la misma línea (ADR-013, CA-04).
+end note
+
+note top of personas
+  **RUT único por ORGANIZACIÓN, no por delegación** (ADR-008). Es la
+  restricción que hace posible el control que el cliente vino a buscar:
+  notar que el mismo vecino pidió lo mismo en varias delegaciones. Con
+  una ficha por delegación el cruce sería imposible por construcción.
+  `rut` es nulable: puede no conocerse al momento de atender.
+end note
+
+@enduml

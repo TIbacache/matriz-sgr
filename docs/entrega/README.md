@@ -18,12 +18,12 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | 3 | Caso de uso general | 10 | ✅ **Hecho** | [casos-uso-general.md](casos-uso-general.md) · [puml/09](puml/09-casos-uso-general.puml) y [puml/10](puml/10-casos-uso-extensiones.puml) |
 | 4 | Casos de uso específicos + fichas | 20 | ✅ **Hecho** | [casos-uso-detalle.md](casos-uso-detalle.md) · [puml/11](puml/11-cu-01.puml) a [puml/22](puml/22-cu-12.puml) |
 | 5 | Diagrama de clases | 15 | ✅ **Hecho** | [clases.md](clases.md) · [puml/23](puml/23-clases-panorama.puml) a [puml/27](puml/27-clases-servicios.puml) |
-| 6 | DER MySQL | 10 | 🔴 Pendiente | — |
+| 6 | DER MySQL | 10 | ✅ **Hecho** | [der.md](der.md) · [puml/28](puml/28-der-general.puml) a [puml/32](puml/32-der-plataforma.puml) |
 | 7 | Script SQL | 10 | 🔴 Pendiente | — |
 | 8 | Mockup funcional + Git | 10 | 🟢 Hecho, faltan escenarios alternativos | [../mockups/](../mockups/) |
 | — | Informe de la entrega | — | 🔴 Pendiente | — |
 
-**70 de 100 puntos cubiertos.** Queda la cadena de datos: DER y script MySQL.
+**80 de 100 puntos cubiertos.** Queda el **script SQL** (criterio 7), los escenarios alternativos del mockup y el informe.
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -83,6 +83,19 @@ Tres decisiones que no conviene rediscutir:
 
 Tres clases van con **borde punteado** porque tienen tabla y no comportamiento: `Ajuste` (RF-025), `Comentario` (RF-035) y `TareaHistorial`.
 
+### Cómo quedó el criterio 6 (cerrado el 10 de septiembre)
+
+**Cinco diagramas y un documento**: [der.md](der.md) y `puml/28-der-general` a `puml/32-der-plataforma`. **22 tablas, 52 claves foráneas y 8 enumerados.**
+
+- **El mapa general (28) muestra las 22 tablas y las 52 FK; los otros cuatro traen el detalle de campos y tipos.** Entre esos cuatro cubren las 22 sin repetir ninguna: cuando uno necesita una tabla que se detalla en otro, la dibuja reducida a su `id` con el estereotipo `«en NN-der-…»`. El verificador comprueba que ninguna tabla se quede sin ese detalle.
+- **Las 20 relaciones de `organization_id` van en gris claro** en el mapa general. Es la misma relación repetida veinte veces y, en negro, tapa el modelo. Están todas, y estarán una por una en el script.
+- **Las 52 FK se extrajeron de las migraciones**, no se transcribieron. Es lo que permite afirmar que no falta ni sobra ninguna, y es la mitad del trato que la rúbrica pide para el criterio 7 («toda FK del DER debe existir en el script»).
+- **Notación crow's foot (`entity` + `||--o{`), no cajas de clase.** El DER y el diagrama de clases son artefactos distintos y se evalúan por separado; entregar dos veces el mismo dibujo con otro título es la forma más barata de perder los dos.
+
+⚠ **Un hallazgo nuevo, que apareció al extraer las FK una por una**: `periodos.cerrado_por_id` **debería ser clave foránea a `users` y no lo es**. No estaba declarado en ninguna parte. Se deja igual en el DER —el artefacto describe el sistema que hay— y queda anotado como corrección posterior en [../siguiente-sesion.md §4.bis](../siguiente-sesion.md). El caso análogo, `ajustes.registrado_por_id`, sí la tiene con `RESTRICT`.
+
+**Y una decisión de traducción que hay que poder defender**: `timestamptz` → `DATETIME(3)` **pierde la zona horaria**. El equivalente fiel en MySQL sería `TIMESTAMP`, pero su rango termina en 2038. Se elige `DATETIME(3)` y se declara que la aplicación guarda todo instante en UTC ([der.md §12.1](der.md)).
+
 ---
 
 ## Lo que hay que saber para retomar
@@ -117,9 +130,9 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**202 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los veintisiete diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos: ninguna clase inventada, ningún modelo sin dibujar.
+**237 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar— y **el DER contra las migraciones**: las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`.
 
-⚠ **Estas 202 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 202, que los artefactos de la entrega dicen lo mismo entre sí.
+⚠ **Estas 237 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 237, que los artefactos de la entrega dicen lo mismo entre sí.
 
 Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe, y no fallan mientras no exista. Sale con código 1 si algo se cae, así que sirve para CI cuando lo haya.
 
@@ -165,6 +178,7 @@ Para que nadie lo abra «ya que estamos»:
 | [casos-uso-general.md](casos-uso-general.md) | **Criterio 3.** La frontera, los seis actores, los doce casos con sus RF y su pantalla, y las nueve relaciones `«include»` y `«extend»` |
 | [casos-uso-detalle.md](casos-uso-detalle.md) | **Criterio 4.** Las doce fichas de la rúbrica §5.4, cada una anclada al texto oficial de su RF, con su diagrama |
 | [clases.md](clases.md) | **Criterio 5.** Las 22 clases del dominio y los 12 servicios, en 5 diagramas, con la tabla clase ↔ tabla ↔ caso de uso |
+| [der.md](der.md) | **Criterio 6.** Las 22 tablas en MySQL, en 5 diagramas, con las 52 claves foráneas y su `ON DELETE`, las cardinalidades y las restricciones |
 | [puml/](puml/) | Los `.puml` y sus PNG. La fuente de todo diagrama de la entrega |
 | [guia-planner-hector.pdf](guia-planner-hector.pdf) | **Criterio 1.** Cómo cargar las 87 tareas a mano, en seis tandas |
 | [guia-planner-hector.md](guia-planner-hector.md) | La fuente del PDF anterior. Se edita acá y se regenera |

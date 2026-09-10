@@ -3,7 +3,7 @@
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
 **Última actualización**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`, sin mergear a `main`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **70 puntos cubiertos**: criterio 1 preparado y criterios 2, 3, 4 y 5 hechos. Se retoma en el **criterio 6 (DER MySQL)** y sigue con el 7, el 8 y el informe.
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **80 puntos cubiertos**: criterio 1 preparado y criterios 2, 3, 4, 5 y 6 hechos. Se retoma en el **criterio 7 (script SQL MySQL)** y sigue con el 8 y el informe.
 
 ---
 
@@ -20,21 +20,22 @@ LEE PRIMERO, EN ESTE ORDEN:
 
 1. docs/entrega/README.md — EL ESTADO. Qué criterio está listo, cuál falta,
    las decisiones ya tomadas para no rediscutirlas y lo que no se toca.
-   Sus secciones "Cómo quedó el criterio 3/4/5" son las que evitan rehacer
+   Sus secciones "Cómo quedó el criterio 3/4/5/6" son las que evitan rehacer
    trabajo ya discutido.
-2. docs/entrega/clases.md — DE AHÍ SALE EL DER. Su §9 tiene la equivalencia
-   de tipos UML → PostgreSQL → MySQL, y su §10 la tabla clase ↔ tabla ↔ caso
-   de uso, que es la que el DER tiene que respetar nombre por nombre.
-3. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Para el DER
-   manda su §5.6 y para el script su §5.7. Los dos PDF originales están
-   versionados en docs/: ante cualquier duda, mandan ellos.
+2. docs/entrega/der.md — DE AHÍ SALE EL SCRIPT. Ya trae las 22 tablas con
+   sus tipos MySQL, las 52 FK con su ON DELETE (§9), los UNIQUE y CHECK
+   (§12.3), los 8 enumerados (§12.4) y los largos de VARCHAR con el criterio
+   con que se eligieron (§12.2). No hay que volver a derivar nada de esto.
+3. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Para el
+   script manda su §5.7 y para el mockup su §5.8. Los dos PDF originales
+   están versionados en docs/: ante cualquier duda, mandan ellos.
 4. docs/plan-entrega-15-septiembre.md — EL PLAN, con la decisión D-1 (MySQL) y
    el reparto.
 5. CLAUDE.md — reglas del proyecto. Ojo la regla 20, que fija cómo se hacen
    los diagramas.
 6. backend/prisma/schema.prisma — LA FUENTE DE VERDAD del DER y del script.
 
-ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 202 en verde:
+ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 237 en verde:
       cd frontend && npm run verificar:entrega
 Correrlo también DESPUÉS de cada artefacto. Sale con código 1 si algo se cae.
 (Las 332 comprobaciones del software son otra cosa y no hace falta tocarlas:
@@ -42,54 +43,54 @@ esta entrega no evalúa el código corriendo.)
 
 QUÉ SIGUE, en este orden:
 
-  6. DER MySQL (10 pts) — EL SIGUIENTE. Fuente: backend/prisma/schema.prisma.
+  7. SCRIPT SQL MySQL (10 pts) — EL SIGUIENTE. Fuente: docs/entrega/der.md,
+     que ya tiene TODO lo que el script necesita y no hay que volver a derivar:
+     las 22 tablas con sus columnas y tipos MySQL (en los diagramas 29 a 32),
+     las 52 FK con su ON DELETE (§9), los 10 UNIQUE, los 5 CHECK, los 8
+     enumerados y los largos de VARCHAR ya elegidos con su criterio (§12.2).
+     NO reinventar los largos: el script usa esos números.
 
-     SON 22 TABLAS, NO 16. Las 16 son las de la migración v2; faltan las 6 de
-     plataforma. La lista completa, con el nombre real de la tabla:
+     Lo que la rúbrica §5.7 exige, uno por uno:
+     - CREATE DATABASE / USE explícito.
+     - CREATE TABLE ORDENADAS por dependencia de FK. El orden que funciona es:
+       organizations → users → unidades_territoriales → cargos →
+       organization_members → categorias_gestion → personas_usuarias →
+       tareas → periodos → parametros → items_medicion → metas_item →
+       actividades → evidencias → validaciones → atenciones_sociales →
+       ausencias → ajustes → catalogo_items → tarea_historial →
+       comentarios → auditoria.
+       Ojo con el ciclo: unidades_territoriales.responsable_id apunta a users
+       y organization_members.unidad_territorial_id apunta a unidades. No hay
+       ciclo real porque users no apunta a nadie, pero el orden importa.
+     - PK y FK declaradas, tipos apropiados, NOT NULL / UNIQUE / DEFAULT.
+     - Índices adicionales: los del esquema están en los diagramas como <<IDX>>.
+     - INSERT de prueba: opcionales pero recomendados. Si se ponen, DATOS
+       FICTICIOS (regla 12) y coherentes con el seed.
+     - DEBE EJECUTARSE SIN ERRORES de sintaxis ni de integridad referencial.
 
-       organizations · users · organization_members · unidades_territoriales
-       categorias_gestion · tareas · periodos · parametros · cargos
-       items_medicion · metas_item · personas_usuarias · actividades
-       evidencias · validaciones · atenciones_sociales · ausencias · ajustes
-       catalogo_items · tarea_historial · comentarios · auditoria
+     Cosas que el DER YA PROMETIÓ y el script tiene que cumplir, o quedan
+     dos artefactos que se contradicen:
+     - Los DOS DISPARADORES, con SIGNAL SQLSTATE '45000': auditoria de solo
+       inserción (BEFORE UPDATE y BEFORE DELETE) y código de actividad
+       inmutable (BEFORE UPDATE). El UNIQUE no basta: impide repetir el
+       código, no impide CAMBIARLO, que es lo que RF-011 exige.
+     - Los CHECK de RUT con REGEXP (MySQL 8.0.16+), fechas del período y
+       meta/ponderador.
+     - InnoDB + utf8mb4. Ningún índice se pasa de 3.072 bytes: está revisado
+       en der.md §12.2, el peor caso es catalogo_items con 1.024.
+     - NO agregar la FK de periodos.cerrado_por_id. Es el desvío D-d de
+       siguiente-sesion.md §4.bis: el script refleja el sistema que hay.
 
-     Más 8 enumerados: Rol, TipoOrganizacion, EstadoPeriodo, TipoItem,
-     DireccionItem, DecisionValidacion, TipoAusencia, AccionAuditoria.
+     EL VERIFICADOR: ampliar frontend/scripts/verificar-entrega.mjs con un
+     bloque 9 que compare el .sql contra schema.prisma y contra las
+     migraciones —ni una tabla ni una FK de más ni de menos—, activado solo
+     cuando el .sql exista, igual que los demás. El bloque 8 (criterio 6) ya
+     hace exactamente eso para el DER: COPIAR SU FORMA, no inventar otra.
 
-     Lo que la rúbrica §5.6 exige y hay que revisar uno por uno: PK en cada
-     tabla, FK con su relación, cardinalidades 1:1 / 1:N / N:M, tablas
-     asociativas donde haya N:M, tipos compatibles con MySQL y restricciones
-     básicas.
-
-     Lo que NO se puede olvidar, porque está en el esquema y da puntos:
-     - organization_id EN TODAS las tablas de negocio (multi-tenant, regla 8).
-     - Los UNIQUE compuestos, que son reglas de negocio disfrazadas:
-         actividades (organization_id, codigo)
-         metas_item (periodo_id, item_id, funcionario_id)
-         personas_usuarias (organization_id, rut)   ← ADR-008, el control
-         organization_members (organization_id, user_id)
-         parametros (organization_id, periodo_id, clave)
-         catalogo_items (organization_id, catalogo, valor)
-         periodos (organization_id, nombre) · cargos (organization_id, nombre)
-         users.email y users.rut, únicos GLOBALES
-         atenciones_sociales.actividad_id UNIQUE ← es lo que la hace 1:1
-     - El comportamiento de borrado de cada FK: Cascade, Restrict o SetNull.
-       No es decoración: Restrict en evidencias.subida_por_id es lo que impide
-       borrar a quien subió una evidencia.
-     - comentarios NO tiene FK hacia lo que comenta: su vínculo es polimórfico
-       (entidad + entidad_id). Se dibuja así y se explica.
-
-     Las tres tablas sin comportamiento —ajustes, comentarios, tarea_historial—
-     SÍ van en el DER, con la misma marca de pendiente del resto de la entrega.
-
-  7. SCRIPT SQL (10 pts) + su verificador. Decisión D-1: se entrega MySQL
-     traducido desde el esquema real, declarando las equivalencias de tipos,
-     y se dice en el informe que la implementación corre en PostgreSQL 16.
-     La rúbrica valida a mano que "toda FK del DER exista en el script";
-     nosotros lo comprobamos con script, AMPLIANDO
-     frontend/scripts/verificar-entrega.mjs con un bloque nuevo que compare
-     el .sql contra schema.prisma: ni una tabla ni una FK de más ni de menos.
-     Ese bloque se activa solo cuando el .sql exista, igual que los demás.
+     ⚠ Trampa ya pagada en el bloque 8: al leer el ON DELETE de una
+     migración, la acción hay que ENUMERARLA (CASCADE|RESTRICT|SET NULL|...).
+     Un patrón tipo \w+( \w+)? se lleva puesto el ON del ON UPDATE y las 52
+     comparaciones fallan a la vez.
 
   8. MOCKUP (10 pts): faltan los escenarios alternativos. Tres ya son
      capturables (aviso de duplicidad, 403 con motivo escrito, delegación sin
@@ -131,9 +132,9 @@ las dos puntas a la vez y se documenta:
   (CU-04, CU-07, CU-10).
 - Las fichas y los diagramas usan la ficha de la RÚBRICA, no la del ejemplo
   del docente, que es más corta. El ejemplo es referencia, no plantilla.
-- Los archivos de la entrega se llaman: der.md, script-sql.md y
-  sgr-mysql.sql. clases.md YA ENLAZA a los dos primeros: si se les cambia el
-  nombre, ese enlace queda roto.
+- Los archivos de la entrega se llaman: der.md (YA EXISTE), script-sql.md y
+  sgr-mysql.sql. clases.md y der.md YA ENLAZAN a script-sql.md: si se le
+  cambia el nombre, esos enlaces quedan rotos.
 
 TRES DESVÍOS DECLARADOS entre el requerimiento y el código. Están en
 docs/siguiente-sesion.md §4.bis y en las fichas. El DER y el script NO deben
@@ -145,6 +146,9 @@ docs/siguiente-sesion.md §4.bis y en las fichas. El DER y el script NO deben
   hay tres estados y solo se marcan los vencidos. Y tarea_historial EXISTE,
   EL SEED LA LLENA Y LA APLICACIÓN NUNCA ESCRIBE EN ELLA.
 - RF-036: se audita todo write crítico, pero falta la pantalla para leerlo.
+- periodos.cerrado_por_id NO TIENE FK a users y debería tenerla. Salió al
+  extraer las 52 FK para el DER. Es el desvío D-d de siguiente-sesion §4.bis.
+  El script NO la agrega.
 
 LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
 - RF-025 ajustes, RF-028 tablero personal, RF-031 vista por cargos,
@@ -154,7 +158,7 @@ LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
 - Las 14 consultas abiertas: NO se responden por cuenta propia.
 - El Planner: NO volver a intentar automatizarlo. INACAP bloquea la aplicación
   Microsoft Graph Command Line Tools y ya está probado y documentado.
-- Los criterios 2, 3, 4 y 5: están cerrados y verificados.
+- Los criterios 2, 3, 4, 5 y 6: están cerrados y verificados.
 
 Reglas no negociables (están en CLAUDE.md; se repiten porque son las que más
 se olvidan):
