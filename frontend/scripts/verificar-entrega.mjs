@@ -422,5 +422,185 @@ if (!existsSync(rutaDer)) {
   verificar("el DER no resucita la tabla `metas` del modelo v1", !/\|\s*`metas`\s*\|/.test(der));
 }
 
+// ---------------------------------------------------------------------------
+// 9. Criterio 7 — el script SQL contra el esquema real.
+//
+// La rúbrica lo dice literal: «toda FK representada en el DER debe existir en
+// el script SQL. Del mismo modo, las tablas creadas en el script deben
+// corresponder al modelo presentado en el informe». Eso se comprueba a mano en
+// la evaluación; acá se comprueba sola, y además en los dos sentidos.
+//
+// Lo que NO comprueba: que el script se ejecute. Eso necesita un MySQL
+// corriendo, y este verificador no toca la red ni levanta servicios. La
+// ejecución está documentada en script-sql.md §6, con su evidencia.
+// ---------------------------------------------------------------------------
+titulo("Criterio 7 · script SQL ↔ esquema");
+
+const rutaSql = path.join(entrega, "sgr-mysql.sql");
+if (!existsSync(rutaSql)) {
+  console.log("  ··   todavía no existe sgr-mysql.sql; nada que comprobar");
+} else {
+  const sqlEntrega = readFileSync(rutaSql, "utf8");
+  const schemaSql = readFileSync(path.join(raiz, "backend/prisma/schema.prisma"), "utf8");
+
+  // --- El esquema real: tabla → columnas -----------------------------------
+  const modelos = new Set([...schemaSql.matchAll(/^model\s+(\w+)\s*\{/gm)].map((m) => m[1]));
+  const columnasEsquema = new Map();
+  for (const bloque of schemaSql.matchAll(/^model\s+(\w+)\s*\{([\s\S]*?)^\}/gm)) {
+    const tabla = /@@map\("([^"]+)"\)/.exec(bloque[2])?.[1];
+    if (!tabla) continue;
+    const columnas = new Set();
+    for (const linea of bloque[2].split("\n")) {
+      const m = /^\s{2}(\w+)\s+(\S+)/.exec(linea);
+      if (!m || linea.trim().startsWith("@@") || linea.trim().startsWith("//")) continue;
+      // Los campos de relación no son columnas: su tipo es otro modelo.
+      if (modelos.has(m[2].replace(/[?[\]]/g, ""))) continue;
+      columnas.add(/@map\("([^"]+)"\)/.exec(linea)?.[1] ?? m[1]);
+    }
+    columnasEsquema.set(tabla, columnas);
+  }
+
+  // --- El script: tabla → columnas, en su orden de creación ----------------
+  const ordenCreacion = [];
+  const columnasSql = new Map();
+  const palabrasClave = /^(CONSTRAINT|INDEX|KEY|PRIMARY|UNIQUE|FOREIGN|CHECK)$/i;
+  for (const m of sqlEntrega.matchAll(/CREATE TABLE (\w+) \(([\s\S]*?)\n\)/g)) {
+    ordenCreacion.push(m[1]);
+    const columnas = new Set();
+    for (const linea of m[2].split("\n")) {
+      // Exactamente dos espacios de sangría: así las continuaciones de una
+      // definición (ON UPDATE …, el resto de un ENUM) no se cuentan como
+      // columnas nuevas.
+      const c = /^ {2}(\w+)\s+\S/.exec(linea);
+      if (c && !palabrasClave.test(c[1])) columnas.add(c[1]);
+    }
+    columnasSql.set(m[1], columnas);
+  }
+
+  verificar(`el script crea las ${columnasEsquema.size} tablas del esquema`, columnasSql.size === columnasEsquema.size, `crea ${columnasSql.size}`);
+
+  const tablasInventadas = [...columnasSql.keys()].filter((t) => !columnasEsquema.has(t));
+  verificar("ninguna tabla del script falta en schema.prisma", tablasInventadas.length === 0, tablasInventadas.join(", "));
+
+  const tablasFaltantes = [...columnasEsquema.keys()].filter((t) => !columnasSql.has(t));
+  verificar("ninguna tabla del esquema falta en el script", tablasFaltantes.length === 0, tablasFaltantes.join(", "));
+
+  // Columna por columna, en los dos sentidos. Es lo que separa un script que
+  // "tiene las 22 tablas" de uno que describe el mismo modelo.
+  const columnasPerdidas = [];
+  const columnasSobrantes = [];
+  for (const [tabla, esperadas] of columnasEsquema) {
+    const hay = columnasSql.get(tabla);
+    if (!hay) continue;
+    for (const c of esperadas) if (!hay.has(c)) columnasPerdidas.push(`${tabla}.${c}`);
+    for (const c of hay) if (!esperadas.has(c)) columnasSobrantes.push(`${tabla}.${c}`);
+  }
+  verificar("ninguna columna del esquema falta en el script", columnasPerdidas.length === 0, columnasPerdidas.join(", "));
+  verificar("el script no inventa columnas", columnasSobrantes.length === 0, columnasSobrantes.join(", "));
+
+  // --- Las claves foráneas, contra las migraciones -------------------------
+  const dirMig = path.join(raiz, "backend/prisma/migrations");
+  let sqlMig = "";
+  for (const d of readdirSync(dirMig)) {
+    const f = path.join(dirMig, d, "migration.sql");
+    if (existsSync(f)) sqlMig += `${readFileSync(f, "utf8")}\n`;
+  }
+  const fkEsquema = new Set();
+  const patron = /ALTER TABLE "(\w+)" ADD CONSTRAINT "\w+" FOREIGN KEY \("(\w+)"\) REFERENCES "(\w+)"\("\w+"\) ON DELETE (CASCADE|RESTRICT|SET NULL|SET DEFAULT|NO ACTION)/g;
+  for (const m of sqlMig.matchAll(patron)) {
+    if (!columnasEsquema.has(m[1])) continue;
+    fkEsquema.add(`${m[1]}.${m[2]}->${m[3]}:${m[4]}`);
+  }
+
+  // En el script las FK van DENTRO del CREATE TABLE, repartidas en varias
+  // líneas, así que el patrón cruza saltos de línea. La tabla se toma del
+  // bloque que la contiene y no del nombre de la restricción: deducirla del
+  // nombre corta mal en cuanto la tabla lleva guion bajo
+  // (`unidades_territoriales_organization_id_fkey` → «unidades»).
+  const fkSql = new Set();
+  const patronSql = /CONSTRAINT\s+(\w+)\s+FOREIGN KEY\s*\((\w+)\)\s*REFERENCES\s+(\w+)\s*\(\w+\)\s*ON DELETE\s+(CASCADE|RESTRICT|SET NULL|SET DEFAULT|NO ACTION)/g;
+  const nombresFk = [];
+  for (const bloque of sqlEntrega.matchAll(/CREATE TABLE (\w+) \(([\s\S]*?)\n\)/g)) {
+    for (const m of bloque[2].matchAll(patronSql)) {
+      nombresFk.push(m[1]);
+      fkSql.add(`${bloque[1]}.${m[2]}->${m[3]}:${m[4]}`);
+    }
+  }
+
+  verificar(`el script declara las ${fkEsquema.size} claves foráneas del esquema`, fkSql.size === fkEsquema.size, `declara ${fkSql.size}`);
+  const fkSobran = [...fkSql].filter((f) => !fkEsquema.has(f));
+  const fkFaltan = [...fkEsquema].filter((f) => !fkSql.has(f));
+  verificar("ninguna clave foránea del script está inventada", fkSobran.length === 0, fkSobran.join(", "));
+  verificar("ninguna clave foránea del esquema falta en el script", fkFaltan.length === 0, fkFaltan.join(", "));
+
+  // El nombre de cada FK es el de Prisma (`tabla_columna_fkey`). No es
+  // cosmético: es lo que deja seguir una restricción del script hasta la
+  // migración que la creó.
+  const nombresRaros = nombresFk.filter((n) => !/_fkey$/.test(n));
+  verificar("las claves foráneas conservan el nombre del esquema", nombresRaros.length === 0, nombresRaros.join(", "));
+
+  // --- El orden de creación (rúbrica §5.7) ---------------------------------
+  // «CREATE TABLE ordenadas correctamente (dependencias de FK)». Si una tabla
+  // referencia a otra que todavía no existe, el script no corre.
+  const yaCreadas = new Set();
+  const fueraDeOrden = [];
+  for (const m of sqlEntrega.matchAll(/CREATE TABLE (\w+) \(([\s\S]*?)\n\)/g)) {
+    for (const ref of m[2].matchAll(/REFERENCES\s+(\w+)\s*\(/g)) {
+      if (!yaCreadas.has(ref[1]) && ref[1] !== m[1]) fueraDeOrden.push(`${m[1]} → ${ref[1]}`);
+    }
+    yaCreadas.add(m[1]);
+  }
+  verificar("las tablas se crean en orden de dependencia de FK", fueraDeOrden.length === 0, fueraDeOrden.join(", "));
+
+  // --- Lo que el DER prometió, y el script tiene que cumplir ---------------
+  verificar("el script selecciona la base explícitamente", /CREATE DATABASE\s+sgr/i.test(sqlEntrega) && /^USE sgr;/m.test(sqlEntrega));
+  // El cuerpo de cada disparador va entre `CREATE TRIGGER` y el `END$$` que lo
+  // cierra. Se mira el cuerpo y no el archivo entero: contar apariciones de
+  // SIGNAL en todo el .sql cuenta también las de los comentarios.
+  const cuerpos = new Map();
+  for (const m of sqlEntrega.matchAll(/CREATE TRIGGER (\w+)([\s\S]*?)END\$\$/g)) cuerpos.set(m[1], m[2]);
+  for (const disparador of ["auditoria_sin_update", "auditoria_sin_delete", "actividad_codigo_no_cambia"]) {
+    verificar(`el script reproduce el disparador ${disparador}`, cuerpos.has(disparador));
+    verificar(
+      `${disparador} aborta con SIGNAL SQLSTATE '45000'`,
+      /SIGNAL SQLSTATE '45000'/.test(cuerpos.get(disparador) ?? "")
+    );
+  }
+
+  const checksEsperados = ["users_rut_formato", "personas_rut_formato", "periodo_fechas_coherentes", "meta_valor_positivo", "ponderador_en_rango"];
+  const checksFaltantes = checksEsperados.filter((c) => !new RegExp(`CONSTRAINT ${c}\\s`).test(sqlEntrega));
+  verificar("el script trae los 5 CHECK de la migración", checksFaltantes.length === 0, checksFaltantes.join(", "));
+
+  // El desvío D-d: el script refleja el sistema que hay, no el que quisiéramos.
+  verificar(
+    "el script NO inventa la FK de periodos.cerrado_por_id (desvío D-d)",
+    !/FOREIGN KEY\s*\(cerrado_por_id\)/.test(sqlEntrega)
+  );
+  // Y las tres referencias polimórficas o deliberadamente sin FK siguen así.
+  for (const columna of ["usuario_id", "entidad_id"]) {
+    verificar(`${columna} sigue sin clave foránea en el script`, !new RegExp(`FOREIGN KEY\\s*\\(${columna}\\)`).test(sqlEntrega));
+  }
+
+  verificar("todas las tablas son InnoDB con utf8mb4", /default_storage_engine = INNODB/i.test(sqlEntrega) && /CHARACTER SET utf8mb4/i.test(sqlEntrega));
+
+  // Regla 12: datos ficticios. Un correo de una persona real en el script
+  // sería una fuga, y el script se entrega y se publica en el repositorio.
+  verificar("los datos de prueba no usan las cuentas del seed", !/@sgr\.demo/.test(sqlEntrega));
+
+  // --- Coherencia con el documento del criterio 7 --------------------------
+  const rutaDocSql = path.join(entrega, "script-sql.md");
+  if (!existsSync(rutaDocSql)) {
+    console.log("  ··   todavía no existe script-sql.md; nada más que comprobar");
+  } else {
+    const docSql = readFileSync(rutaDocSql, "utf8");
+    verificar("script-sql.md apunta al .sql que existe", docSql.includes("sgr-mysql.sql"));
+    verificar(
+      `script-sql.md nombra las ${columnasEsquema.size} tablas`,
+      [...columnasEsquema.keys()].every((t) => docSql.includes(t)),
+      [...columnasEsquema.keys()].filter((t) => !docSql.includes(t)).join(", ")
+    );
+  }
+}
+
 console.log(`\n${total - fallas}/${total} verificaciones de la entrega en verde`);
 process.exit(fallas ? 1 : 0);

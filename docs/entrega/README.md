@@ -19,11 +19,11 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | 4 | Casos de uso específicos + fichas | 20 | ✅ **Hecho** | [casos-uso-detalle.md](casos-uso-detalle.md) · [puml/11](puml/11-cu-01.puml) a [puml/22](puml/22-cu-12.puml) |
 | 5 | Diagrama de clases | 15 | ✅ **Hecho** | [clases.md](clases.md) · [puml/23](puml/23-clases-panorama.puml) a [puml/27](puml/27-clases-servicios.puml) |
 | 6 | DER MySQL | 10 | ✅ **Hecho** | [der.md](der.md) · [puml/28](puml/28-der-general.puml) a [puml/32](puml/32-der-plataforma.puml) |
-| 7 | Script SQL | 10 | 🔴 Pendiente | — |
+| 7 | Script SQL | 10 | ✅ **Hecho** | [script-sql.md](script-sql.md) · [sgr-mysql.sql](sgr-mysql.sql) |
 | 8 | Mockup funcional + Git | 10 | 🟢 Hecho, faltan escenarios alternativos | [../mockups/](../mockups/) |
 | — | Informe de la entrega | — | 🔴 Pendiente | — |
 
-**80 de 100 puntos cubiertos.** Queda el **script SQL** (criterio 7), los escenarios alternativos del mockup y el informe.
+**90 de 100 puntos cubiertos.** Quedan los **escenarios alternativos del mockup** (criterio 8) y el **informe**.
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -96,6 +96,23 @@ Tres clases van con **borde punteado** porque tienen tabla y no comportamiento: 
 
 **Y una decisión de traducción que hay que poder defender**: `timestamptz` → `DATETIME(3)` **pierde la zona horaria**. El equivalente fiel en MySQL sería `TIMESTAMP`, pero su rango termina en 2038. Se elige `DATETIME(3)` y se declara que la aplicación guarda todo instante en UTC ([der.md §12.1](der.md)).
 
+### Cómo quedó el criterio 7 (cerrado el 10 de septiembre)
+
+**Un script y un documento**: [sgr-mysql.sql](sgr-mysql.sql) y [script-sql.md](script-sql.md). 22 tablas, 52 claves foráneas, 8 enumerados, 11 `UNIQUE`, 5 `CHECK`, 3 disparadores y datos de prueba ficticios.
+
+**Se ejecutó de verdad, y eso es lo que más cuesta y más vale.** La rúbrica §5.7 exige que el script corra sin errores de sintaxis ni de integridad referencial, así que se levantó un **MySQL 8.0.46** en un contenedor desechable y se corrió entero. Resultado: **cero errores**, 22 tablas, 52 FK, 3 disparadores y 5 `CHECK` creados; y **reejecutable**, porque empieza con `DROP DATABASE IF EXISTS`. Además se probaron **trece sentencias que deben fallar** —los tres disparadores, los cinco `CHECK`, tres `RESTRICT`, la 1:1 y el RUT repetido— y las trece fallaron con el error correcto. La evidencia está en [script-sql.md §6](script-sql.md).
+
+- **Las FK conservan el nombre de Prisma** (`tabla_columna_fkey`). No es cosmético: es lo que deja seguir una restricción del script hasta la migración que la creó, y lo que hace comprobable la correspondencia.
+- **Los `INSERT` no son decorativos: son la prueba de integridad referencial.** Recorren las 22 tablas y las 52 FK, así que un error de referencias hace fallar el bloque.
+- **El verificador compara columna por columna**, en los dos sentidos, además de las tablas y las FK. Es lo que separa un script que «tiene las 22 tablas» de uno que describe el mismo modelo.
+
+⚠ **Dos cosas que la ejecución real corrigió**, y que a ojo no se habrían visto:
+
+1. **Los `UNIQUE` son 11, no 9.** El DER decía «nueve» contando filas de una tabla en vez de restricciones: `users` aporta dos (`email` y `rut`), y `atenciones_sociales` aporta la que hace la 1:1. Ya está corregido en [der.md §12.3](der.md).
+2. **El disparador del código tenía que dejar pasar la anulación.** Se probó explícitamente: cambiar `actividades.codigo` falla, pero anular la actividad con motivo funciona. Un disparador que bloqueara todo `UPDATE` rompería RF-011 en vez de protegerlo.
+
+**Requisito declarado: MySQL 8.0.16 o superior.** Antes de esa versión los `CHECK` se analizan y **se ignoran en silencio**, y acá sostienen el formato del RUT, la coherencia de las fechas del período y el rango del ponderador.
+
 ---
 
 ## Lo que hay que saber para retomar
@@ -130,9 +147,9 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**237 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar— y **el DER contra las migraciones**: las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`.
+**262 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar— y **el DER contra las migraciones**: las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`.
 
-⚠ **Estas 237 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 237, que los artefactos de la entrega dicen lo mismo entre sí.
+⚠ **Estas 262 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 262, que los artefactos de la entrega dicen lo mismo entre sí.
 
 Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe, y no fallan mientras no exista. Sale con código 1 si algo se cae, así que sirve para CI cuando lo haya.
 
@@ -179,6 +196,8 @@ Para que nadie lo abra «ya que estamos»:
 | [casos-uso-detalle.md](casos-uso-detalle.md) | **Criterio 4.** Las doce fichas de la rúbrica §5.4, cada una anclada al texto oficial de su RF, con su diagrama |
 | [clases.md](clases.md) | **Criterio 5.** Las 22 clases del dominio y los 12 servicios, en 5 diagramas, con la tabla clase ↔ tabla ↔ caso de uso |
 | [der.md](der.md) | **Criterio 6.** Las 22 tablas en MySQL, en 5 diagramas, con las 52 claves foráneas y su `ON DELETE`, las cardinalidades y las restricciones |
+| [script-sql.md](script-sql.md) | **Criterio 7.** Cómo está armado el script, la traducción a MySQL y la evidencia de que se ejecuta |
+| [sgr-mysql.sql](sgr-mysql.sql) | **Criterio 7.** El script en sí: 22 tablas, 52 FK, 3 disparadores y datos de prueba ficticios |
 | [puml/](puml/) | Los `.puml` y sus PNG. La fuente de todo diagrama de la entrega |
 | [guia-planner-hector.pdf](guia-planner-hector.pdf) | **Criterio 1.** Cómo cargar las 87 tareas a mano, en seis tandas |
 | [guia-planner-hector.md](guia-planner-hector.md) | La fuente del PDF anterior. Se edita acá y se regenera |

@@ -290,7 +290,8 @@ PostgreSQL usa `text` sin largo. MySQL exige uno en toda columna indexada, así 
 
 ### 12.3 Restricciones: `UNIQUE`, `CHECK` y dos disparadores
 
-**Nueve `UNIQUE`, y todos son una regla de negocio disfrazada:**
+**Once restricciones `UNIQUE` repartidas en diez tablas, y todas son una regla de negocio disfrazada:**
+(`users` aporta dos, `email` y `rut`, cada una por su lado.)
 
 | Tabla | `UNIQUE` | Qué regla es |
 |---|---|---|
