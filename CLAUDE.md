@@ -27,7 +27,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - Backend Express + Socket.io + Prisma, multi-tenant, auth JWT por rol.
 - Tubo de trabajo (kanban dnd-kit) con tiempo real, presencia y libro privado por delegación.
 - **Dashboard BI sobre el motor v2 (Bloque C)**: gauges, mapa de calor por **área del cargo**, proyección, radar y tabla, con filtros cruzados. Consume `GET /cumplimiento/:periodoId/consolidado`, filtra por **período** y saca del parámetro los umbrales, el tope y el umbral mínimo. Una delegación sin nadie con metas se informa como **sin medición**, no como 0% (ADR-014).
-- **Modelo v2 completo**: 16 entidades de la especificación oficial, con triggers de inmutabilidad de auditoría y código, y CHECKs de RUT, fechas y metas.
+- **Modelo v2 completo**: 16 entidades de la especificación oficial, con triggers de inmutabilidad de auditoría y código, y CHECKs de RUT, fechas y metas. ⚠ **El esquema completo tiene 22 modelos**, no 16: esas 16 más las 6 de plataforma (`Organization`, `User`, `OrganizationMember`, `UnidadTerritorial`, `CategoriaGestion`, `Tarea`). **El DER y el diagrama de clases llevan las 22.**
 - **API del modelo v2 (Bloque A)**: `/periodos` (con cierre y reapertura auditada), `/cargos`, `/items`, `/actividades` (código inmutable, anulación con motivo), evidencias, `/evidencias/:id/validacion` y `GET /cumplimiento/:periodoId`. Con `version` → 409 y auditoría en cada write. Contrato en [docs/estado-proyecto.md](docs/estado-proyecto.md).
 - **API de metas por funcionario (Bloque A2)**: `/metas-item` — meta y ponderador por funcionario, ítem y período (RF-006, RF-007). RN-001 exigida en sus dos formas: el alta unitaria rechaza superar el 100%, el `PUT` del conjunto exige el 100% exacto. **Ojo: `/metas` es el modelo v1 (unidad × categoría) y `/metas-item` el v2 (funcionario × ítem × período); no son lo mismo.**
 - **Ficha personal `/ficha`** (RF-008): cabecera con semáforo, tabla de ítems, registro en línea, subida y vista de evidencia, anulación con motivo. Es la pantalla más importante del sistema.
@@ -71,7 +71,7 @@ npm run verificar:contraste   # 83 comprobaciones WCAG de tokens.css en los dos 
 node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas con las seis cuentas (servers arriba)
 npm run mockups               # .html autocontenido + .png de las 7 pantallas → docs/mockups (servers arriba)
 npm run verificar:mockups     # abre los .html desde file:// con la red bloqueada
-npm run verificar:entrega     # 73 comprobaciones de coherencia entre los artefactos de docs/entrega (no toca la red)
+npm run verificar:entrega     # 202 comprobaciones de coherencia entre los artefactos de docs/entrega (no toca la red; NO suman a las 332 del software)
 npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
 npm run pdf -- <archivo.md> [salida.pdf] [--conservar-html]   # cualquier .md del repo → PDF imprimible (Arial, ADR-010)
 npm run guia:planner          # regenera docs/entrega/guia-planner-hector.pdf

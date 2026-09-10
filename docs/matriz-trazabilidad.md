@@ -82,7 +82,9 @@ Los commits se identifican por su hash corto en `TIbacache/matriz-sgr`. Las prue
 
 ## 2.1 Modelo v2 — cimientos y lo que falta sobre ellos
 
-El modelo de datos (16 entidades, commit `91f1917`) está migrado y verificado. Esta tabla dice, para cada requisito, qué capa existe ya y qué falta encima. **Se actualiza cuando una capa se cierra.**
+El modelo de datos v2 (16 entidades, commit `91f1917`) está migrado y verificado. Esta tabla dice, para cada requisito, qué capa existe ya y qué falta encima. **Se actualiza cuando una capa se cierra.**
+
+> ⚠ **16 son las de la migración v2; el esquema completo tiene 22 modelos.** Las otras 6 son las de plataforma, anteriores a esa migración: `Organization`, `User`, `OrganizationMember`, `UnidadTerritorial`, `CategoriaGestion` y `Tarea`. **El DER y el diagrama de clases de la entrega llevan las 22** — ver [entrega/clases.md §10](entrega/clases.md).
 
 | Requisito | Implementado | Verificación | Falta |
 |---|---|---|---|

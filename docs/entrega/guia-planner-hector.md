@@ -167,7 +167,7 @@ Tus tareas tienen listas de comprobación empezadas (0/1, 0/3…). Vale la pena 
 - [ ] Escenarios alternativos: modales de error, avisos y estados vacíos
 
 **Modelo Entidad-Relación** (0/3)
-- [ ] DER con las 16 entidades reales, con PK, FK y cardinalidades
+- [ ] DER con las **22 tablas** reales, con PK, FK y cardinalidades
 - [ ] Script MySQL ejecutable, con las tablas en orden de dependencia
 - [ ] Comprobar que toda FK del DER existe en el script
 

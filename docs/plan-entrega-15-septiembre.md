@@ -20,7 +20,7 @@ Fuentes que mandan, en orden:
 | 3 | **Caso de uso general** | 10 | **[entrega/casos-uso-general.md](entrega/casos-uso-general.md)**: frontera, seis actores, doce casos con sus RF y su pantalla, tres «include» y seis «extend», en 2 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **[entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md)**: las 12 fichas de la rúbrica §5.4, ancladas al texto oficial de su RF, con 12 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 5 | **Diagrama de clases** | 15 | **[entrega/clases.md](entrega/clases.md)**: 22 clases del dominio con atributos tipados, visibilidad y multiplicidades, más los 12 servicios con sus operaciones reales, en 5 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
-| 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El modelo real tiene 16 entidades | 🔴 Está mal, no solo incompleto |
+| 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El esquema real tiene **22 tablas** | 🔴 Está mal, no solo incompleto |
 | 7 | **Script SQL** | 10 | **No existe.** El esquema real es PostgreSQL vía Prisma | 🔴 Ver decisión D-1 |
 | 8 | **Mockup funcional + Git** | 10 | 8 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | 🟢 **Es lo más fuerte que tenemos.** Faltan los escenarios alternativos |
 
@@ -114,10 +114,10 @@ El mapa del docente incluye «Modal de error», «Mensaje de búsqueda sin resul
 |---|---|---|
 | Diagrama de requerimientos (RF + RNF, jerárquico) | `docs/entrega/requerimientos.md` → PNG | — (nuevo) |
 | Caso de uso general con frontera y 6 actores | `docs/entrega/casos-uso-general.md` → PNG | `diagramas.md §2` |
-| 12 diagramas de CU específicos + 12 fichas | `docs/entrega/casos-uso/CU-XX-*.md` | — (nuevo) |
+| 12 diagramas de CU específicos + 12 fichas | `docs/entrega/casos-uso-detalle.md` → PNG | — (nuevo) |
 | Diagrama de clases | `docs/entrega/clases.md` → PNG | — (nuevo) |
-| DER MySQL (16 entidades reales) | `docs/entrega/der-mysql.md` → PNG | `diagramas.md §3` |
-| Script MySQL ejecutable | `docs/entrega/sgr-mysql.sql` | — (nuevo) |
+| DER MySQL (**22 tablas reales**) | `docs/entrega/der.md` → PNG | `diagramas.md §3` |
+| Script MySQL ejecutable | `docs/entrega/script-sql.md` + `docs/entrega/sgr-mysql.sql` | — (nuevo) |
 | Mockups con escenarios alternativos | `docs/mockups/` (ampliado) | — (se amplía) |
 | Informe de la entrega, con las tablas de trazabilidad | `docs/entrega/informe.md` | — (nuevo) |
 | Estado del sistema en PDF para el equipo | `docs/entrega/estado-del-sistema.pdf` | — (nuevo) |
@@ -145,9 +145,9 @@ Hay que separar dos cosas que se confunden fácil:
 |---|---|
 | **El Planner no refleja el trabajo hecho** (Desarrollo, Pruebas y Piloto vacíos) y le falta la tarea del diagrama de requerimientos | Es el criterio 1 de la rúbrica, 15 pts |
 | **`docs/diagramas.md` describe el modelo v1** | Es el criterio 6, y presentarlo sería incoherente |
-| **No hay diagrama de clases** | Es el criterio 5 (15 pts) |
-| **No hay casos de uso** | Es el criterio 4 (20 pts) |
-| **README dice «11 ADR»** (son 15) y `historias-usuario.md` sigue en las 20 historias propias | Consistencia entre artefactos, que es el criterio transversal |
+| ~~**No hay diagrama de clases**~~ ✅ **resuelto** el 10-09: [entrega/clases.md](entrega/clases.md) | Era el criterio 5 (15 pts) |
+| ~~**No hay casos de uso**~~ ✅ **resuelto** el 10-09: [entrega/casos-uso-general.md](entrega/casos-uso-general.md) y [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) | Eran los criterios 3 y 4 (30 pts) |
+| ~~README dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente que `historias-usuario.md` declare que **las 31 oficiales mandan** sobre las 20 propias | Consistencia entre artefactos, que es el criterio transversal |
 | **`Guia-Entregables-15-septiembre.docx` quedó desfasada** | Se marca como histórica y se apunta a este plan |
 
 ### 3.5 Qué NO se toca en esta sesión
@@ -212,7 +212,7 @@ Las dependencias importan: el diagrama de requerimientos define los CU, los CU d
 3. **Caso de uso general**: frontera, 6 actores, ~12 casos, sin flujos internos.
 4. **Los 12 diagramas específicos + sus 12 fichas**, con la estructura exacta de la rúbrica (ID, nombre, objetivo, actor principal, secundarios, precondiciones, disparador, flujo principal, alternativos, excepciones, postcondiciones, reglas). La ficha de CU-03 ya está redactada en la guía del 1 de septiembre: sirve de plantilla.
 5. **Diagrama de clases**: servicios y entidades del backend con visibilidad, atributos tipados, métodos y multiplicidades. Que los nombres coincidan con los del DER y los CU.
-6. **DER MySQL** desde `schema.prisma`: 16 entidades, PK, FK, cardinalidades, tipos MySQL.
+6. **DER MySQL** desde `schema.prisma`: **22 tablas**, PK, FK, cardinalidades, tipos MySQL.
 7. **Script MySQL** + **verificador de consistencia** que compruebe, contra `schema.prisma`, que no falta ni sobra ninguna tabla ni FK. La rúbrica valida esa consistencia a mano; nosotros la comprobamos con un script, que es más barato y no se olvida.
 8. **Escenarios alternativos del mockup** y regeneración de los 8 existentes.
 9. **Informe** con las tablas de trazabilidad (RF→CU, CU→mockup, CU→clase, CU→tabla) y los enlaces al repositorio y al Planner.

@@ -61,8 +61,27 @@ Tres decisiones de forma, tomadas contra el PDF **«Relación entre los artefact
 | Desvío | Qué pide el RF | Qué hay hoy |
 |---|---|---|
 | **CU-06** | **RF-016** asigna la creación de compromisos al **Funcionario** y al Delegado | El alta está restringida a jefatura y nivel central. El funcionario mueve sus compromisos, pero no los crea. Viene de la matriz de permisos del Documento Maestro, que es la fuente más baja de la jerarquía y quedó por encima del RF sin que nadie lo decidiera |
-| **CU-07** | **RF-018** pide cuatro estados con historial de transiciones y **RF-019** alertas de «próximo a vencer» y «fuera de plazo» | Tres estados, el recorrido se reconstruye desde la bitácora y solo se marcan los vencidos. Los dos RF ya estaban declarados parciales |
+| **CU-07** | **RF-018** pide cuatro estados con historial de transiciones y **RF-019** alertas de «próximo a vencer» y «fuera de plazo» | Tres estados y solo se marcan los vencidos. ⚠ **`tarea_historial` existe y el seed la llena, pero la aplicación nunca escribe en ella**: en la demostración el historial se ve poblado y en uso real no se llenaría. El recorrido se reconstruye desde la bitácora |
 | **CU-10** | **RF-036** pide trazabilidad consultable | Se audita todo write crítico, pero **falta la pantalla** para leer la bitácora |
+
+Los tres están en [../siguiente-sesion.md §4.bis](../siguiente-sesion.md) con su costo estimado, para que no se pierdan cuando pase la entrega.
+
+### Cómo quedó el criterio 5 (cerrado el 10 de septiembre)
+
+**Cinco diagramas y un documento**: [clases.md](clases.md) y `puml/23-clases-panorama` a `puml/27-clases-servicios`.
+
+**Sale de dos fuentes, y hay que mantener las dos.** La rúbrica §6.1 evalúa seis cosas y cada fuente sola falla en tres:
+
+- `backend/prisma/schema.prisma` da las 22 entidades con atributos, tipos y multiplicidades — pero **no tiene una sola operación**.
+- `backend/src/services/` y `backend/src/routes/` dan las operaciones con su nombre real — pero no tienen atributos ni multiplicidades.
+
+Tres decisiones que no conviene rediscutir:
+
+- **Son 22 clases y 22 tablas, no 16.** Las 16 son las de la migración v2; faltaban las 6 de plataforma: `Organization`, `User`, `OrganizationMember`, `UnidadTerritorial`, `CategoriaGestion` y `Tarea`. **El DER lleva las 22.**
+- **No se dibuja herencia**, porque la rúbrica la pide solo con justificación y aquí no la hay: los seis roles son valores de un enumerado que se solapan. Es **la misma decisión** que la de no dibujar generalización entre actores en el criterio 3: cambiar una obliga a cambiar la otra.
+- **La visibilidad va como `+ - #`**, no como iconos de color. PlantUML usa iconos salvo que se le fije `classAttributeIconSize 0`, y la rúbrica pide los signos.
+
+Tres clases van con **borde punteado** porque tienen tabla y no comportamiento: `Ajuste` (RF-025), `Comentario` (RF-035) y `TareaHistorial`.
 
 ---
 
@@ -98,7 +117,9 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**202 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los veintidós diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice).
+**202 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los veintisiete diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos: ninguna clase inventada, ningún modelo sin dibujar.
+
+⚠ **Estas 202 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 202, que los artefactos de la entrega dicen lo mismo entre sí.
 
 Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe, y no fallan mientras no exista. Sale con código 1 si algo se cae, así que sirve para CI cuando lo haya.
 
