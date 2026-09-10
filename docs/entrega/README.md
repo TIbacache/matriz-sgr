@@ -71,6 +71,19 @@ Sin `--png` no toca la red: el enlace al editor de plantuml.com se calcula local
 
 **No usar mermaid para estos diagramas.** Su `requirementDiagram` parte el texto cada 30 caracteres cortando palabras a la mitad, y sus `id` no admiten guiones sin comillas. Se probó y se rehizo.
 
+### La coherencia entre artefactos se comprueba con script
+
+La rúbrica evalúa la trazabilidad entre requerimientos, casos de uso, clases, entidades y pantallas como **criterio transversal**: un artefacto correcto pero incoherente con los demás pierde puntos en varios criterios a la vez. Revisarlo a ojo cada vez que algo cambia no escala.
+
+```powershell
+cd frontend
+npm run verificar:entrega
+```
+
+**73 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los diez diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice).
+
+Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe: hoy informa que `casos-uso-detalle.md` todavía no está y no falla por eso. Sale con código 1 si algo se cae, así que sirve para CI cuando exista.
+
 ### Los PDF se generan del Markdown
 
 ```powershell

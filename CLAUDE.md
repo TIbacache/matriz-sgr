@@ -71,6 +71,7 @@ npm run verificar:contraste   # 83 comprobaciones WCAG de tokens.css en los dos 
 node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas con las seis cuentas (servers arriba)
 npm run mockups               # .html autocontenido + .png de las 7 pantallas → docs/mockups (servers arriba)
 npm run verificar:mockups     # abre los .html desde file:// con la red bloqueada
+npm run verificar:entrega     # 73 comprobaciones de coherencia entre los artefactos de docs/entrega (no toca la red)
 npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
 npm run pdf -- <archivo.md> [salida.pdf] [--conservar-html]   # cualquier .md del repo → PDF imprimible (Arial, ADR-010)
 npm run guia:planner          # regenera docs/entrega/guia-planner-hector.pdf

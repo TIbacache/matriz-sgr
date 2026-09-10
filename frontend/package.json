@@ -10,6 +10,7 @@
     "verificar:contraste": "node scripts/verificar-contraste.mjs",
     "mockups": "node scripts/mockups.mjs",
     "verificar:mockups": "node scripts/verificar-mockups.mjs",
+    "verificar:entrega": "node scripts/verificar-entrega.mjs",
     "diagramas": "node scripts/diagramas.mjs",
     "pdf": "node scripts/pdf.mjs",
     "guia:planner": "node scripts/pdf.mjs ../docs/entrega/guia-planner-hector.md",
