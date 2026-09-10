@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 10 de septiembre de 2026 (criterios 3, 4 y 5 de la entrega: casos de uso y diagrama de clases)
+**Actualizado**: 10 de septiembre de 2026 (criterios 3 a 7 de la entrega: casos de uso, clases, DER y script SQL)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -18,6 +18,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas, **ficha del vecino** y **dashboard**; faltan las de administración (períodos, cargos, catálogos) |
 | **Cálculo único** | ✅ El Bloque C eliminó la vista materializada v1, la tabla `metas`, `/metas`, `/kpis/cumplimiento` y el cron. Ya no hay dos verdades |
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
+| **Entrega del 15 de septiembre** (análisis y diseño, 100 pts) | 🟢 **90 de 100 cubiertos**: criterio 1 preparado y criterios 2 a 7 cerrados. Faltan los **escenarios alternativos del mockup** (criterio 8) y el **informe**. Estado por criterio en [entrega/README.md](entrega/README.md); 262 comprobaciones de coherencia en verde |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 | **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **70 de 100 puntos.** Criterio 1 preparado, criterios 2 a 5 hechos; faltan el DER (6), el script (7) y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |

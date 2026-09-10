@@ -151,7 +151,7 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**262 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar— y **el DER contra las migraciones**: las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`.
+**262 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar—, **el DER contra las migraciones** —las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`— y **el script SQL contra el esquema**: las 22 tablas, sus columnas una por una en los dos sentidos, las 52 FK, el orden de creación, los 3 disparadores y los 5 `CHECK`.
 
 ⚠ **Estas 262 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 262, que los artefactos de la entrega dicen lo mismo entre sí.
 
