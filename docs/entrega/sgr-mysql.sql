@@ -11,8 +11,11 @@
 --  sobre PostgreSQL 16 (backend/prisma/schema.prisma y sus migraciones). La
 --  equivalencia de tipos está declarada en docs/entrega/der.md §12.
 --
---  Requiere MySQL 8.0.16 o superior: antes de esa versión las restricciones
---  CHECK se analizan y se ignoran, y aquí sostienen reglas de negocio.
+--  Requiere MySQL 8.0.16+ o MariaDB 10.2.3+: antes de esas versiones las
+--  restricciones CHECK se analizan y se ignoran EN SILENCIO, y aquí sostienen
+--  reglas de negocio (formato del RUT, fechas del período, rango del
+--  ponderador). Probado en MySQL 8.0.46 y en MariaDB 10.4 y 11.4 —la que
+--  trae XAMPP—: corre igual en las tres, sin cambiarle una línea.
 --
 --  Se ejecuta de principio a fin, en este orden. Las tablas están ordenadas
 --  por dependencia de clave foránea, así que no hace falta desactivar la

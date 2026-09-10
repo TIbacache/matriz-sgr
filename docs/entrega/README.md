@@ -100,7 +100,9 @@ Tres clases van con **borde punteado** porque tienen tabla y no comportamiento: 
 
 **Un script y un documento**: [sgr-mysql.sql](sgr-mysql.sql) y [script-sql.md](script-sql.md). 22 tablas, 52 claves foráneas, 8 enumerados, 11 `UNIQUE`, 5 `CHECK`, 3 disparadores y datos de prueba ficticios.
 
-**Se ejecutó de verdad, y eso es lo que más cuesta y más vale.** La rúbrica §5.7 exige que el script corra sin errores de sintaxis ni de integridad referencial, así que se levantó un **MySQL 8.0.46** en un contenedor desechable y se corrió entero. Resultado: **cero errores**, 22 tablas, 52 FK, 3 disparadores y 5 `CHECK` creados; y **reejecutable**, porque empieza con `DROP DATABASE IF EXISTS`. Además se probaron **trece sentencias que deben fallar** —los tres disparadores, los cinco `CHECK`, tres `RESTRICT`, la 1:1 y el RUT repetido— y las trece fallaron con el error correcto. La evidencia está en [script-sql.md §6](script-sql.md).
+**Se ejecutó de verdad, en tres motores, y eso es lo que más cuesta y más vale.** La rúbrica §5.7 exige que el script corra sin errores de sintaxis ni de integridad referencial, así que se corrió entero en contenedores desechables de **MySQL 8.0.46**, **MariaDB 10.4.34** y **MariaDB 11.4.13**. Resultado idéntico en los tres: **cero errores**, 22 tablas, 52 FK (37 `CASCADE` / 7 `RESTRICT` / 8 `SET NULL`), 3 disparadores y 11 `UNIQUE`; y **reejecutable**, porque empieza con `DROP DATABASE IF EXISTS`. Además se probaron **trece sentencias que deben fallar** —los tres disparadores, los cinco `CHECK`, tres `RESTRICT`, la 1:1 y el RUT repetido— y las trece fallaron con el error correcto **en los tres motores**. La evidencia está en [script-sql.md §6](script-sql.md).
+
+**Se probó en MariaDB porque XAMPP no trae MySQL, trae MariaDB**, y es lo más probable que tenga a mano quien revise. Corre sin cambiarle una línea; solo cambian el número de error de un `CHECK` (`4025` en vez de `3819`) y que MariaDB agrega tres `CHECK` propios, porque su tipo `JSON` es un `LONGTEXT` con `json_valid()` encima —más estricto, no menos.
 
 - **Las FK conservan el nombre de Prisma** (`tabla_columna_fkey`). No es cosmético: es lo que deja seguir una restricción del script hasta la migración que la creó, y lo que hace comprobable la correspondencia.
 - **Los `INSERT` no son decorativos: son la prueba de integridad referencial.** Recorren las 22 tablas y las 52 FK, así que un error de referencias hace fallar el bloque.
@@ -111,7 +113,9 @@ Tres clases van con **borde punteado** porque tienen tabla y no comportamiento: 
 1. **Los `UNIQUE` son 11, no 9.** El DER decía «nueve» contando filas de una tabla en vez de restricciones: `users` aporta dos (`email` y `rut`), y `atenciones_sociales` aporta la que hace la 1:1. Ya está corregido en [der.md §12.3](der.md).
 2. **El disparador del código tenía que dejar pasar la anulación.** Se probó explícitamente: cambiar `actividades.codigo` falla, pero anular la actividad con motivo funciona. Un disparador que bloqueara todo `UPDATE` rompería RF-011 en vez de protegerlo.
 
-**Requisito declarado: MySQL 8.0.16 o superior.** Antes de esa versión los `CHECK` se analizan y **se ignoran en silencio**, y acá sostienen el formato del RUT, la coherencia de las fechas del período y el rango del ponderador.
+**Requisito declarado: MySQL 8.0.16+ o MariaDB 10.2.3+.** Antes de esas versiones los `CHECK` se analizan y **se ignoran en silencio**, y acá sostienen el formato del RUT, la coherencia de las fechas del período y el rango del ponderador.
+
+⚠ **Si se importa por phpMyAdmin en vez de por línea de comandos**, conviene comprobar que los tres disparadores se hayan creado: el manejo de `DELIMITER` depende de la versión. La consulta que lo verifica está en [script-sql.md §9](script-sql.md).
 
 ---
 

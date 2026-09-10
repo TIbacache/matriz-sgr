@@ -4,7 +4,7 @@
 
 El archivo que se entrega es **[`sgr-mysql.sql`](sgr-mysql.sql)**: crea la base completa de SGR en MySQL —22 tablas, 52 claves foráneas, 8 enumerados, 11 restricciones `UNIQUE`, 5 `CHECK` y 3 disparadores— y la deja poblada con datos de prueba ficticios.
 
-**Se ejecutó de verdad**, contra MySQL 8.0.46, y la evidencia está en [§6](#6-cómo-se-comprobó-que-corre). No es una promesa: la rúbrica exige que corra sin errores, así que se corrió.
+**Se ejecutó de verdad**, contra **MySQL 8.0.46** y contra **MariaDB 10.4 y 11.4** —que es lo que trae XAMPP—, y la evidencia está en [§6](#6-cómo-se-comprobó-que-corre). No es una promesa: la rúbrica exige que corra sin errores, así que se corrió.
 
 Sale del [DER](der.md), que a su vez sale de `backend/prisma/schema.prisma`. Los tres artefactos dicen lo mismo, y `npm run verificar:entrega` lo comprueba columna por columna.
 
@@ -21,7 +21,7 @@ Sale del [DER](der.md), que a su vez sale de `backend/prisma/schema.prisma`. Los
 | `NOT NULL`, `UNIQUE`, `DEFAULT` y demás restricciones | [§4](#4-las-restricciones-y-lo-que-cada-una-sostiene) |
 | Índices adicionales si el diseño los justifica | 16 índices, los mismos del esquema real |
 | `INSERT` de prueba (opcionales, recomendados) | §9 del script · [§5](#5-los-datos-de-prueba) |
-| **Se ejecuta sin errores de sintaxis ni de integridad** | **[§6](#6-cómo-se-comprobó-que-corre)** — comprobado, con evidencia |
+| **Se ejecuta sin errores de sintaxis ni de integridad** | **[§6](#6-cómo-se-comprobó-que-corre)** — comprobado en tres motores, con evidencia |
 
 ---
 
@@ -42,6 +42,20 @@ La traducción no es automática y tiene tres puntos que conviene poder defender
 **Lo que NO cambia**, y conviene decirlo porque suele suponerse lo contrario: el `UNIQUE (organization_id, periodo_id, clave)` de `parametros` se comporta **igual en los dos motores**. Ambos tratan los `NULL` como distintos entre sí, así que la unicidad de la fila por defecto (`periodo_id` nulo) no la garantiza el índice en ninguno: la exige `services/parametros.ts`. La traducción no introduce aquí una diferencia de comportamiento.
 
 **Requisito de versión: MySQL 8.0.16 o superior.** Antes de esa versión las restricciones `CHECK` se analizan y **se ignoran en silencio**, y acá sostienen reglas de negocio: el formato del RUT, la coherencia de las fechas del período y el rango del ponderador. Un motor que las ignore aceptaría datos que el modelo prohíbe.
+
+### 2.1 Y si lo abren en XAMPP, que no trae MySQL
+
+**XAMPP no instala MySQL: instala MariaDB.** Son motores distintos desde 2009, aunque el comando siga llamándose `mysql`. Como es lo más probable que tenga a mano quien revise, el script **también se probó ahí**, y el resultado está en [§6.4](#64-y-en-mariadb-lo-que-trae-xampp).
+
+**Corre igual, sin cambiarle una línea.** Las tres diferencias que aparecieron son de forma, no de fondo:
+
+| | MySQL 8.0 | MariaDB |
+|---|---|---|
+| Error de un `CHECK` | `ERROR 3819: Check constraint 'x' is violated` | `ERROR 4025: CONSTRAINT 'x' failed` |
+| `CHECK` que reporta `information_schema` | 5 (los nuestros) | **8**: los 5 nuestros más 3 que MariaDB agrega sola, porque su tipo `JSON` es un `LONGTEXT` con un `CHECK json_valid()` encima. Es **más** estricto, no menos |
+| Mensaje de una FK `RESTRICT` | Muestra `ON DELETE RESTRICT` | No lo muestra, porque `RESTRICT` es su valor por defecto. En `information_schema` la regla **sí** figura como `RESTRICT` |
+
+**Requisito de versión en MariaDB: 10.2.3 o superior**, por la misma razón que en MySQL —antes de 10.2.1 los `CHECK` no se aplican— más `JSON_OBJECT()`, que llegó en 10.2.3.
 
 ---
 
@@ -133,7 +147,7 @@ Una organización con tres delegaciones, seis personas —una por rol—, un per
 
 > «Debe ejecutarse sin errores de sintaxis ni de integridad referencial.» — rúbrica §5.7
 
-Se levantó un **MySQL 8.0.46** en un contenedor desechable y se ejecutó el script entero. No es una revisión a ojo.
+Se levantó un **MySQL 8.0.46** en un contenedor desechable y se ejecutó el script entero. No es una revisión a ojo. Lo mismo se hizo después con **MariaDB** ([§6.4](#64-y-en-mariadb-lo-que-trae-xampp)).
 
 ```powershell
 docker run -d --name sgr-mysql-prueba -e MYSQL_ROOT_PASSWORD=prueba123 -p 127.0.0.1:3306:3306 mysql:8.0
@@ -190,6 +204,26 @@ El script termina con tres consultas de comprobación. La tercera es la que mues
 
 Los acentos salen bien: la base es `utf8mb4`, no `latin1`.
 
+### 6.4 Y en MariaDB, lo que trae XAMPP
+
+El mismo archivo, sin cambiarle una línea, contra **MariaDB 10.4.34** (la rama que XAMPP arrastra desde hace años) y **MariaDB 11.4.13** (la LTS actual):
+
+| | MySQL 8.0.46 | MariaDB 10.4.34 | MariaDB 11.4.13 |
+|---|---|---|---|
+| Ejecución completa | ✅ sin errores | ✅ sin errores | ✅ sin errores |
+| Tablas | 22 | 22 | 22 |
+| Claves foráneas | 52 | 52 | 52 |
+| — `CASCADE` / `RESTRICT` / `SET NULL` | 37 / 7 / 8 | 37 / 7 / 8 | 37 / 7 / 8 |
+| Disparadores | 3 | 3 | 3 |
+| `UNIQUE` | 11 | 11 | 11 |
+| Las 13 pruebas de [§6.2](#62-que-las-reglas-muerden) | 13 / 13 | **13 / 13** | **13 / 13** |
+| Reejecutable | ✅ | ✅ | ✅ |
+| Acentos (`Muñoz`, `Díaz`) | ✅ | ✅ | ✅ |
+
+**Las trece pruebas dan el mismo resultado en los tres motores**, incluida la número 4: anular una actividad con motivo funciona, y cambiarle el código falla. Solo cambian el número de error y la redacción del mensaje ([§2.1](#21-y-si-lo-abren-en-xampp-que-no-trae-mysql)).
+
+> Los tres motores se levantaron en contenedores desechables y se eliminaron al terminar. No quedó nada instalado ni ningún puerto ocupado.
+
 ---
 
 ## 7. Cómo se comprueba la coherencia con el DER
@@ -231,7 +265,7 @@ El script describe **el modelo que el sistema tiene hoy**, no el que convendría
 
 ## 9. Cómo ejecutarlo
 
-**Requiere MySQL 8.0.16 o superior** (por los `CHECK`).
+**Requiere MySQL 8.0.16+ o MariaDB 10.2.3+** (por los `CHECK`, que antes de esas versiones se ignoran en silencio).
 
 Desde el cliente de línea de comandos:
 
@@ -240,5 +274,12 @@ mysql -u root -p --default-character-set=utf8mb4 < docs/entrega/sgr-mysql.sql
 ```
 
 Desde **MySQL Workbench**: abrir el archivo y ejecutarlo entero (`Ctrl+Shift+Enter`). Workbench entiende `DELIMITER`, así que los disparadores se crean sin pasos extra.
+
+Desde **XAMPP**: el cliente está en `xampp\mysql\bin\mysql.exe` y el motor es MariaDB, no MySQL ([§2.1](#21-y-si-lo-abren-en-xampp-que-no-trae-mysql)). Si se importa por **phpMyAdmin** en vez de por línea de comandos, conviene revisar que la sección de disparadores (§8 del script) se haya creado: el manejo de `DELIMITER` depende de la versión de phpMyAdmin, y si falla, esa sección se pega aparte en la pestaña SQL. Se comprueba con:
+
+```sql
+SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = 'sgr';
+-- deben salir 3
+```
 
 ⚠ **El script empieza con `DROP DATABASE IF EXISTS sgr`.** Es lo que lo hace reejecutable, y también lo que borra sin preguntar una base `sgr` anterior. En una base con datos, comentar esa línea primero.

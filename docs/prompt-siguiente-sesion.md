@@ -111,8 +111,9 @@ LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
 - El Planner: NO volver a intentar automatizarlo. INACAP bloquea la aplicación
   Microsoft Graph Command Line Tools y ya está probado y documentado.
 - Los criterios 2, 3, 4, 5, 6 y 7: están cerrados y verificados. El script
-  SQL ADEMÁS se ejecutó contra un MySQL 8.0.46 real: no hay que volver a
-  probarlo salvo que cambie el esquema.
+  SQL ADEMÁS se ejecutó en MySQL 8.0.46 y en MariaDB 10.4 y 11.4 —la de
+  XAMPP—, con las 13 pruebas de restricciones en verde en los tres. NO hay
+  que volver a probarlo salvo que cambie el esquema.
 
 Reglas no negociables (están en CLAUDE.md; se repiten porque son las que más
 se olvidan):
@@ -139,12 +140,12 @@ se olvidan):
   Get-Content + Set-Content: corrompe los acentos.
 
 TRAMPAS DEL ENTORNO, ya pagadas:
-- Para PROBAR SQL de verdad hay un camino ya recorrido: un contenedor
-  desechable `docker run -d --name sgr-mysql-prueba -e
-  MYSQL_ROOT_PASSWORD=prueba123 -p 127.0.0.1:3306:3306 mysql:8.0`, se
-  copia el .sql con `docker cp` y se ejecuta con `docker exec`. El 3306
-  está libre; los puertos 3000/8000/27017 son de talia y no se tocan.
-  ACORDARSE DE `docker rm -f` al terminar.
+- Para PROBAR SQL de verdad hay un camino ya recorrido: contenedores
+  desechables `mysql:8.0` (3306), `mariadb:10.4` (3307) y `mariadb:11.4`
+  (3308); se copia el .sql con `docker cp` y se ejecuta con `docker exec`.
+  Esos puertos están libres; 3000/8000/27017 son de talia y no se tocan.
+  ⚠ En mariadb:11.4 el cliente ya NO se llama `mysql` sino `mariadb`, y
+  `mysqladmin` es `mariadb-admin`. ACORDARSE DE `docker rm -f` al terminar.
 - `cat > "$VAR/x"` con $VAR sin definir se queda esperando stdin y cuelga
   el comando. Para escribir archivos, usar la herramienta de escritura.
 - Al comparar el ON DELETE de una migración, ENUMERAR la acción
