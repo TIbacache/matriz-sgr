@@ -3,7 +3,7 @@
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
 **Última actualización**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`, sin mergear a `main`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **35 puntos cubiertos**: criterio 1 preparado, criterios 2 y 3 hechos. Se retoma en el **criterio 4**, que es el más caro (20 pts) y el más vacío. Quedan además los criterios 5 a 7 y el informe.
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **55 puntos cubiertos**: criterio 1 preparado, criterios 2, 3 y 4 hechos. Se retoma en el **criterio 5** (diagrama de clases). Quedan además los criterios 6 y 7 y el informe.
 
 ---
 
@@ -45,34 +45,21 @@ Deben dar 332 comprobaciones en verde (21 + 37 + 191 + 83).
 
 QUÉ SIGUE, en este orden, porque las dependencias importan:
 
-  3. CASO DE USO GENERAL (10 pts) — CERRADO el 10 de septiembre. NO SE
-     REABRE. Son dos diagramas y un documento:
-     docs/entrega/casos-uso-general.md (lo que se entrega),
-     puml/09-casos-uso-general.puml (frontera, seis actores, doce casos,
-     «include») y puml/10-casos-uso-extensiones.puml (los seis «extend» con su
-     condición). Se rehizo tres veces; las cuatro decisiones que no conviene
-     rediscutir están en docs/entrega/README.md §"Cómo quedó el criterio 3".
-     DOS CORRECCIONES salieron de contrastar el plan con el código, y el
-     criterio 4 tiene que partir de ellas:
-       - CU-I1 ya NO es "validar RUT y teléfono" sino "Validar los datos del
-         registro" (obligatoriedad, formato y coherencia, RF-010). Un «include»
-         se ejecuta SIEMPRE, y el RUT no siempre está: el alta del tubo ni
-         siquiera lo pide.
-       - CU-E1 tiene TRES casos base: CU-01, CU-06 y CU-11. El aviso existe en
-         el alta (sin ventana de tiempo) y en la ficha del vecino (con la
-         ventana del parámetro).
-     El diagrama viejo de docs/diagramas.md §2 NO sirve: tiene 4 actores de 6
-     y casos del modelo v1.
-
-  4. LOS 12 CASOS DE USO ESPECÍFICOS (20 pts — el más caro y el más vacío).
-     Están ELEGIDOS en el plan §4, con actor, RF y pantalla: CU-01 a CU-12,
-     más tres «include» (CU-I1 validar los datos del registro, CU-I2 generar
-     código, CU-I3 auditar) y seis «extend» (CU-E1 aviso de duplicidad,
-     CU-E2 exigir observación, CU-E3 rechazar validación propia, CU-E4 409,
-     CU-E5 denegar por alcance con motivo, CU-E6 delegación sin medición).
-     Cada uno necesita SU diagrama y SU ficha con los campos exactos de la
-     rúbrica. Los flujos NO se inventan: salen del código y de las
-     verificaciones que ya existen (backend/scripts/verificar-api-v2.ts).
+  3 y 4. CASOS DE USO — CERRADOS el 10 de septiembre. NO SE REABREN.
+     docs/entrega/casos-uso-general.md (criterio 3) y
+     docs/entrega/casos-uso-detalle.md (criterio 4, las doce fichas), con
+     22 diagramas en puml/01 a puml/22. Las decisiones que no conviene
+     rediscutir estan en docs/entrega/README.md, en las dos secciones
+     "Como quedo el criterio 3" y "Como quedo el criterio 4".
+     TRES COSAS QUE HAY QUE ARRASTRAR AL RESTO DE LA ENTREGA:
+       - CU-I1 es "Validar los datos del registro" (RF-010), no "validar RUT".
+       - CU-E1 tiene tres casos base (CU-01, CU-06, CU-11) y CU-E4 tres
+         (CU-04, CU-07, CU-10).
+       - Las fichas declaran TRES DESVIOS entre el RF y el codigo (CU-06 con
+         RF-016, CU-07 con RF-018 y RF-019, CU-10 con RF-036). El diagrama de
+         clases y el DER no deben "arreglarlos" inventando lo que no existe.
+     Todo esto lo comprueba `cd frontend && npm run verificar:entrega`
+     (170 comprobaciones). Correrlo ANTES y DESPUES de tocar un artefacto.
 
   5. DIAGRAMA DE CLASES (15 pts). Con visibilidad (+/-/#), atributos tipados,
      métodos y multiplicidades. Los nombres deben coincidir con el DER y los

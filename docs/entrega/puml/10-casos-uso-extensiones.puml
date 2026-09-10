@@ -54,6 +54,7 @@ rectangle "**SGR — Sistema de Gestión de Resultados**" #FFFFFF {
     usecase "CU-07\nMover un compromiso\nde estado" as CU07
     usecase "CU-04\nConfigurar metas\ny ponderadores" as CU04
     usecase "CU-03\nValidar o rechazar\nuna evidencia" as CU03
+    usecase "CU-10\nAnular una actividad\ncon motivo" as CU10
     usecase "CU-06\nRegistrar un compromiso\ndel vecino en el tubo" as CU06
     usecase "CU-01\nRegistrar actividad diaria" as CU01
   }
@@ -69,6 +70,7 @@ CUE3 ..> CU03 : <<extend>>\n[quien valida\nes quien registró]
 
 CUE4 ..> CU04 : <<extend>>\n[la versión enviada\nya no es la vigente]
 CUE4 ..> CU07 : <<extend>>\n[la versión enviada\nya no es la vigente]
+CUE4 ..> CU10 : <<extend>>\n[la versión enviada\nya no es la vigente]
 
 CUE5 ..> CU12 : <<extend>>\n[el rol no alcanza\nese dato]
 CUE5 ..> CU11 : <<extend>>\n[el rol no alcanza\nese dato]

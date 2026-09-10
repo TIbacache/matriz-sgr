@@ -59,7 +59,9 @@ Del PDF del proyecto §3. La tercera columna es el nombre técnico del rol en el
 La rúbrica pide «actores principales **y secundarios**, si aplica». En SGR **no aplica**, y no por omisión:
 
 - **No hay sistemas externos.** El proyecto tiene una restricción de **costo cero** (regla 13): no hay pasarela de pago, ni servicio de correo, ni integración con el Registro Civil o el SII. El RUT se valida con **módulo 11 calculado localmente** (ADR-001), y las evidencias se guardan en almacenamiento propio.
-- **El «Sistema» no es un actor.** La tabla de trazabilidad del criterio 2 pone «Sistema» en la columna de actor de RF-014, RF-020, RF-022 y otros, porque el PDF del proyecto lo escribe así. En UML eso **no** es un actor: es el propio sistema calculando. Dibujarlo como muñeco afuera de la frontera sería contradecir la frontera que la misma rúbrica exige.
+- **El «Sistema» no se dibuja como actor en la frontera.** La tabla de trazabilidad del criterio 2 pone «Sistema» en la columna de actor de RF-014, RF-020, RF-022 y otros, porque el PDF del proyecto lo escribe así. Pero dibujarlo como muñeco **afuera** de la frontera contradiría la frontera misma: el sistema no interactúa consigo desde fuera.
+
+  Eso no lo borra del vocabulario. En la **ficha** de un caso que ejecuta el servidor sin intervención humana —generar el código, auditar, validar— el actor principal **es el Sistema**, tal como lo escribe el docente en «Relación entre los artefactos» para sus casos *Buscar Empleado* y *Validar Datos de Empleado*. Es la misma distinción de siempre: quién **ejecuta** un paso no es lo mismo que quién está **fuera** del sistema pidiéndole algo.
 
 Cuando exista integración —RF-033 exportación, RNF-016 interoperabilidad— aparecerá el primer actor secundario. Los dos están declarados **fuera de esta iteración** en [requerimientos.md §13](requerimientos.md).
 
@@ -180,9 +182,11 @@ La ficha corta es la que usa el ejemplo del docente para los casos de extensión
 | **CU-E1** | Avisar posible atención duplicada | `«extend»` | CU-01, CU-06, CU-11 | Al registrar: el vecino ya registra atenciones o compromisos en **otra** delegación. En la ficha: dos hechos de la misma clasificación dentro de la **ventana de duplicidad** | Aviso **ámbar** con las delegaciones y los hechos que lo componen. **No bloquea**: informa. Es el control que el cliente vino a buscar (ADR-008, CA-04) |
 | **CU-E2** | Exigir observación de la decisión | `«extend»` | CU-03 | La decisión no es «aprobar» | La validación se rechaza hasta que haya observación escrita. Rechazar sin decir por qué no es trazabilidad (RF-013) |
 | **CU-E3** | Rechazar la validación propia | `«extend»` | CU-03 | Quien valida es quien registró la actividad o cargó la evidencia | Se deniega con el motivo: segregación de funciones (RNF-005) |
-| **CU-E4** | Informar conflicto de versión | `«extend»` | CU-04, CU-07 | La versión enviada ya no es la vigente: alguien más guardó primero | **409**, con el estado actual y sin sobrescribir. La pantalla lo dice; nunca revierte en silencio (RF-034, CA-08, ADR-005) |
+| **CU-E4** | Informar conflicto de versión | `«extend»` | CU-04, CU-07, CU-10 | La versión enviada ya no es la vigente: alguien más guardó primero | **409**, con el estado actual y sin sobrescribir. La pantalla lo dice; nunca revierte en silencio (RF-034, CA-08, ADR-005) |
 | **CU-E5** | Denegar por alcance con el motivo escrito | `«extend»` | CU-11, CU-12 | El rol no alcanza ese dato: en CU-11, Verificador y Usuario de consulta; en CU-12, **todos salvo Administrador y Coordinador** | **403** con el motivo redactado, no un «sin permisos» a secas. Es una decisión legal, no de interfaz (ADR-012, ADR-015) |
 | **CU-E6** | Informar delegación sin medición | `«extend»` | CU-09 | La delegación no tiene a nadie con metas configuradas | Se informa **«sin medición»**, nunca 0%. Un 0% diría que trabajaron y no cumplieron; la verdad es que no hay nada que medir (ADR-014) |
+
+**CU-E4 y CU-E5 son transversales, como CU-I3.** El conflicto de versión puede ocurrir en **cualquier** operación que escriba llevando su `version`, y la denegación por alcance en cualquiera que toque un dato restringido. En el diagrama se dibujan sobre los casos base donde el sistema los produce hoy; escribir una flecha por cada write convertiría el dibujo en una maraña sin decir nada nuevo.
 
 **Los seis son escenarios alternativos que el mockup tiene que representar** (decisión D-3). Tres ya son capturables hoy —el aviso de duplicidad, el 403 con motivo escrito y la delegación sin medición—; los otros tres se producen ampliando `frontend/scripts/mockups.mjs`. Ese trabajo es el criterio 8.
 
