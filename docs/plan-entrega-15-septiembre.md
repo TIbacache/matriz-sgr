@@ -157,7 +157,7 @@ Se dice explícitamente para que nadie lo abra «ya que estamos»:
 - **RF-025** (ajustes por felicitación/reclamo), **RF-028** (tablero personal), **RF-031** (vista global por cargos), **RF-033** (exportación), **RF-035** (comentarios), **RF-037** (alertas).
 - **Bloque D** (Jest, RTL, CI) y **Bloque E** (despliegue).
 - Los cabos sueltos de prioridad Media: `color-scheme`, `TareaHistorial` (RF-018), paginación del historial del vecino, corrección de una gestión ya registrada, alcance de `GET /cumplimiento/:periodoId`.
-- **Las 12 consultas abiertas al docente**: no se responden por cuenta propia. Se suma la nº 13 (MySQL).
+- **Las 14 consultas abiertas al docente**: no se responden por cuenta propia. Se suma la nº 13 (MySQL).
 
 ---
 

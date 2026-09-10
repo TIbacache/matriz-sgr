@@ -433,7 +433,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 
 ## 10. Bloqueos externos y consultas abiertas
 
-- **12 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1, 3 y 12 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código. La **nº 12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad) es la única sobre datos de terceros y la de mayor peso legal.
+- **14 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1, 3 y 12 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código. La **nº 12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad) es la única sobre datos de terceros y la de mayor peso legal.
 - **Instrucciones verbales sin rúbrica** en [§9.bis](requerimientos-oficiales.md): diagrama de clases, 10 casos de uso, y que solo se revisará el Planner. Se contrastan cuando se publique la rúbrica.
 - **Columnas de asistencia** (licencia, vacaciones, compensatorios): sin definición. **No inventar el cálculo.**
 - **Matriz de roles definitiva**: hoy rige la del Documento Maestro §4; los ajustes solo tocan `middleware/roles.ts` y los checks de alcance.

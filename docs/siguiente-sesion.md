@@ -224,12 +224,13 @@ Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo q
 | 🔴 **`docs/diagramas.md` describe el modelo v1**: `metas`, la vista materializada, el cron y umbrales «50-79» que nunca existieron. Cuatro diagramas del 25 de agosto. Presentarlos en la entrega sería describir un sistema que no es el nuestro | `docs/diagramas.md` | **Alta** |
 | **No existe diagrama de clases** (15 pts de la rúbrica) ni **casos de uso con ficha** (20 pts). Es el 35% de la nota de la primera evaluación | `docs/entrega/` | **Alta** |
 | ~~`README.md` dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente: `historias-usuario.md` está en las 20 historias propias sin decir que **las 31 oficiales mandan** sobre ellas | `docs/historias-usuario.md` | Media |
+| **El anti-trampa de las emergencias funciona a medias.** El cliente lo pidió expresamente (reunión 01:09:46: *"hay gente que se aprovecha de la emergencia y hace mil cosas"*) y tiene tres palancas: el **tope por ítem** ✅, la **emergencia como ítem al 5%** ✅ y el **descuento de los días de emergencia** del objetivo al día — que el motor sí aplica, pero **`Ausencia` no tiene API ni pantalla**, así que hoy esos días solo se cargan en la base. Es la pieza que falta para que el control sea usable. Consulta abierta nº 14 | `Ausencia`, sin ruta | **Alta** |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | **`GET /cumplimiento/:periodoId` entrega el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11. Detectado en el Bloque C, anotado y no cambiado en silencio | `cumplimiento.routes.ts` | Media |
 | **El seed tarda ~15 minutos**: genera y escribe ~2.400 PNG de evidencia uno por uno. Se arregla escribiendo en paralelo; no bloquea nada, pero conviene saberlo antes de correrlo | `prisma/seed.ts` | Baja |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
-## 5. Las 12 consultas al docente
+## 5. Las 14 consultas al docente
 
 Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con tabla de impacto al inicio. **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Cinco nacieron construyendo: la **8** (si una aprobación puede revertirse), la **9** (si el verificador es transversal o por delegación), la **10** (antivirus y retención de evidencias, RNF-017 — la única que puede implicar costo), la **11** (si un funcionario ve las metas de sus pares) y la **12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad — la única sobre datos de **terceros**, y la de mayor peso legal). Las dos que más impactan en el cálculo:
 

@@ -31,7 +31,7 @@ LEE PRIMERO, EN ESTE ORDEN:
 4. CLAUDE.md — reglas del proyecto. Ojo la regla 20, que fija cómo se hacen
    los diagramas.
 5. docs/requerimientos-oficiales.md — los 38 RF, 18 RNF, 13 RN, 10 CA y 31 HU.
-   Su §10 son las 13 consultas abiertas: NO inventar esas respuestas.
+   Su §10 son las 14 consultas abiertas: NO inventar esas respuestas.
 6. docs/estado-proyecto.md — cuentas y roles (§1), contrato de la API (§3) y
    las pantallas (§6). De ahí salen los nombres que deben coincidir en todos
    los artefactos.
@@ -45,25 +45,24 @@ Deben dar 332 comprobaciones en verde (21 + 37 + 191 + 83).
 
 QUÉ SIGUE, en este orden, porque las dependencias importan:
 
-  3. CASO DE USO GENERAL (10 pts) — EMPEZADO, se retoma aquí. Ya existe
-     docs/entrega/puml/09-casos-uso-general.puml: frontera del sistema, los
-     SEIS actores del PDF §3 y los doce casos de uso con sus relaciones
-     actor-caso de uso. Compila, pero NADIE HA MIRADO EL PNG todavía: eso es
-     lo primero. Después faltan tres cosas, detalladas en
-     docs/entrega/README.md §"Dónde quedó el criterio 3":
-       a) Un SEGUNDO diagrama con las relaciones «include» y «extend» — los
-          tres incluidos (CU-I1 validar RUT, CU-I2 generar código, CU-I3
-          auditar) y los seis de extensión (CU-E1 a CU-E6), definidos en el
-          plan §4. Van aparte del general a propósito: los nueve dentro del
-          mismo dibujo, con 12 casos y 6 actores, lo vuelven ilegible.
+  3. CASO DE USO GENERAL (10 pts) — el DIAGRAMA GENERAL YA ESTÁ LISTO Y
+     REVISADO: docs/entrega/puml/09-casos-uso-general.puml. Frontera explícita,
+     los SEIS actores del PDF §3, los doce casos agrupados por los mismos cinco
+     módulos M1-M5 del diagrama de requerimientos, las relaciones actor-caso de
+     uso y los «include». NO REHACERLO: se rehizo tres veces y las correcciones
+     están explicadas en docs/entrega/README.md §"Dónde quedó el criterio 3".
+     Faltan dos cosas:
+       a) Un SEGUNDO diagrama con los seis «extend» (CU-E1 a CU-E6), definidos
+          en el plan §4. Van aparte porque son caminos condicionales: sumarlos
+          al general lo llenan de ramas que solo ocurren a veces. Los «include»
+          sí están en el general, porque son comportamiento compartido.
        b) El documento docs/entrega/casos-uso-general.md que los envuelve,
           con la tabla actor ↔ caso de uso y la correspondencia con los RF.
-       c) CONFIRMAR una decisión: no se dibuja generalización entre actores,
-          porque los seis roles no forman jerarquía sino conjuntos que se
-          solapan (el Verificador valida pero no ve el tubo; el Coordinador
-          ve el panel de actividad y el Administrador también). Afirmar una
-          herencia diría algo que el código no cumple. La rúbrica pide
-          «include», «extend» O generalización, y las dos primeras están.
+     Y CONFIRMAR una decisión ya tomada: no se dibuja generalización entre
+     actores, porque los seis roles no forman jerarquía sino conjuntos que se
+     solapan. Afirmar una herencia diría algo que el código no cumple. La
+     rúbrica pide «include», «extend» O generalización, y las dos primeras
+     están.
      El diagrama viejo de docs/diagramas.md §2 NO sirve: tiene 4 actores de 6
      y casos del modelo v1.
 
@@ -115,7 +114,7 @@ LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
   RF-033 exportación, RF-035 comentarios, RF-037 alertas.
 - Bloque D (Jest, RTL, CI) y Bloque E (despliegue).
 - Los cabos sueltos Media de docs/siguiente-sesion.md.
-- Las 13 consultas abiertas: NO se responden por cuenta propia.
+- Las 14 consultas abiertas: NO se responden por cuenta propia.
 - El Planner: NO volver a intentar automatizarlo. INACAP bloquea la aplicación
   Microsoft Graph Command Line Tools y ya está probado y documentado.
 
