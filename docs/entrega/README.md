@@ -27,12 +27,21 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 
 ### Dónde quedó el criterio 3 (para retomar)
 
-El diagrama **general** está dibujado y compila: frontera del sistema, los seis actores del PDF §3 y los doce casos de uso, con sus relaciones actor–caso de uso. **Falta revisarlo a ojo** —no se ha mirado el PNG todavía— y falta:
+El **diagrama general está listo y revisado**: [puml/09-casos-uso-general.puml](puml/09-casos-uso-general.puml). Cumple los cinco puntos que la rúbrica pide en su §5.3 — frontera explícita, los seis actores del PDF §3 con su nombre, los doce casos sin flujos internos, las relaciones actor–caso de uso y los `«include»`.
 
-1. Un **segundo diagrama con las relaciones** `«include»` y `«extend»`: los tres incluidos (CU-I1 validar RUT, CU-I2 generar código, CU-I3 auditar) y los seis de extensión (CU-E1 a CU-E6), que están definidos en el [plan §4](../plan-entrega-15-septiembre.md). Se separan del general a propósito: meterlos todos en un dibujo con 12 casos y 6 actores lo vuelve ilegible, y la rúbrica evalúa la legibilidad.
+Se rehizo tres veces, y las dos correcciones vale la pena no repetirlas:
+
+- **Los casos van agrupados por los mismos cinco módulos (M1 a M5) del diagrama de requerimientos.** Sin agrupar, los doce quedaban en una columna y el dibujo se leía como una lista. Agrupados, además, la correspondencia entre artefactos queda a la vista, que es el criterio transversal de la rúbrica.
+- **Los seis actores van todos a la izquierda.** Se probó repartirlos a ambos lados de la frontera y PlantUML mandó tres al fondo, con flechas cruzando el diagrama entero.
+
+Falta:
+
+1. Un **segundo diagrama con los seis `«extend»`** (CU-E1 a CU-E6), definidos en el [plan §4](../plan-entrega-15-septiembre.md). Van aparte porque son caminos condicionales y de excepción: sumarlos al general lo llena de ramas que solo ocurren a veces. Los `«include»` sí están en el general, porque son comportamiento compartido y ahí se ve la reutilización.
 2. El documento **`casos-uso-general.md`** que los envuelve, con la tabla actor ↔ caso de uso y la correspondencia con los RF.
 
 ⚠ **Decisión pendiente de confirmar**: *no* se dibuja generalización entre actores. Los seis roles no forman una jerarquía sino conjuntos que se solapan (el Verificador valida pero no ve el tubo; el Coordinador ve el panel de actividad y el Administrador también). Dibujar una herencia afirmaría algo que el código no cumple. La rúbrica pide «include», «extend» **o** generalización, y las dos primeras están cubiertas.
+
+**CU-I3 (auditar) no se dibuja en el general**: lo incluyen las diez operaciones que escriben, más CU-11 y CU-12, que se auditan aunque solo consulten. Diez flechas al mismo óvalo dirían menos que la nota que lleva el diagrama. Va en el diagrama de cada caso de uso, en el criterio 4.
 
 ---
 
