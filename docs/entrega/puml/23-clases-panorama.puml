@@ -1,0 +1,99 @@
+@startuml clases-panorama
+' Diagrama de clases — panorama por capas.
+' Se dibuja primero porque explica DÓNDE está cada cosa en los otros cuatro
+' diagramas de clases, y por qué el dominio no carga la lógica.
+title Diagrama de clases — Panorama por capas
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam package {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #FFFFFF
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+package "Presentación · React + Vite" as UI {
+  class Pantalla <<boundary>> {
+    +ficha, verificacion, tubo,
+    +metas, vecinos, dashboard,
+    +actividad
+  }
+}
+
+package "Acceso · Express + Socket.io" as API {
+  class Ruta <<control>> {
+    +valida el cuerpo
+    +resuelve el alcance por rol
+    +exige `version` en cada write
+    +audita y emite el evento
+  }
+  class Middleware <<control>> {
+    +requireAuth()
+    +requireRol(...roles)
+  }
+}
+
+package "Servicios · la lógica del negocio" as SRV {
+  class Servicio <<service>> {
+    +cumplimiento, parametros, codigos
+    +auditoria, concurrencia, alcance
+    +vecinos, atencion-social
+    +actividad-usuarios, almacenamiento
+    +broadcast, presencia
+  }
+}
+
+package "Dominio · 22 entidades persistentes" as DOM {
+  class Entidad <<entity>> {
+    +atributos tipados
+    +invariantes en la base:
+    +  CHECK, UNIQUE, disparadores
+  }
+}
+
+Pantalla ..> Ruta : HTTP · WebSocket
+Ruta ..> Middleware : <<use>>
+Ruta ..> Servicio : <<use>>
+Servicio ..> Entidad : <<use>>
+
+note right of DOM
+  **Las invariantes que no se negocian viven en la base**, no en el código:
+  el código de la actividad es **inmutable** por disparador, la bitácora
+  tiene **revocados UPDATE y DELETE**, y hay CHECK de RUT, de fechas y de
+  metas. Una regla que solo vive en la aplicación se salta con un script.
+end note
+
+note right of SRV
+  **Aquí están las operaciones** que la rúbrica §6.1 pide ver en el
+  diagrama de clases. El dominio de este sistema es persistente y
+  anémico a propósito: la lógica es transversal a varias entidades
+  —el cumplimiento cruza meta, actividad, evidencia, validación y
+  ausencia— y ponerla dentro de una de ellas la escondería.
+end note
+
+note right of API
+  Cada ruta hace **siempre** las mismas cuatro cosas, y por eso
+  aparecen como casos incluidos y de extensión en el criterio 4:
+  validar (CU-I1), exigir la versión (CU-E4), auditar (CU-I3) y
+  emitir el evento. **Un endpoint mudo es un bug.**
+end note
+
+@enduml

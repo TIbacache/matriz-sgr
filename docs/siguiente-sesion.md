@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 10 de septiembre de 2026 (criterios 3 y 4 de la entrega: casos de uso general, de extensión y las doce fichas)
+**Actualizado**: 10 de septiembre de 2026 (criterios 3, 4 y 5 de la entrega: casos de uso y diagrama de clases)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -20,7 +20,7 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
-| **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **55 de 100 puntos.** Criterio 1 preparado, criterios 2, 3 y 4 hechos; faltan los criterios 5 a 7 y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |
+| **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **70 de 100 puntos.** Criterio 1 preparado, criterios 2 a 5 hechos; faltan el DER (6), el script (7) y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |
 
 Cumplimiento contra los 38 RF oficiales: **23 ✅ · 8 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
@@ -200,7 +200,7 @@ Salieron de contrastar cada caso de uso con su RF oficial (criterio 4 de la entr
 | # | RF | Qué pide | Qué hay | Costo estimado |
 |---|---|---|---|---|
 | **D-a** | **RF-016** | La creación de compromisos del tubo es del **Funcionario** y del Delegado | `POST /tareas` la restringe a `admin`, `supervisor` y `gerente`: el funcionario **mueve** sus compromisos pero no puede **crearlos**. La restricción viene de la matriz de permisos del Documento Maestro —la fuente más baja de la jerarquía— y quedó por encima del RF sin que nadie lo decidiera | Bajo: un rol más en `requireRol`, más la prueba de alcance |
-| **D-b** | **RF-018** y **RF-019** | Cuatro estados (Ingresado → Pendiente → En proceso → Realizado) con **historial de transiciones**; alertas de «próximo a vencer» y «realizado fuera de plazo» | Tres estados, el recorrido se reconstruye desde la bitácora y solo se marcan los vencidos. Ya estaban declarados parciales | Medio: toca el modelo del tubo y la UI |
+| **D-b** | **RF-018** y **RF-019** | Cuatro estados (Ingresado → Pendiente → En proceso → Realizado) con **historial de transiciones**; alertas de «próximo a vencer» y «realizado fuera de plazo» | Tres estados y solo se marcan los vencidos. ⚠ **`tarea_historial` existe y el seed la llena, pero `src/` nunca escribe en ella**: el historial se ve poblado en la demo y no se llenaría en uso real. El recorrido se reconstruye desde la bitácora | Bajo para el historial (un `create` en el PATCH de tareas); medio para los estados y las alertas |
 | **D-c** | **RF-036** | Trazabilidad **consultable** | Se audita todo write crítico, pero falta la pantalla para leer la bitácora | Medio: una pantalla nueva con filtros |
 
 **D-a es el más barato y el que más se nota**, porque contradice el uso diario que el cliente describió. Conviene resolverlo antes de que el desvío se consolide como si fuera la regla.

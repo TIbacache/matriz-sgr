@@ -17,13 +17,13 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | 2 | Diagramas de requerimientos | 10 | ✅ **Hecho** | [requerimientos.md](requerimientos.md) · [puml/](puml/) |
 | 3 | Caso de uso general | 10 | ✅ **Hecho** | [casos-uso-general.md](casos-uso-general.md) · [puml/09](puml/09-casos-uso-general.puml) y [puml/10](puml/10-casos-uso-extensiones.puml) |
 | 4 | Casos de uso específicos + fichas | 20 | ✅ **Hecho** | [casos-uso-detalle.md](casos-uso-detalle.md) · [puml/11](puml/11-cu-01.puml) a [puml/22](puml/22-cu-12.puml) |
-| 5 | Diagrama de clases | 15 | 🔴 Pendiente | — |
+| 5 | Diagrama de clases | 15 | ✅ **Hecho** | [clases.md](clases.md) · [puml/23](puml/23-clases-panorama.puml) a [puml/27](puml/27-clases-servicios.puml) |
 | 6 | DER MySQL | 10 | 🔴 Pendiente | — |
 | 7 | Script SQL | 10 | 🔴 Pendiente | — |
 | 8 | Mockup funcional + Git | 10 | 🟢 Hecho, faltan escenarios alternativos | [../mockups/](../mockups/) |
 | — | Informe de la entrega | — | 🔴 Pendiente | — |
 
-**55 de 100 puntos cubiertos.** Lo que queda es la cadena de datos: clases, DER y script.
+**70 de 100 puntos cubiertos.** Queda la cadena de datos: DER y script MySQL.
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -98,7 +98,7 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**170 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los veintidós diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice).
+**202 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los veintidós diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice).
 
 Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe, y no fallan mientras no exista. Sale con código 1 si algo se cae, así que sirve para CI cuando lo haya.
 
@@ -143,6 +143,7 @@ Para que nadie lo abra «ya que estamos»:
 | [requerimientos.md](requerimientos.md) | **Criterio 2.** Los 38 RF y 18 RNF por módulo y épica, con actores y trazados a los CU |
 | [casos-uso-general.md](casos-uso-general.md) | **Criterio 3.** La frontera, los seis actores, los doce casos con sus RF y su pantalla, y las nueve relaciones `«include»` y `«extend»` |
 | [casos-uso-detalle.md](casos-uso-detalle.md) | **Criterio 4.** Las doce fichas de la rúbrica §5.4, cada una anclada al texto oficial de su RF, con su diagrama |
+| [clases.md](clases.md) | **Criterio 5.** Las 22 clases del dominio y los 12 servicios, en 5 diagramas, con la tabla clase ↔ tabla ↔ caso de uso |
 | [puml/](puml/) | Los `.puml` y sus PNG. La fuente de todo diagrama de la entrega |
 | [guia-planner-hector.pdf](guia-planner-hector.pdf) | **Criterio 1.** Cómo cargar las 87 tareas a mano, en seis tandas |
 | [guia-planner-hector.md](guia-planner-hector.md) | La fuente del PDF anterior. Se edita acá y se regenera |

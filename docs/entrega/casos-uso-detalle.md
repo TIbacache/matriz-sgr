@@ -433,7 +433,11 @@ Los tres casos **incluidos** (CU-I1, CU-I2, CU-I3) y los seis de **extensión** 
 - **E5 · Solicitud que pasa a externa sin solicitante** → **422**, aunque el cuerpo no lo traiga: se valida sobre el resultado de la fusión, no sobre lo enviado.
 - **E6 · Compromiso de otra organización** → **404**.
 
-> ⚠ **Desvío respecto de RF-018 y RF-019.** El requerimiento pide **cuatro** estados (Ingresado, Pendiente, En proceso, Realizado) con **historial de transiciones**, y alertas de «próximo a vencer» y «realizado fuera de plazo». Hoy hay **tres** estados, el recorrido se reconstruye desde la bitácora en vez de tener historial propio, y solo se marcan los vencidos. Los dos RF están declarados **parciales** en la tabla de trazabilidad del [criterio 2](requerimientos.md); esta ficha describe el flujo pedido y deja marcado lo que falta.
+> ⚠ **Desvío respecto de RF-018 y RF-019.** El requerimiento pide **cuatro** estados (Ingresado, Pendiente, En proceso, Realizado) con **historial de transiciones**, y alertas de «próximo a vencer» y «realizado fuera de plazo». Hoy hay **tres** estados y solo se marcan los vencidos.
+>
+> Y hay algo peor que una ausencia: la tabla **`tarea_historial` existe en el modelo y el seed la llena, pero la aplicación nunca escribe en ella**. El recorrido real se reconstruye desde la bitácora de auditoría, que distingue el cambio de estado de una edición cualquiera. Es decir: en la demostración el historial se ve poblado, y en el uso real no se llenaría. Está en el DER porque está en el esquema, y aquí queda dicho para que nadie lo lea como funcionalidad terminada.
+>
+> Los dos RF están declarados **parciales** en la tabla de trazabilidad del [criterio 2](requerimientos.md); esta ficha describe el flujo pedido y deja marcado lo que falta.
 
 ---
 

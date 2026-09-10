@@ -3,7 +3,7 @@
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
 **Última actualización**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`, sin mergear a `main`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **55 puntos cubiertos**: criterio 1 preparado, criterios 2, 3 y 4 hechos. Se retoma en el **criterio 5** (diagrama de clases). Quedan además los criterios 6 y 7 y el informe.
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **70 puntos cubiertos**: criterio 1 preparado, criterios 2 a 5 hechos. Se retoma en el **criterio 6** (DER MySQL). Quedan además el criterio 7 y el informe.
 
 ---
 
@@ -61,9 +61,17 @@ QUÉ SIGUE, en este orden, porque las dependencias importan:
      Todo esto lo comprueba `cd frontend && npm run verificar:entrega`
      (170 comprobaciones). Correrlo ANTES y DESPUES de tocar un artefacto.
 
-  5. DIAGRAMA DE CLASES (15 pts). Con visibilidad (+/-/#), atributos tipados,
-     métodos y multiplicidades. Los nombres deben coincidir con el DER y los
-     CU: la rúbrica evalúa esa coherencia como criterio transversal.
+  5. DIAGRAMA DE CLASES — CERRADO el 10 de septiembre. docs/entrega/clases.md
+     y puml/23 a puml/27. Sale de DOS fuentes, y hay que mantener las dos:
+     schema.prisma da estructura, tipos y multiplicidades; src/services y
+     src/routes dan las OPERACIONES, que la rubrica §6.1 exige y el esquema
+     no tiene. SON 22 CLASES Y 22 TABLAS, no 16: los 16 del modelo v2 mas
+     los 6 de plataforma (Organization, User, OrganizationMember,
+     UnidadTerritorial, CategoriaGestion, Tarea). El verificador compara los
+     .puml contra schema.prisma y falla si sobra o falta una.
+     NO HAY HERENCIA, y es deliberado: los roles se solapan, no forman
+     jerarquia. Es la misma decision que la de no dibujar generalizacion
+     entre actores; si se cambia una, hay que cambiar la otra.
 
   6. DER (10 pts). Desde backend/prisma/schema.prisma: son 16 entidades, no
      las 7 del diagrama viejo, que además incluye `metas` y la vista

@@ -240,5 +240,78 @@ if (!existsSync(rutaFichas)) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 7. Criterio 5 — el diagrama de clases contra el esquema real.
+//
+// Es la comprobación que evita el error más caro de este criterio: entregar
+// un diagrama de clases que describe un sistema que no es el nuestro. Los
+// nombres se comparan contra backend/prisma/schema.prisma, que es también la
+// fuente del DER, así que de paso garantiza la coherencia clase ↔ tabla.
+// ---------------------------------------------------------------------------
+titulo("Criterio 5 · clases ↔ esquema");
+
+const rutaClases = path.join(entrega, "clases.md");
+if (!existsSync(rutaClases)) {
+  console.log("  ··   todavía no existe clases.md; nada que comprobar");
+} else {
+  const clasesDoc = readFileSync(rutaClases, "utf8");
+  const schema = readFileSync(path.join(raiz, "backend/prisma/schema.prisma"), "utf8");
+
+  const modelos = new Set([...schema.matchAll(/^model\s+(\w+)\s*\{/gm)].map((m) => m[1]));
+  const tablas = new Set([...schema.matchAll(/@@map\("([^"]+)"\)/g)].map((m) => m[1]));
+
+  // Las clases dibujadas, de los cinco .puml del criterio 5. Se excluyen los
+  // servicios y las clases de arquitectura del panorama: no son entidades.
+  const dibujadas = new Set();
+  for (const archivo of pumls.filter((f) => /^2[3-7]-clases/.test(f))) {
+    for (const m of leer(`puml/${archivo}`).matchAll(/^\s*class\s+(\w+)\s*<</gm)) {
+      if (!/^Servicio/.test(m[1])) dibujadas.add(m[1]);
+    }
+  }
+  // El panorama usa clases genéricas para explicar las capas, no entidades.
+  for (const generica of ["Pantalla", "Ruta", "Middleware", "Servicio", "Entidad"]) {
+    dibujadas.delete(generica);
+  }
+
+  const inventadas = [...dibujadas].filter((c) => !modelos.has(c));
+  verificar("ninguna clase dibujada falta en schema.prisma", inventadas.length === 0, inventadas.join(", "));
+
+  const nodibujadas = [...modelos].filter((m) => !dibujadas.has(m));
+  verificar("ningún modelo del esquema queda sin dibujar", nodibujadas.length === 0, nodibujadas.join(", "));
+
+  verificar(
+    `clases.md nombra las ${modelos.size} clases del esquema`,
+    [...modelos].every((m) => clasesDoc.includes(m)),
+    [...modelos].filter((m) => !clasesDoc.includes(m)).join(", ")
+  );
+  verificar(
+    `clases.md nombra las ${tablas.size} tablas del esquema`,
+    [...tablas].every((t) => clasesDoc.includes(t)),
+    [...tablas].filter((t) => !clasesDoc.includes(t)).join(", ")
+  );
+  verificar("hay una clase por tabla y una tabla por clase", modelos.size === tablas.size, `${modelos.size} vs ${tablas.size}`);
+
+  // La rúbrica §6.1 pide la visibilidad como + - #, y PlantUML la dibuja con
+  // iconos de color salvo que se le diga lo contrario.
+  for (const archivo of pumls.filter((f) => /^2[3-7]-clases/.test(f))) {
+    verificar(`${archivo} muestra la visibilidad como + - #`, /classAttributeIconSize 0/.test(leer(`puml/${archivo}`)));
+  }
+
+  // Los servicios dibujados tienen que existir como archivo en el backend.
+  const servicios = new Set();
+  for (const m of leer("puml/27-clases-servicios.puml").matchAll(/^\s*class\s+Servicio(\w+)\s*<</gm)) {
+    servicios.add(m[1]);
+  }
+  const archivosServicio = readdirSync(path.join(raiz, "backend/src/services")).map((f) => f.replace(/\.ts$/, ""));
+  const enKebab = (nombre) => nombre.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  const sinArchivo = [...servicios].filter((s) => !archivosServicio.includes(enKebab(s)));
+  verificar("cada servicio dibujado existe en backend/src/services", sinArchivo.length === 0, sinArchivo.join(", "));
+  verificar(
+    `están los ${archivosServicio.length} servicios del backend`,
+    servicios.size === archivosServicio.length,
+    `dibujados ${servicios.size}`
+  );
+}
+
 console.log(`\n${total - fallas}/${total} verificaciones de la entrega en verde`);
 process.exit(fallas ? 1 : 0);

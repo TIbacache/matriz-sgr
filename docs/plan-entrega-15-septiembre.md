@@ -19,14 +19,14 @@ Fuentes que mandan, en orden:
 | 2 | **Diagramas de requerimientos** | 10 | **[entrega/requerimientos.md](entrega/requerimientos.md)**: los 38 RF y 18 RNF por módulo y por épica, con actores y trazados a los CU, en 8 diagramas PlantUML | ✅ **Hecho** (9-09-2026) |
 | 3 | **Caso de uso general** | 10 | **[entrega/casos-uso-general.md](entrega/casos-uso-general.md)**: frontera, seis actores, doce casos con sus RF y su pantalla, tres «include» y seis «extend», en 2 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **[entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md)**: las 12 fichas de la rúbrica §5.4, ancladas al texto oficial de su RF, con 12 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
-| 5 | **Diagrama de clases** | 15 | **No existe** | 🔴 Hay que crearlo de cero |
+| 5 | **Diagrama de clases** | 15 | **[entrega/clases.md](entrega/clases.md)**: 22 clases del dominio con atributos tipados, visibilidad y multiplicidades, más los 12 servicios con sus operaciones reales, en 5 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El modelo real tiene 16 entidades | 🔴 Está mal, no solo incompleto |
 | 7 | **Script SQL** | 10 | **No existe.** El esquema real es PostgreSQL vía Prisma | 🔴 Ver decisión D-1 |
 | 8 | **Mockup funcional + Git** | 10 | 8 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | 🟢 **Es lo más fuerte que tenemos.** Faltan los escenarios alternativos |
 
 **Lectura del cuadro**: de 100 puntos, **85 dependen de artefactos de análisis y diseño que hoy no existen o están obsoletos**, y solo 10 dependen del software, que es justamente lo que está terminado. La entrega no se juega en el código: se juega en documentar lo construido.
 
-> **Avance al 10 de septiembre de 2026**: cerrados los criterios **1** (preparado, falta cargarlo a mano), **2**, **3** y **4**. Quedan **45 puntos** en artefactos por construir: clases (15), DER (10), script (10) y los escenarios alternativos del mockup.
+> **Avance al 10 de septiembre de 2026**: cerrados los criterios **1** (preparado, falta cargarlo a mano), **2**, **3**, **4** y **5**. Quedan **30 puntos**: DER (10), script (10) y los escenarios alternativos del mockup (parte de los 10 del criterio 8).
 
 ---
 

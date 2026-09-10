@@ -1,0 +1,138 @@
+@startuml clases-plataforma
+' Diagrama de clases — plataforma, identidad y trazabilidad.
+' Es la capa que sostiene el multi-tenant, el alcance por rol y la bitácora.
+title Diagrama de clases — Plataforma, identidad y trazabilidad
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+' La rúbrica §6.1 pide la visibilidad como + - #, no como iconos de color.
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+class Organization <<entity>> {
+  +id : UUID
+  +nombre : String
+  +tipo : TipoOrganizacion
+  +configuracionTerminologia : Json
+  +createdAt : DateTime
+  --
+  +terminologia(clave : String) : String
+}
+
+class User <<entity>> {
+  +id : UUID
+  +email : String <<único>>
+  -passwordHash : String
+  +nombre : String
+  +nombres : String [0..1]
+  +apellidoPaterno : String [0..1]
+  +apellidoMaterno : String [0..1]
+  +rut : String [0..1] <<único>>
+  +activo : Boolean
+  #version : Int
+  --
+  +autenticar(email : String, clave : String) : Token
+  +nombreCompleto() : String
+  +rutValido() : Boolean
+  +desactivar() : void
+}
+
+class OrganizationMember <<entity>> {
+  +id : UUID
+  +rol : Rol
+  +cargo : String [0..1]
+  --
+  +unidadesVisibles() : UUID[]
+  +puedeVer(unidad : UUID) : Boolean
+  +esNivelCentral() : Boolean
+}
+
+class CatalogoItem <<entity>> {
+  +id : UUID
+  +catalogo : String
+  +valor : String
+  +area : String [0..1]
+  +orden : Int
+  +vigente : Boolean
+  #version : Int
+  --
+  +vigentes(catalogo : String) : CatalogoItem[]
+  +esValorVigente(valor : String) : Boolean
+  +desactivar() : void
+}
+
+class Auditoria <<entity>> {
+  +id : UUID
+  +usuarioId : UUID [0..1]
+  +accion : AccionAuditoria
+  +entidad : String
+  +entidadId : UUID
+  +valorAnterior : Json [0..1]
+  +valorNuevo : Json [0..1]
+  +ip : String [0..1]
+  +origen : String [0..1]
+  +createdAt : DateTime
+  --
+  +registrar(evento : EventoAuditoria) : void
+}
+
+class UnidadTerritorial <<entity>> #FAFAF8 {
+  +nombre : String
+  .. ver 25-clases-agenda-personas ..
+}
+
+class Cargo <<entity>> #FAFAF8 {
+  +nombre : String
+  .. ver 24-clases-medicion ..
+}
+
+Organization "1" *-- "1..*" OrganizationMember : tiene >
+User "1" *-- "1..*" OrganizationMember : pertenece a >
+Organization "1" *-- "0..*" UnidadTerritorial
+Organization "1" *-- "0..*" CatalogoItem
+Organization "1" *-- "0..*" Auditoria
+OrganizationMember "0..*" o-- "0..1" UnidadTerritorial : trabaja en >
+OrganizationMember "0..*" o-- "0..1" Cargo : se le mide por >
+
+note right of OrganizationMember
+  **El rol vive en la membresía, no en el usuario.** Un mismo correo
+  puede pertenecer a varias organizaciones con roles distintos, y por
+  eso `Rol` cuelga de aquí. `unidadTerritorialId` nulo significa
+  **nivel central**: ve todas las delegaciones.
+end note
+
+note bottom of Auditoria
+  **Bitácora de solo inserción.** La migración **revoca UPDATE y DELETE**
+  sobre esta tabla: una auditoría que la propia aplicación puede
+  modificar no es auditoría (RNF-008, ADR-006).
+  Registra también la acción `consultar`, porque las Leyes 19.628 /
+  21.719 y la Ley 21.663 piden trazabilidad del **acceso** a datos
+  personales, no solo de su modificación.
+end note
+
+note top of User
+  **No hay herencia entre roles.** Los seis roles son valores del enum
+  `Rol`, no subclases: se solapan en vez de formar jerarquía, y por eso
+  el caso de uso general tampoco dibuja generalización entre actores.
+  La rúbrica pide herencia **solo cuando exista justificación**; aquí
+  no la hay, y afirmarla sería describir un diseño que no existe.
+end note
+
+@enduml
