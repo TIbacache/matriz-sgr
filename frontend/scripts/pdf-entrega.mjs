@@ -53,7 +53,34 @@ for (const [relativo, qué, salida] of DOCUMENTOS) {
   if (!ok) console.log((r.stderr || r.stdout || "").trim());
 }
 
+// --------------------------------------------------------- Las 17 pantallas
+//
+// Planner admite **10 adjuntos por tarea**, y las pantallas del mockup son 17.
+// Van comprimidas en un solo archivo: es eso o dejar la mitad fuera, que
+// ademas se veria como un entregable incompleto.
+//
+// Se arma aqui, y no a mano, para que no envejezca: si se regeneran los
+// mockups y nadie rehace el zip, el adjunto muestra pantallas viejas.
+// Compress-Archive viene con Windows, asi que no agrega dependencias (regla 13).
+const zip = path.resolve(aquí, "../../docs/entrega/mockup-17-pantallas.zip");
+const origen = path.resolve(aquí, "../../docs/mockups/*.html");
+const z = spawnSync(
+  "powershell",
+  [
+    "-NoProfile",
+    "-Command",
+    `if (Test-Path '${zip}') { Remove-Item '${zip}' }; Compress-Archive -Path '${origen}' -DestinationPath '${zip}' -CompressionLevel Optimal`,
+  ],
+  { encoding: "utf8" }
+);
+if (z.status === 0) {
+  console.log(`  ok   mockup-17-pantallas.zip     Las 17 pantallas, porque Planner solo admite 10 adjuntos`);
+} else {
+  fallas += 1;
+  console.log("FALLA  mockup-17-pantallas.zip", (z.stderr || "").trim());
+}
+
 console.log(
-  `\n${DOCUMENTOS.length - fallas}/${DOCUMENTOS.length} PDF de la entrega generados en docs/entrega/`
+  `\n${DOCUMENTOS.length - fallas}/${DOCUMENTOS.length} PDF de la entrega generados en docs/entrega/, más el zip de las 17 pantallas`
 );
 process.exit(fallas ? 1 : 0);
