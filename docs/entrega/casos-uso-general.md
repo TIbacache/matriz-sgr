@@ -241,7 +241,7 @@ La rúbrica evalúa la coherencia como criterio transversal. Estas son las corre
 | Seis actores, con su nombre municipal y su rol técnico | Los seis del [diagrama de requerimientos](requerimientos.md) y la tabla de cuentas de [estado-proyecto.md §1](../estado-proyecto.md) |
 | Doce casos de uso con su ID | Las **doce fichas** del criterio 4, una por cada uno |
 | Cada caso con sus RF | La columna «Caso de uso» de la tabla de trazabilidad del criterio 2, leída al revés |
-| Cada caso con su pantalla | Las ocho pantallas de [docs/mockups/](../mockups/) y el mapa CU → mockup del informe |
+| Cada caso con su pantalla | Las **diecisiete** pantallas de [docs/mockups/](../mockups/) —ocho del camino feliz y nueve escenarios alternativos— y los mapas CU → mockup del §6, del §8.1 y del informe |
 | Los seis `«extend»` | Los **escenarios alternativos** del mockup (decisión D-3) y los flujos alternativos de las fichas |
 | «Solo lo validado suma» en CU-03 | El motor de cumplimiento del diagrama de clases |
 | «Código único e inmutable» en CU-I2 | La restricción de la entidad de evidencia en el DER y en el script SQL |

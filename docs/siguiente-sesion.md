@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 10 de septiembre de 2026 (criterios 3 a 7 de la entrega: casos de uso, clases, DER y script SQL)
+**Actualizado**: 11 de septiembre de 2026 (la entrega completa: criterios 2 a 8 y el informe)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -21,7 +21,6 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | **Entrega del 15 de septiembre** (análisis y diseño, 100 pts) | 🟢 **100 de 100 cubiertos, con el informe escrito**: criterios 2 a 8 cerrados y [entrega/informe.md](entrega/informe.md) con sus cuatro tablas de trazabilidad. Falta **cargar el Planner** (criterio 1, trabajo a mano) y pegar su captura en el §10 del informe. 343 comprobaciones de coherencia en verde |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
-| **Entrega del 15 de septiembre** (análisis y diseño) | 🟠 **70 de 100 puntos.** Criterio 1 preparado, criterios 2 a 5 hechos; faltan el DER (6), el script (7) y el informe. Estado detallado en **[entrega/README.md](entrega/README.md)** |
 
 Cumplimiento contra los 38 RF oficiales: **23 ✅ · 8 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
@@ -188,7 +187,7 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 **Lo que sigue, en este orden** (acordado el 3 de septiembre al cerrar el Bloque C):
 
 1. **El Planner** — el docente dijo que **solo** revisará el Planner: lo que no esté adjunto ahí no se evalúa. ⚠ **El tablero ya existe y no está vacío**: lo construyó Héctor con los siete depósitos de la plantilla y cinco tareas de la entrega (GIT, MockUps, MER, UML, Clases) con vencimiento 15/9. Lo que falta es la tarea del **diagrama de requerimientos** y poblar **Desarrollo y Pruebas**, que están vacíos y hacen parecer que el desarrollo no empezó. **Estado al 9 de septiembre**: el CSV quedó reescrito (87 tareas, ninguna bloqueada, sin títulos que choquen con los de Héctor), y **la carga va a mano** con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf), en seis tandas. ⚠ **No intentar automatizarlo otra vez**: INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, así que cualquier script de PowerShell contra Microsoft 365 muere en «Need admin approval», incluso pidiendo solo `Tasks.ReadWrite`. Probado y documentado en [guia-cargar-planner.md](guia-cargar-planner.md). Detalle en [entrega/planner-delta.md](entrega/planner-delta.md).
-2. **Entrega del 15 de septiembre** — plan operativo completo en **[plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md)**, escrito contra la rúbrica oficial (100 pts, 8 criterios). Lo esencial: **85 de los 100 puntos dependen de artefactos que hoy no existen o describen el modelo v1**, y solo 10 dependen del software, que es lo que está terminado. Hay que crear de cero el diagrama de requerimientos, el de clases y los 12 casos de uso con sus fichas, y rehacer el caso de uso general y el DER. El script se pide en **MySQL** y el sistema corre en PostgreSQL: decisión D-1 del plan y **consulta abierta nº 13**.
+2. **Entrega del 15 de septiembre** — ✅ **los artefactos están todos escritos** (criterios 2 a 8 y el informe), con 343 comprobaciones de coherencia en verde. Estado por criterio en **[entrega/README.md](entrega/README.md)**; el plan operativo original, contra la rúbrica, sigue en [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md). ⚠ **Lo que falta no es documentación**: cargar el Planner a mano y **publicar la rama en GitHub**, sin lo cual el enlace del informe no lleva a ninguna parte. El script se pide en **MySQL** y el sistema corre en PostgreSQL: decisión D-1 del plan y **consulta abierta nº 13**.
 3. ~~**Panel de actividad de usuarios** (RF-030, HU-19)~~ ✅ **terminado el 4 de septiembre**: `/actividad` responde las tres preguntas del docente —quién registró, **quién no** y quién está conectado—, con presencia a nivel de organización y alcance restringido a admin y coordinador ([ADR-015](decisiones-tecnicas.md)).
 4. **Bloque D — pruebas formales y CI**, y después el **Bloque E — despliegue**.
 

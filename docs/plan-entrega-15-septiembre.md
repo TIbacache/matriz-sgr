@@ -20,13 +20,13 @@ Fuentes que mandan, en orden:
 | 3 | **Caso de uso general** | 10 | **[entrega/casos-uso-general.md](entrega/casos-uso-general.md)**: frontera, seis actores, doce casos con sus RF y su pantalla, tres «include» y seis «extend», en 2 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **[entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md)**: las 12 fichas de la rúbrica §5.4, ancladas al texto oficial de su RF, con 12 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
 | 5 | **Diagrama de clases** | 15 | **[entrega/clases.md](entrega/clases.md)**: 22 clases del dominio con atributos tipados, visibilidad y multiplicidades, más los 12 servicios con sus operaciones reales, en 5 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
-| 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El esquema real tiene **22 tablas** | 🔴 Está mal, no solo incompleto |
-| 7 | **Script SQL** | 10 | **No existe.** El esquema real es PostgreSQL vía Prisma | 🔴 Ver decisión D-1 |
-| 8 | **Mockup funcional + Git** | 10 | 8 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | 🟢 **Es lo más fuerte que tenemos.** Faltan los escenarios alternativos |
+| 6 | **DER MySQL** | 10 | **[entrega/der.md](entrega/der.md)**: las 22 tablas en notación crow's foot, con sus 52 claves foráneas y su `ON DELETE`, cardinalidades y restricciones, en 5 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
+| 7 | **Script SQL** | 10 | **[entrega/sgr-mysql.sql](entrega/sgr-mysql.sql)** con su [documento](entrega/script-sql.md): 22 tablas, 52 FK, 8 enumerados, 11 `UNIQUE`, 5 `CHECK` y 3 disparadores. Ejecutado sin errores en MySQL 8.0 y MariaDB 10.4 y 11.4 | ✅ **Hecho** (10-09-2026), decisión D-1 |
+| 8 | **Mockup funcional + Git** | 10 | 17 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | ✅ **Cerrado.** Ocho del camino feliz y nueve escenarios alternativos |
 
-**Lectura del cuadro**: de 100 puntos, **85 dependen de artefactos de análisis y diseño que hoy no existen o están obsoletos**, y solo 10 dependen del software, que es justamente lo que está terminado. La entrega no se juega en el código: se juega en documentar lo construido.
+**Lectura del cuadro** (cuando se escribió): de 100 puntos, **85 dependían de artefactos de análisis y diseño que no existían o estaban obsoletos**, y solo 10 del software, que era justamente lo terminado. La entrega no se jugaba en el código sino en documentar lo construido. **Hoy esos 85 están escritos.**
 
-> **Avance al 10 de septiembre de 2026**: cerrados los criterios **1** (preparado, falta cargarlo a mano), **2**, **3**, **4** y **5**. Quedan **30 puntos**: DER (10), script (10) y los escenarios alternativos del mockup (parte de los 10 del criterio 8).
+> **Avance al 11 de septiembre de 2026**: cerrados los criterios **2 a 8** y escrito el **informe**, con 343 comprobaciones de coherencia en verde. Queda el criterio **1**: cargar el Planner a mano y pegar su captura en el informe §10. Y queda **publicar la rama en GitHub**, sin lo cual el enlace del repositorio no lleva a nada. Estado por criterio en [entrega/README.md](entrega/README.md).
 
 ---
 

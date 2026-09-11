@@ -781,4 +781,27 @@ if (!existsSync(rutaInforme)) {
 }
 
 console.log(`\n${total - fallas}/${total} verificaciones de la entrega en verde`);
+
+// Aviso, no verificación: los documentos citan cuántas comprobaciones hay, y
+// ese número envejece cada vez que se agrega una. No puede comprobarse como
+// una más —se contaría a sí misma—, así que se avisa después del resumen.
+{
+  const citas = [
+    ["docs/entrega/informe.md", /\b(\d{3}) comprobaciones, sin tocar la red/],
+    ["docs/entrega/README.md", /\*\*(\d{3}) comprobaciones\*\*, sin tocar la red/],
+    ["CLAUDE.md", /verificar:entrega\s+#\s*(\d{3}) comprobaciones/],
+  ];
+  const desfasadas = citas
+    .map(([archivo, patrón]) => {
+      const ruta = path.join(raiz, archivo);
+      if (!existsSync(ruta)) return null;
+      const m = patrón.exec(readFileSync(ruta, "utf8"));
+      return m && Number(m[1]) !== total ? `${archivo} dice ${m[1]}` : null;
+    })
+    .filter(Boolean);
+  if (desfasadas.length) {
+    console.log(`\n⚠  la cifra citada quedó desfasada (son ${total}): ${desfasadas.join(" · ")}`);
+  }
+}
+
 process.exit(fallas ? 1 : 0);

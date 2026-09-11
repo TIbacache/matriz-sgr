@@ -111,7 +111,7 @@ Carga él el tablero, así que estas cuatro las resuelve él. Están planteadas 
 
 1. **Los 12 casos de uso, ¿tarea propia o checklist de «Diagramas UML»?** Recomendación: tarea propia, «Casos de uso específicos y fichas (12)», porque son 20 de los 100 puntos y porque son el trabajo que se reparte entre los dos.
 2. **El script SQL, ¿tarea propia o checklist de «Modelo Entidad-Relación»?** Recomendación: checklist, porque el DER y el script se hacen juntos y los valida la misma persona.
-3. **«Diseño MockUps» (de Héctor) y «Wireframes y diseño de las pantallas» (del CSV) se parecen.** No son lo mismo: la primera es el entregable del 15/9 y la segunda es el diseño de las 8 pantallas ya construidas. Si a Héctor le parece confuso, la segunda se renombra o se archiva.
+3. **«Diseño MockUps» (de Héctor) y «Wireframes y diseño de las pantallas» (del CSV) se parecen.** No son lo mismo: la primera es el entregable del 15/9 y la segunda es el diseño de las pantallas ya construidas. Si a Héctor le parece confuso, la segunda se renombra o se archiva.
 4. **Los responsables del CSV** siguen el reparto de la sección 6 del plan de la entrega: A = Tomás (Planner, requerimientos, caso de uso general, informe), B = Héctor (clases, DER, script). Confirmar antes de cargar con los correos.
 
 ---

@@ -1,6 +1,8 @@
 # Guía para completar el Planner — paso a paso
 
-**Para**: Héctor · **Entrega**: 15 de septiembre de 2026 · **Vale**: 15 de los 100 puntos de la evaluación
+**Para**: quien cargue el tablero · **Entrega**: 15 de septiembre de 2026 · **Vale**: 15 de los 100 puntos de la evaluación
+
+> **Este documento NO se entrega.** Es material de trabajo interno: un instructivo para cargar el tablero. La evidencia del criterio 1 es **el tablero mismo y su captura**, que van en el [informe §10](informe.md). El nombre del archivo conserva su destinatario original y no significa que sea de alguien en particular.
 
 > **Esta es la única ruta: el tablero se carga a mano.** Se intentó automatizarlo con un script de PowerShell y **INACAP no lo permite**: el tenant tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, que es la aplicación que usa cualquier script contra Microsoft 365, y el inicio de sesión termina en «Need admin approval». Se probó con el permiso mínimo y con código de dispositivo; el bloqueo es de la aplicación completa. El detalle está en [../guia-cargar-planner.md](../guia-cargar-planner.md).
 >
@@ -162,8 +164,8 @@ Tus tareas tienen listas de comprobación empezadas (0/1, 0/3…). Vale la pena 
 - [ ] Acceso al repositorio dado al docente
 
 **Diseño MockUps** (0/3)
-- [ ] Las 8 pantallas en `.html` autocontenido para adjuntar aquí
-- [ ] Las 8 pantallas en `.png` para que se vean en GitHub
+- [ ] Las 17 pantallas en `.html` autocontenido para adjuntar aquí (8 del camino feliz y 9 escenarios alternativos)
+- [ ] Las 17 pantallas en `.png` para que se vean en GitHub
 - [ ] Escenarios alternativos: modales de error, avisos y estados vacíos
 
 **Modelo Entidad-Relación** (0/3)
@@ -355,7 +357,7 @@ Además de la que creaste en la tanda 1, el depósito Diseño necesita el trabaj
 | Modelo de datos v2 (metas por funcionario, evidencias, atenciones) | 01-09 | Importante | Ya no está bloqueado. 16 entidades con triggers de inmutabilidad y restricciones de RUT, fechas y metas. |
 | Identidad visual de la Municipalidad de La Serena | 02-09 | Importante | Normativa. Rojo institucional y heráldico separados por rol, zona y forma. Libre Franklin y General Sans en pantalla, Arial en lo impreso. |
 | Decisiones técnicas registradas (15 ADR) | 06-09 | Importante | Cada decisión con su contexto, su alternativa descartada y su consecuencia. |
-| Wireframes y diseño de las pantallas *(Héctor)* | 06-09 | Media | Las 8 pantallas están diseñadas y construidas, con capturas usando las seis cuentas de prueba. |
+| Wireframes y diseño de las pantallas *(Héctor)* | 06-09 | Media | Las 8 pantallas están diseñadas y construidas; el mockup entrega 17 capturas (8 del camino feliz y 9 escenarios alternativos). |
 
 Y una **No iniciada**:
 
@@ -420,7 +422,7 @@ Guía de qué va en cada tarea:
 | Casos de uso específicos y fichas *(si la creas)* | Las 12 fichas |
 | Diagramas de Clase | El diagrama de clases en `.png` |
 | Modelo Entidad-Relación | El DER en `.png` y el script `.sql` |
-| Diseño MockUps | Los `.html` autocontenidos de las 8 pantallas |
+| Diseño MockUps | Los `.html` autocontenidos de las 17 pantallas |
 | GIT | El enlace al repositorio y al README |
 
 > **Por qué en dos formatos.** El `.html` autocontenido se abre desde Planner sin internet y se ve tal cual. El `.png` es para GitHub, donde el Markdown no ejecuta HTML. El profesor dijo que el frontend tiene que verse en GitHub, así que hacen falta los dos.

@@ -3,8 +3,9 @@
 ### Sistema de Gestión de Resultados para las delegaciones municipales de La Serena
 
 **Asignatura**: Proyecto Integrador · INACAP
-**Equipo**: Origami SpA — Tomás Ibacache · Héctor ⟨completar apellido antes de entregar⟩
+**Equipo**: Origami SpA — Tomás Ibacache · Héctor Vergara
 **Entrega**: primera evaluación de Análisis y Diseño — 15 de septiembre de 2026
+**Versión del informe**: 11 de septiembre de 2026
 **Repositorio**: <https://github.com/TIbacache/matriz-sgr> (privado; acceso concedido al docente)
 **Rama de la entrega**: `entrega/analisis-diseno`
 
@@ -48,9 +49,9 @@ Lo que se entrega, en números:
 | Script SQL | Ejecutable, probado en **MySQL 8.0 y MariaDB 10.4 y 11.4** |
 | Mockup | **17 pantallas**: 8 del camino feliz y **9 escenarios alternativos** |
 | Diagramas | **32**, todos en PlantUML con su fuente `.puml` versionada |
-| Comprobaciones automáticas | **311** de coherencia entre artefactos, más **332** del software funcionando |
+| Comprobaciones automáticas | **343** de coherencia entre artefactos, más **332** del software funcionando |
 
-**El mockup no es un dibujo: es la aplicación real, congelada.** El sistema está construido y corriendo —API, base de datos, tiempo real y siete pantallas—, y cada imagen de este informe salió de operarlo. La rúbrica §3 no exige integración con base de datos ni consumo de API para esta entrega; que el prototipo la tenga no da puntos extra, pero permite afirmar cada cosa que este documento afirma.
+**El mockup no es un dibujo: es la aplicación real, congelada.** El sistema está construido y corriendo —API, base de datos, tiempo real y siete pantallas funcionales—, y cada imagen de este informe salió de operarlo. La rúbrica §3 no exige integración con base de datos ni consumo de API para esta entrega; que el prototipo la tenga no da puntos extra, pero permite afirmar cada cosa que este documento afirma.
 
 ---
 
@@ -95,7 +96,7 @@ Por eso hay **catorce consultas abiertas** (§11) y **cuatro desvíos declarados
 
 | # | Criterio | Pts | Artefacto | Diagramas |
 |---|---|---|---|---|
-| 1 | Planner | 15 | [`guia-planner-hector.pdf`](guia-planner-hector.pdf) · [`planner-delta.md`](planner-delta.md) · [`plan-desarrollo.csv`](../plan-desarrollo.csv) | — |
+| 1 | Planner | 15 | **El tablero y su captura** (§10) · el contenido de las tarjetas está en [`plan-desarrollo.csv`](../plan-desarrollo.csv) | — |
 | 2 | Diagramas de requerimientos | 10 | [`requerimientos.md`](requerimientos.md) | `01` a `08` |
 | 3 | Caso de uso general | 10 | [`casos-uso-general.md`](casos-uso-general.md) | `09`, `10` |
 | 4 | Casos de uso específicos y fichas | 20 | [`casos-uso-detalle.md`](casos-uso-detalle.md) | `11` a `22` |
@@ -285,7 +286,7 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**311 comprobaciones, sin tocar la red.** Entre otras:
+**343 comprobaciones, sin tocar la red.** Entre otras:
 
 - La trazabilidad RF ↔ CU **en los dos sentidos**: lo que dice la tabla del criterio 2 y lo que dice la del criterio 3 tienen que coincidir.
 - Que cada caso de uso tenga su pantalla y que esa pantalla exista como archivo.
@@ -297,7 +298,7 @@ npm run verificar:entrega
 
 Sale con código 1 si algo se cae, así que sirve como control antes de cada entrega.
 
-A esas 311 se suman **332 comprobaciones del software funcionando**: 21 de integración, 37 del motor de cálculo y 191 de la API y su alcance por rol —249 en el backend—, más 83 de contraste WCAG en el frontend, y aparte las de normalización de RUT. Son cosas distintas y no se suman entre sí: las 332 comprueban que **el sistema funciona**; las 311, que **los artefactos dicen lo mismo entre sí**.
+A esas 343 se suman **332 comprobaciones del software funcionando**: 21 de integración, 37 del motor de cálculo y 191 de la API y su alcance por rol —249 en el backend—, más 83 de contraste WCAG en el frontend, y aparte las de normalización de RUT. Son cosas distintas y no se suman entre sí: las 332 comprueban que **el sistema funciona**; las 343, que **los artefactos dicen lo mismo entre sí**.
 
 ---
 
@@ -405,11 +406,23 @@ Los `.html` son **estáticos**: los botones no responden, y cada archivo lo dice
 
 El índice con las 17 pantallas comentadas una por una está en [`docs/mockups/README.md`](../mockups/README.md).
 
+Se reproducen aquí las cuatro que **caben legibles en una página**. Las capturas son de página completa, y dos de las pantallas son largas: la ficha personal mide 4.811 px de alto y la ficha del vecino 11.249. Reducirlas al ancho de esta hoja las volvería ilegibles, y la rúbrica §2 pide resolución suficiente para leerlas; van como archivo, enlazadas en el §5.2.
+
+![Tubo de trabajo (CU-06, CU-07): la agenda colectiva de la delegación, con arrastre entre estados y presencia en vivo](../mockups/02-tubo.png)
+
+![Bandeja del verificador (CU-03): la cola, la evidencia en grande y las tres decisiones equidistantes](../mockups/04-verificacion.png)
+
+![Tablero consolidado (CU-09): semáforo por delegación, avance por área del cargo, proyección al cierre y detalle](../mockups/07-dashboard.png)
+
+![Escenario alternativo CU-E3: el coordinador subió esa evidencia —lo dice «Subida por»— y el servidor le responde 403. Nadie valida lo propio (RNF-005)](../mockups/12-alt-validacion-propia.png)
+
 ### Planner
 
-> ⚠ **Pendiente al momento de redactar este informe.** Aquí va la captura del tablero con las 87 tareas cargadas, y su enlace.
+> ⚠ **Pendiente al momento de redactar este informe.** Aquí van la **captura del tablero** con sus 87 tareas y el **enlace** al tablero. Es la evidencia del criterio 1; el resto de esta sección explica cómo está armado.
 
-La carga es **manual y está documentada paso a paso** en [`guia-planner-hector.pdf`](guia-planner-hector.pdf), en seis tandas. No se automatiza, y no por comodidad: INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, así que ningún script puede crear las tareas. Se intentó con el permiso mínimo y con código de dispositivo, y siempre termina en «Need admin approval»; el diagnóstico está en [`guia-cargar-planner.md`](../guia-cargar-planner.md).
+El tablero se organiza en **seis depósitos** —Ámbito, Requisitos, Diseño, Desarrollo, Pruebas y Piloto—, con responsable, fecha de inicio, fecha de vencimiento y prioridad en cada tarea. El contenido de las 87 tarjetas está versionado en [`plan-desarrollo.csv`](../plan-desarrollo.csv), así que el tablero y el repositorio dicen lo mismo y puede comprobarse.
+
+**La carga es manual, y no por comodidad.** INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, que es la aplicación que usa cualquier script contra Microsoft 365: el inicio de sesión termina en «Need admin approval». Se intentó con el permiso mínimo y con código de dispositivo, y el bloqueo es de la aplicación completa. El diagnóstico está en [`guia-cargar-planner.md`](../guia-cargar-planner.md).
 
 **Sobre los estados**: Planner básico ofrece solo *No iniciada / En curso / Completada*, y la rúbrica menciona cuatro. El cuarto —«En revisión»— se cubre con **etiqueta de color**, que es el mecanismo que la herramienta permite.
 
@@ -427,4 +440,4 @@ El PDF exige que las ambigüedades se documenten en vez de resolverse en silenci
 
 ---
 
-*Informe de análisis y diseño — SGR · Equipo Origami SpA · 10 de septiembre de 2026*
+*Informe de análisis y diseño — SGR · Equipo Origami SpA · 11 de septiembre de 2026*

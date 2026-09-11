@@ -2,7 +2,7 @@
 
 Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este archivo es el estado: qué está listo, qué falta y dónde está cada cosa.
 
-**Actualizado**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`
+**Actualizado**: 11 de septiembre de 2026 · rama `entrega/analisis-diseno`
 
 - El plan de trabajo está en [../plan-entrega-15-septiembre.md](../plan-entrega-15-septiembre.md).
 - La rúbrica transcrita, en [../rubrica-entrega-15-septiembre.md](../rubrica-entrega-15-septiembre.md). Los dos PDF originales del docente están versionados en `docs/`.
@@ -13,7 +13,7 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 
 | # | Criterio | Pts | Estado | Artefacto |
 |---|---|---|---|---|
-| 1 | Planner | 15 | 🟠 **Preparado, falta cargarlo** | [guia-planner-hector.pdf](guia-planner-hector.pdf) · [planner-delta.md](planner-delta.md) |
+| 1 | Planner | 15 | 🟠 **Preparado, falta cargarlo** | **El tablero y su captura** (van al [informe §10](informe.md)) · instructivo interno: [guia-planner-hector.pdf](guia-planner-hector.pdf) · [planner-delta.md](planner-delta.md) |
 | 2 | Diagramas de requerimientos | 10 | ✅ **Hecho** | [requerimientos.md](requerimientos.md) · [puml/](puml/) |
 | 3 | Caso de uso general | 10 | ✅ **Hecho** | [casos-uso-general.md](casos-uso-general.md) · [puml/09](puml/09-casos-uso-general.puml) y [puml/10](puml/10-casos-uso-extensiones.puml) |
 | 4 | Casos de uso específicos + fichas | 20 | ✅ **Hecho** | [casos-uso-detalle.md](casos-uso-detalle.md) · [puml/11](puml/11-cu-01.puml) a [puml/22](puml/22-cu-12.puml) |
@@ -24,6 +24,8 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | — | Informe de la entrega | — | ✅ **Hecho** | [informe.md](informe.md) · [informe.pdf](informe.pdf) |
 
 **100 de 100 puntos cubiertos, y el informe escrito.** Queda **cargar el Planner** (criterio 1), que es trabajo a mano, y la captura del tablero que va en el §10 del informe.
+
+> 🔴 **Y queda una cosa que no es documentación: esta rama no está publicada en GitHub.** `origin` tiene `main` y dos ramas viejas; **`entrega/analisis-diseno` existe solo en el computador de trabajo**, y `main` no contiene `docs/entrega/` en absoluto. La rúbrica §2 exige «enlace del repositorio incorporado y acceso asegurado al docente», y el informe enlaza al repositorio: mientras la rama no se publique, **ese enlace no lleva a ninguno de estos artefactos**. Es el único punto de la entrega que puede costar puntos en todos los criterios a la vez.
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -240,6 +242,6 @@ Para que nadie lo abra «ya que estamos»:
 | [script-sql.md](script-sql.md) | **Criterio 7.** Cómo está armado el script, la traducción a MySQL y la evidencia de que se ejecuta |
 | [sgr-mysql.sql](sgr-mysql.sql) | **Criterio 7.** El script en sí: 22 tablas, 52 FK, 3 disparadores y datos de prueba ficticios |
 | [puml/](puml/) | Los `.puml` y sus PNG. La fuente de todo diagrama de la entrega |
-| [guia-planner-hector.pdf](guia-planner-hector.pdf) | **Criterio 1.** Cómo cargar las 87 tareas a mano, en seis tandas |
+| [guia-planner-hector.pdf](guia-planner-hector.pdf) | **Interno, no se entrega.** Cómo cargar las 87 tareas a mano, en seis tandas. La evidencia del criterio 1 es el tablero y su captura |
 | [guia-planner-hector.md](guia-planner-hector.md) | La fuente del PDF anterior. Se edita acá y se regenera |
 | [planner-delta.md](planner-delta.md) | Qué se corrigió del plan viejo, y qué criterio cuelga de qué tarea |

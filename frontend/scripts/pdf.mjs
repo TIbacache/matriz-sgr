@@ -17,10 +17,57 @@
 
 import { chromium } from "playwright-core";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { dirname, resolve, basename } from "node:path";
+import { dirname, resolve, basename, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { execSync } from "node:child_process";
 
 const aquí = dirname(fileURLToPath(import.meta.url));
+const raízRepo = resolve(aquí, "..", "..");
+
+// ------------------------------------------------------- Enlaces del PDF
+//
+// Un enlace relativo (`requerimientos.md`, `../mockups/03-ficha.png`) es lo
+// correcto en el Markdown: funciona al editarlo y funciona en GitHub, que los
+// resuelve dentro del repositorio.
+//
+// En el PDF **no funciona**, y el modo de fallar es traicionero: al autor le
+// anda, porque el PDF queda junto a los archivos que nombra. A quien lo abre
+// desde Planner, en otro computador, no lo lleva a ninguna parte.
+//
+// Por eso el PDF —y solo el PDF— reescribe cada enlace relativo a su URL
+// absoluta en GitHub. El Markdown no se toca.
+function repositorio() {
+  const corre = (c) => execSync(c, { cwd: raízRepo, encoding: "utf8" }).trim();
+  try {
+    const remoto = corre("git remote get-url origin");
+    const m = remoto.match(/github\.com[/:]([^/]+\/[^/.]+)/);
+    if (!m) return null;
+    // La referencia es la rama que hoy TIENE el contenido. Si la rama se
+    // renombra o se borra tras un merge, hay que regenerar el PDF; por eso se
+    // puede fijar a mano con SGR_REPO_REF.
+    const ref = process.env.SGR_REPO_REF || corre("git rev-parse --abbrev-ref HEAD");
+    return `https://github.com/${m[1]}/blob/${ref}`;
+  } catch {
+    return null; // sin git o sin remoto: los enlaces quedan como estaban
+  }
+}
+
+const REPO_WEB = repositorio();
+/** Carpeta del .md que se está convirtiendo, para resolver lo relativo. */
+let baseDelDocumento = null;
+
+function enlaceAbsoluto(href) {
+  if (!REPO_WEB || !baseDelDocumento) return href;
+  // Se dejan intactos los absolutos, los anclas internas y los esquemas.
+  if (/^(https?:|mailto:|#|\/)/i.test(href)) return href;
+  const [ruta, ancla] = href.split("#");
+  if (!ruta) return href;
+  const destino = resolve(baseDelDocumento, ruta);
+  const enRepo = relative(raízRepo, destino);
+  // Fuera del repositorio no hay URL que ofrecer: mejor dejarlo como está.
+  if (enRepo.startsWith("..")) return href;
+  return `${REPO_WEB}/${enRepo.split(/[\\/]/).map(encodeURIComponent).join("/")}${ancla ? `#${ancla}` : ""}`;
+}
 
 // ---------------------------------------------------------------- Markdown
 
@@ -40,7 +87,18 @@ function enLinea(texto) {
     return `\u0001${codigos.length - 1}\u0002`;
   });
 
-  t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  // Las imágenes van ANTES que los enlaces: comparten sintaxis salvo el `!`,
+  // y al revés una captura se convertiría en un enlace con el alt por texto.
+  // El `src` se resuelve a file:// absoluto para que el PDF salga con la
+  // imagen aunque se pida la salida en otra carpeta.
+  t = t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+    const ruta = baseDelDocumento && !/^(https?:|data:)/i.test(src)
+      ? pathToFileURL(resolve(baseDelDocumento, src)).href
+      : src;
+    return `<figure><img src="${ruta}" alt="${escapar(alt)}">${alt ? `<figcaption>${escapar(alt)}</figcaption>` : ""}</figure>`;
+  });
+
+  t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, texto, href) => `<a href="${enlaceAbsoluto(href)}">${texto}</a>`);
   t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   t = t.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
   t = t.replace(/~~([^~]+)~~/g, "<del>$1</del>");
@@ -228,6 +286,12 @@ const ESTILO = `
   }
   blockquote p:last-child { margin-bottom: 0; }
 
+  /* Las capturas son evidencia (rúbrica §2): entran completas y con su pie,
+     y no se parten entre dos páginas. */
+  figure { margin: 12pt 0; page-break-inside: avoid; }
+  figure img { max-width: 100%; border: .75pt solid #D8D5CE; }
+  figcaption { font-size: 8.5pt; color: #6B6B6B; margin-top: 4pt; }
+
   code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #EFEDE8; padding: .5pt 3pt; }
   pre { background: #F5F3EF; border: .5pt solid #D8D5CE; padding: 7pt 9pt; margin: 0 0 10pt;
         break-inside: avoid; page-break-inside: avoid; }
@@ -247,6 +311,8 @@ if (!rutas[0]) {
 
 const entrada = resolve(aquí, "..", rutas[0]);
 const salida = rutas[1] ? resolve(aquí, "..", rutas[1]) : entrada.replace(/\.md$/i, ".pdf");
+// Desde aquí los enlaces relativos del documento se saben resolver.
+baseDelDocumento = dirname(entrada);
 
 const markdown = await readFile(entrada, "utf8");
 

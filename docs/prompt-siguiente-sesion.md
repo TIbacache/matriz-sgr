@@ -2,7 +2,7 @@
 
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`, sin mergear a `main`
+**Última actualización**: 11 de septiembre de 2026 · rama `entrega/analisis-diseno`, **sin publicar en GitHub**
 **Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **100 puntos cubiertos y el informe escrito**: criterios 2 a 8 cerrados. Se retoma en la **documentación viva desfasada**, y queda cargar el Planner a mano.
 
 ---

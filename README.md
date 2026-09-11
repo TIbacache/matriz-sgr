@@ -36,9 +36,10 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | Documento | Contenido |
 |---|---|
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
-| **[docs/mockups/](docs/mockups/)** | **Las ocho pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
+| **[docs/mockups/](docs/mockups/)** | **Las diecisiete pantallas —ocho del camino feliz y nueve escenarios alternativos—, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
 | [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | El plan en formato tabla: 87 tareas con fecha, responsable, estado y prioridad |
+| **[docs/entrega/informe.md](docs/entrega/informe.md)** | **EL INFORME DE LA ENTREGA.** El documento paraguas: el caso, los ocho criterios y las cuatro tablas de trazabilidad. También en [PDF](docs/entrega/informe.pdf) |
 | **[docs/entrega/](docs/entrega/)** | **Los artefactos de la evaluación del 15 de septiembre.** Ver su [índice](docs/entrega/README.md) |
 | **[docs/entrega/guia-planner-hector.pdf](docs/entrega/guia-planner-hector.pdf)** | **Cargar las 87 tareas en Planner**, en seis tandas con el contenido exacto de cada tarjeta |
 | [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | La ruta automatizada y por qué INACAP no la permite |
@@ -118,7 +119,7 @@ node scripts/capturas.mjs capturas   # cada pantalla con las seis cuentas (--mov
 
 ## Las pantallas
 
-Las ocho pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
+Las diecisiete pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
 
 ```powershell
 cd frontend
