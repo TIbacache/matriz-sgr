@@ -43,10 +43,12 @@ function repositorio() {
     const remoto = corre("git remote get-url origin");
     const m = remoto.match(/github\.com[/:]([^/]+\/[^/.]+)/);
     if (!m) return null;
-    // La referencia es la rama que hoy TIENE el contenido. Si la rama se
-    // renombra o se borra tras un merge, hay que regenerar el PDF; por eso se
-    // puede fijar a mano con SGR_REPO_REF.
-    const ref = process.env.SGR_REPO_REF || corre("git rev-parse --abbrev-ref HEAD");
+    // La referencia por defecto es `main`, y es una decisión: un PDF se
+    // entrega, y sus enlaces tienen que seguir vivos cuando la rama en que se
+    // generó ya no exista. Además `main` es, por regla del proyecto, lo que se
+    // le puede mostrar al docente. Para un documento de una rama todavía sin
+    // mergear se fija con SGR_REPO_REF=<rama>.
+    const ref = process.env.SGR_REPO_REF || "main";
     return `https://github.com/${m[1]}/blob/${ref}`;
   } catch {
     return null; // sin git o sin remoto: los enlaces quedan como estaban

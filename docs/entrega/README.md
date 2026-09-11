@@ -207,7 +207,7 @@ npm run pdf -- ../docs/entrega/<archivo>.md   # uno suelto
 
 Dos cosas que el generador hace y conviene saber, porque cambian lo que ve quien abre el PDF:
 
-- **Reescribe los enlaces relativos a URL absolutas de GitHub.** Un `[texto](requerimientos.md)` funciona en GitHub y **no** en un PDF abierto en otro computador; el modo de fallar es traicionero, porque al autor le anda (el PDF está junto a los archivos que nombra). La referencia es la rama actual: si se renombra o se mergea, hay que regenerar, o fijarla con `SGR_REPO_REF`.
+- **Reescribe los enlaces relativos a URL absolutas de GitHub, apuntando a `main`.** Un `[texto](requerimientos.md)` funciona en GitHub y **no** en un PDF abierto en otro computador; el modo de fallar es traicionero, porque al autor le anda (el PDF está junto a los archivos que nombra). Apunta a `main` a propósito: un PDF se entrega, y sus enlaces tienen que seguir vivos cuando la rama en que se generó ya no exista. Para un documento de una rama sin mergear, `SGR_REPO_REF=<rama> npm run pdf:entrega`.
 - **Recorta las capturas muy altas a su parte superior**, con el pie diciéndolo. La ficha del vecino mide 11.249 px: entera en una página se encoge a una tira de 115 px de ancho.
 
 Sale en Arial, que es lo que la norma gráfica municipal exige para documentos (ADR-010). El `.md` es la fuente: editar el PDF a mano lo desincroniza.
