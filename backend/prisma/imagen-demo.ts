@@ -1,6 +1,7 @@
 import { deflateSync } from "node:zlib";
 
-// Generador de imágenes de evidencia para el seed — regla 12 de CLAUDE.md.
+// Generador de imágenes de evidencia para el seed — regla 12 del proyecto
+// (datos ficticios sin excepción).
 //
 // Las evidencias del seed necesitan un archivo real en el almacén: sin él la
 // ficha y la bandeja muestran "el archivo no está disponible" (410) y la

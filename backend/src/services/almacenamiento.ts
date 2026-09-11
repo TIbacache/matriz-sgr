@@ -16,7 +16,7 @@ import { env } from "../config/env.js";
 // 3. Los archivos se guardan bajo el directorio del tenant, fuera del repo.
 //
 // ⚠ Limitación declarada: RNF-017 también pide antivirus. Queda fuera de
-// alcance por la restricción de costo cero (regla 13 de CLAUDE.md); está
+// alcance por la restricción de costo cero (regla 13 del proyecto); está
 // registrado como limitación conocida, no oculto.
 
 /** Extensión segura por tipo MIME. Lo que no esté aquí no se acepta. */

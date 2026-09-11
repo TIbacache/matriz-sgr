@@ -1,6 +1,6 @@
 // Mockups navegables: un .html AUTOCONTENIDO por pantalla, más su captura PNG.
 //
-// Para qué: el docente solo revisa el Planner (CLAUDE.md regla 19) y ahí se
+// Para qué: el docente solo revisa el Planner (regla 19 del proyecto) y ahí se
 // adjuntan archivos. Un .html se abre con doble clic, sin instalar nada, sin
 // servidor y sin base de datos, y se ve exactamente como la aplicación real
 // —porque SALE de la aplicación real corriendo, no es un dibujo—. El PNG es

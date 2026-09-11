@@ -789,7 +789,6 @@ console.log(`\n${total - fallas}/${total} verificaciones de la entrega en verde`
   const citas = [
     ["docs/entrega/informe.md", /\b(\d{3}) comprobaciones, sin tocar la red/],
     ["docs/entrega/README.md", /\*\*(\d{3}) comprobaciones\*\*, sin tocar la red/],
-    ["CLAUDE.md", /verificar:entrega\s+#\s*(\d{3}) comprobaciones/],
   ];
   const desfasadas = citas
     .map(([archivo, patrón]) => {

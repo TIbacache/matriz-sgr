@@ -25,8 +25,6 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | **[docs/siguiente-sesion.md](docs/siguiente-sesion.md)** | **Qué sigue, en qué orden, cabos sueltos y trampas del entorno** |
 | **[docs/plan-entrega-15-septiembre.md](docs/plan-entrega-15-septiembre.md)** | **Plan de la primera evaluación**: la rúbrica criterio por criterio, las decisiones tomadas, los 12 casos de uso y el reparto |
 | [docs/rubrica-entrega-15-septiembre.md](docs/rubrica-entrega-15-septiembre.md) | La rúbrica oficial y el ejemplo del docente, transcritos |
-| [docs/prompt-siguiente-sesion.md](docs/prompt-siguiente-sesion.md) | Prompt listo para abrir una sesión nueva sin perder contexto |
-| [docs/diagramas.md](docs/diagramas.md) | Contexto, casos de uso, ERD y secuencia de tiempo real |
 | [docs/anotaciones-clase.md](docs/anotaciones-clase.md) | Requerimientos del cliente con citas de la reunión |
 | [docs/historias-usuario.md](docs/historias-usuario.md) | Historias propias del equipo (subordinadas a las 31 oficiales) |
 | [docs/restricciones-y-pendientes.md](docs/restricciones-y-pendientes.md) | Restricciones, bloqueos y riesgos |
@@ -37,13 +35,11 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 |---|---|
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
 | **[docs/mockups/](docs/mockups/)** | **Las diecisiete pantallas —ocho del camino feliz y nueve escenarios alternativos—, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
-| [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
 | [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | El plan en formato tabla: 87 tareas con fecha, responsable, estado y prioridad |
 | **[docs/entrega/informe.md](docs/entrega/informe.md)** | **EL INFORME DE LA ENTREGA.** El documento paraguas: el caso, los ocho criterios y las cuatro tablas de trazabilidad. También en [PDF](docs/entrega/informe.pdf) |
 | **[docs/entrega/](docs/entrega/)** | **Los artefactos de la evaluación del 15 de septiembre.** Ver su [índice](docs/entrega/README.md) |
 | **[docs/entrega/guia-planner-hector.pdf](docs/entrega/guia-planner-hector.pdf)** | **Cargar las 87 tareas en Planner**, en seis tandas con el contenido exacto de cada tarjeta |
 | [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | La ruta automatizada y por qué INACAP no la permite |
-| [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Visión inicial del equipo (histórico, superado en parte) |
 
 ## Estructura
 
@@ -125,7 +121,6 @@ Las diecisiete pantallas, generadas desde la aplicación real: **[docs/mockups/]
 cd frontend
 npm run mockups            # regenera .html + .png (con los servidores arriba)
 npm run verificar:mockups  # los abre desde file:// con la red bloqueada
-npm run diagramas          # exporta los diagramas mermaid a PNG
 ```
 
 ## Estrategia de ramas y versiones

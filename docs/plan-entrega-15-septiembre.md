@@ -113,10 +113,10 @@ El mapa del docente incluye «Modal de error», «Mensaje de búsqueda sin resul
 | Artefacto | Archivo | Reemplaza a |
 |---|---|---|
 | Diagrama de requerimientos (RF + RNF, jerárquico) | `docs/entrega/requerimientos.md` → PNG | — (nuevo) |
-| Caso de uso general con frontera y 6 actores | `docs/entrega/casos-uso-general.md` → PNG | `diagramas.md §2` |
+| Caso de uso general con frontera y 6 actores | `docs/entrega/casos-uso-general.md` → PNG | `diagramas.md §2` (retirado) |
 | 12 diagramas de CU específicos + 12 fichas | `docs/entrega/casos-uso-detalle.md` → PNG | — (nuevo) |
 | Diagrama de clases | `docs/entrega/clases.md` → PNG | — (nuevo) |
-| DER MySQL (**22 tablas reales**) | `docs/entrega/der.md` → PNG | `diagramas.md §3` |
+| DER MySQL (**22 tablas reales**) | `docs/entrega/der.md` → PNG | `diagramas.md §3` (retirado) |
 | Script MySQL ejecutable | `docs/entrega/script-sql.md` + `docs/entrega/sgr-mysql.sql` | — (nuevo) |
 | Mockups con escenarios alternativos | `docs/mockups/` (ampliado) | — (se amplía) |
 | Informe de la entrega, con las tablas de trazabilidad | `docs/entrega/informe.md` | — (nuevo) |
@@ -144,7 +144,7 @@ Hay que separar dos cosas que se confunden fácil:
 | Pendiente | Por qué se resuelve ahora |
 |---|---|
 | **El Planner no refleja el trabajo hecho** (Desarrollo, Pruebas y Piloto vacíos) y le falta la tarea del diagrama de requerimientos | Es el criterio 1 de la rúbrica, 15 pts |
-| **`docs/diagramas.md` describe el modelo v1** | Es el criterio 6, y presentarlo sería incoherente |
+| ~~**`docs/diagramas.md` describe el modelo v1**~~ | ✅ **Retirado del repositorio el 11-09-2026.** Describía `metas`, la vista materializada y un cron que ya no existen, y sus PNG medían 600 px: ilegibles al ampliarlos. Los 32 diagramas vigentes están en `docs/entrega/puml/` |
 | ~~**No hay diagrama de clases**~~ ✅ **resuelto** el 10-09: [entrega/clases.md](entrega/clases.md) | Era el criterio 5 (15 pts) |
 | ~~**No hay casos de uso**~~ ✅ **resuelto** el 10-09: [entrega/casos-uso-general.md](entrega/casos-uso-general.md) y [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) | Eran los criterios 3 y 4 (30 pts) |
 | ~~README dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente que `historias-usuario.md` declare que **las 31 oficiales mandan** sobre las 20 propias | Consistencia entre artefactos, que es el criterio transversal |
@@ -216,7 +216,7 @@ Las dependencias importan: el diagrama de requerimientos define los CU, los CU d
 7. **Script MySQL** + **verificador de consistencia** que compruebe, contra `schema.prisma`, que no falta ni sobra ninguna tabla ni FK. La rúbrica valida esa consistencia a mano; nosotros la comprobamos con un script, que es más barato y no se olvida.
 8. **Escenarios alternativos del mockup** y regeneración de los 8 existentes.
 9. **Informe** con las tablas de trazabilidad (RF→CU, CU→mockup, CU→clase, CU→tabla) y los enlaces al repositorio y al Planner.
-10. **Actualizar la documentación viva**: `diagramas.md` (o retirarlo apuntando a `docs/entrega/`), README (15 ADR, no 11), `historias-usuario.md` (marcar que las 31 oficiales mandan), `matriz-trazabilidad.md` (columna CU) y `estado-proyecto.md`.
+10. **Actualizar la documentación viva**: ~~`diagramas.md`~~ (retirado del repositorio), README (15 ADR, no 11), `historias-usuario.md` (marcar que las 31 oficiales mandan), `matriz-trazabilidad.md` (columna CU) y `estado-proyecto.md`.
 11. **Publicar el estado del sistema en PDF** para el compañero, con el mismo pipeline de Playwright que ya genera los mockups (`page.pdf()`), y **actualizar el artifact** para quien tenga acceso.
 
 ---

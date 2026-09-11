@@ -234,12 +234,33 @@ function convertir(markdown) {
       continue;
     }
 
-    // Lista de comprobación, viñetas o numerada
+    // Lista de comprobación, viñetas o numerada.
+    //
+    // ⚠ La SANGRÍA importa, y pasarla por alto tiene una consecuencia que no se
+    // ve al escribir: los sub-puntos se vuelven hermanos y **corren la
+    // numeración del nivel de arriba**. En el índice del informe, cuatro
+    // sub-puntos del §5 convertían el punto 11 en el 15, y el documento se
+    // contradecía a sí mismo. Por eso aquí se arma una jerarquía de verdad.
     if (/^\s*([-*]|\d+\.)\s+/.test(linea)) {
-      const numerada = /^\s*\d+\.\s+/.test(linea);
-      const items = [];
+      const pila = []; // { sangría, etiqueta }
+      const abiertos = []; // ¿queda un <li> sin cerrar en ese nivel?
+      const html = [];
+
+      const abrirLista = (sangría, numerada) => {
+        pila.push({ sangría, etiqueta: numerada ? "ol" : "ul" });
+        abiertos.push(false);
+        html.push(`<${pila[pila.length - 1].etiqueta}>`);
+      };
+      const cerrarLista = () => {
+        if (abiertos.pop()) html.push("</li>");
+        html.push(`</${pila.pop().etiqueta}>`);
+      };
+
       while (i < lineas.length && /^\s*([-*]|\d+\.)\s+/.test(lineas[i])) {
-        let texto = lineas[i].replace(/^\s*([-*]|\d+\.)\s+/, "");
+        const m = lineas[i].match(/^(\s*)([-*]|\d+\.)\s+/);
+        const sangría = m[1].replace(/\t/g, "  ").length;
+        const numerada = /^\d+\./.test(m[2]);
+        let texto = lineas[i].slice(m[0].length);
         let clase = "";
         const marca = texto.match(/^\[([ xX])\]\s+/);
         if (marca) {
@@ -249,14 +270,29 @@ function convertir(markdown) {
         }
         i++;
         // Líneas de continuación de un mismo punto
-        while (i < lineas.length && lineas[i].trim() && !/^\s*([-*]|\d+\.)\s+/.test(lineas[i]) && /^\s{2,}/.test(lineas[i])) {
+        while (
+          i < lineas.length &&
+          lineas[i].trim() &&
+          !/^\s*([-*]|\d+\.)\s+/.test(lineas[i]) &&
+          /^\s{2,}/.test(lineas[i])
+        ) {
           texto += " " + lineas[i].trim();
           i++;
         }
-        items.push(`<li${clase}>${enLinea(texto)}</li>`);
+
+        while (pila.length && sangría < pila[pila.length - 1].sangría) cerrarLista();
+        if (!pila.length || sangría > pila[pila.length - 1].sangría) {
+          // Sublista: va DENTRO del <li> de arriba, que queda abierto.
+          abrirLista(sangría, numerada);
+        } else if (abiertos[abiertos.length - 1]) {
+          html.push("</li>");
+          abiertos[abiertos.length - 1] = false;
+        }
+        html.push(`<li${clase}>${enLinea(texto)}`);
+        abiertos[abiertos.length - 1] = true;
       }
-      const etiqueta = numerada ? "ol" : "ul";
-      salida.push(`<${etiqueta}>${items.join("")}</${etiqueta}>`);
+      while (pila.length) cerrarLista();
+      salida.push(html.join(""));
       continue;
     }
 

@@ -7,7 +7,7 @@
 1. **Costo cero durante el desarrollo.** Somos estudiantes: solo herramientas gratuitas o free tier.
    - Tipografías: Google Fonts (Space Grotesk, Public Sans). **GT America descartada** (de pago).
    - Repos e imágenes: GitHub privado + ghcr.io (gratis para el uso del proyecto).
-   - Único gasto aceptado al final: **una VPS (AWS o Hostinger) solo si es necesaria para la entrega**. Nada más se paga (aparte de Claude Code, que ya está cubierto).
+   - Único gasto aceptado al final: **una VPS (AWS o Hostinger) solo si es necesaria para la entrega**. Nada más se paga (las herramientas de desarrollo ya están cubiertas).
    - Toda decisión de librería/servicio debe pasar este filtro antes de adoptarse.
 
 2. **Equipo**: Origami SpA. El Planner del equipo lo creó otro integrante; aún no tenemos acceso.
