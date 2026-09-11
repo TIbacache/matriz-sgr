@@ -6,7 +6,7 @@
 **Equipo**: Origami SpA — Tomás Ibacache · Héctor Vergara
 **Entrega**: primera evaluación de Análisis y Diseño — 15 de septiembre de 2026
 **Versión del informe**: 11 de septiembre de 2026
-**Repositorio**: <https://github.com/TIbacache/matriz-sgr> (privado; acceso concedido al docente)
+**Repositorio**: <https://github.com/TIbacache/matriz-sgr> (público durante el período de evaluación)
 **Rama de la entrega**: `entrega/analisis-diseno`
 
 ---
@@ -393,7 +393,7 @@ No son olvidos: son una decisión para llegar con lo esencial construido y verif
 
 **<https://github.com/TIbacache/matriz-sgr>** — rama `entrega/analisis-diseno`.
 
-Contiene el mockup funcional, **los archivos editables de todos los diagramas** (`docs/entrega/puml/*.puml`) y el código completo del sistema. La estructura de la entrega está en [`docs/entrega/README.md`](README.md).
+Está **público durante el período de evaluación**, así que no hace falta solicitar acceso. Contiene el mockup funcional, **los archivos editables de todos los diagramas** (`docs/entrega/puml/*.puml`) y el código completo del sistema. La estructura de la entrega está en [`docs/entrega/README.md`](README.md).
 
 ### El mockup
 
@@ -420,7 +420,15 @@ Se reproducen aquí las cuatro que **caben legibles en una página**. Las captur
 
 ### Planner
 
-> ⚠ **Pendiente al momento de redactar este informe.** Aquí van la **captura del tablero** con sus 87 tareas y el **enlace** al tablero. Es la evidencia del criterio 1; el resto de esta sección explica cómo está armado.
+El tablero está cargado. Esta es la evidencia del criterio 1:
+
+![El tablero completo, con sus siete depósitos: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación y Etapas Terminadas. Cada tarea lleva responsable, fechas y prioridad; el contador «Tareas completadas» de cada columna agrupa las ya cerradas](planner-tablero-2.png)
+
+![El mismo tablero con las columnas desplegadas: se ven las tarjetas pendientes de cada depósito con su fecha de vencimiento y su prioridad](planner-tablero-1.png)
+
+> 🔗 **Enlace directo al tablero**: ⟨pegar aquí el vínculo al plan antes de entregar⟩
+
+**Cómo leer las capturas**: las tareas ya terminadas están agrupadas bajo «Tareas completadas» al pie de cada columna —**24** en Desarrollo, **9** en Requisitos, **5** en Diseño, **4** en Ámbito—, que es como Planner colapsa lo cerrado. Las tarjetas visibles son las que siguen abiertas, con su fecha y su prioridad.
 
 El tablero se organiza en **seis depósitos** —Ámbito, Requisitos, Diseño, Desarrollo, Pruebas y Piloto—, con responsable, fecha de inicio, fecha de vencimiento y prioridad en cada tarea. El contenido de las 87 tarjetas está versionado en [`plan-desarrollo.csv`](../plan-desarrollo.csv), así que el tablero y el repositorio dicen lo mismo y puede comprobarse.
 
