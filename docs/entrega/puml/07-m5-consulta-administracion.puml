@@ -1,0 +1,62 @@
+@startuml m5-consulta-administracion
+' M5 - Consulta, colaboración y administración (RF-032 a RF-038)
+title M5 · Consulta, colaboración y administración
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #F4F4F2
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+left to right direction
+
+rectangle "<<requirement>>\n**EP-06**\nReportabilidad y\ntoma de decisiones" as EP06 #EFEDE8
+rectangle "<<requirement>>\n**EP-07**\nPlataforma colaborativa" as EP07 #EFEDE8
+rectangle "<<requirement>>\n**EP-08**\nAdministración, seguridad\ny trazabilidad" as EP08 #EFEDE8
+
+rectangle "<<requirement>>\n**RF-032**\nBuscar y filtrar" as RF032
+rectangle "<<requirement>>\n**RF-033**\nExportar informes\nconservando filtros\n//pendiente//" as RF033 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RF-034**\nTrabajo simultáneo sin\nsobrescritura\n//parcial//" as RF034
+rectangle "<<requirement>>\n**RF-035**\nComentarios sobre\nlos registros\n//pendiente//" as RF035 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RF-036**\nTrazabilidad de cambios\n//parcial//" as RF036
+rectangle "<<requirement>>\n**RF-037**\nAlertas por vencimientos\ny falta de registro\n//parcial//" as RF037
+rectangle "<<requirement>>\n**RF-038**\nVersionar parámetros\n//parcial//" as RF038
+
+usecase "CU-10\nAnular una actividad\ncon motivo" as CU10
+usecase "CU-11\nHistorial de un vecino\nentre delegaciones" as CU11
+
+EP06 --> RF032 : <<refine>>
+EP06 --> RF033 : <<refine>>
+EP07 --> RF034 : <<refine>>
+EP07 --> RF035 : <<refine>>
+EP08 --> RF036 : <<refine>>
+EP08 --> RF037 : <<refine>>
+EP08 --> RF038 : <<refine>>
+
+RF032 ..> RF033 : <<deriveReqt>>
+RF036 ..> RF037 : <<deriveReqt>>
+
+CU10 -[#5B6166,bold]-> RF036 : <<satisfy>>
+CU11 -[#5B6166,bold]-> RF032 : <<satisfy>>
+
+note bottom of RF036
+  **RF-036 es transversal**, aunque aquí figure
+  en un módulo: toda operación crítica del sistema
+  deja registro con usuario, fecha, acción y los
+  valores anterior y nuevo. En los casos de uso es
+  el <<include>> CU-I3.
+end note
+
+@enduml

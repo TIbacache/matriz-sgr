@@ -1,0 +1,117 @@
+@startuml casos-uso-general
+' Caso de uso general - frontera del sistema, los seis actores del PDF §3
+' y los doce casos de uso principales, sin flujos internos.
+' Los casos se agrupan por los mismos cinco módulos del diagrama de
+' requerimientos (M1 a M5): la correspondencia entre artefactos es un
+' criterio transversal de la rúbrica.
+title Caso de uso general — SGR
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam actorStyle awesome
+skinparam actor {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam rectangle {
+  BackgroundColor #FAFAF8
+  BorderColor #B9BDBF
+  FontColor #5B6166
+}
+
+left to right direction
+
+actor "Funcionario" as FUN
+actor "Verificador" as VER
+actor "Delegado\no jefatura" as DEL
+actor "Coordinador\ndel sistema" as COO
+actor "Administrador" as ADM
+actor "Usuario\nde consulta" as CON
+
+rectangle "**SGR — Sistema de Gestión de Resultados**" #FFFFFF {
+
+  rectangle "M2 · Registro personal y evidencias" as M2 {
+    usecase "CU-01\nRegistrar actividad diaria" as CU01
+    usecase "CU-02\nAdjuntar evidencia\na una actividad" as CU02
+    usecase "CU-03\nValidar o rechazar\nuna evidencia" as CU03
+    usecase "CU-05\nConsultar la ficha personal\ny el semáforo" as CU05
+    usecase "CU-08\nRegistrar una atención\nsocial y sus gestiones" as CU08
+    usecase "CU-I1\nValidar los datos\ndel registro" as CUI1
+    usecase "CU-I2\nGenerar el código único\nde la actividad" as CUI2
+  }
+
+  rectangle "M3 · Agenda colectiva" as M3 {
+    usecase "CU-06\nRegistrar un compromiso\ndel vecino en el tubo" as CU06
+    usecase "CU-07\nMover un compromiso\nde estado" as CU07
+  }
+
+  rectangle "M4 · Cálculos y tableros" as M4 {
+    usecase "CU-09\nConsultar el tablero\nconsolidado" as CU09
+    usecase "CU-12\nControlar la actividad\nde usuarios" as CU12
+  }
+
+  rectangle "M1 · Configuración" as M1 {
+    usecase "CU-04\nConfigurar metas\ny ponderadores" as CU04
+  }
+
+  rectangle "M5 · Consulta y trazabilidad" as M5 {
+    usecase "CU-10\nAnular una actividad\ncon motivo" as CU10
+    usecase "CU-11\nBuscar el historial de un\nvecino entre delegaciones" as CU11
+  }
+}
+
+FUN --> CU01
+FUN --> CU02
+FUN --> CU05
+FUN --> CU06
+FUN --> CU07
+FUN --> CU08
+FUN --> CU10
+FUN --> CU11
+
+VER --> CU03
+
+DEL --> CU06
+DEL --> CU07
+DEL --> CU09
+DEL --> CU10
+
+COO --> CU04
+COO --> CU11
+COO --> CU12
+
+ADM --> CU04
+ADM --> CU12
+
+CON --> CU09
+
+CU01 ..> CUI1 : <<include>>
+CU06 ..> CUI1 : <<include>>
+CU01 ..> CUI2 : <<include>>
+
+note bottom of CUI2
+  **La auditoría también es un caso incluido (CU-I3)**, pero no se dibuja aquí:
+  la incluyen las diez operaciones que escriben, más CU-11 y CU-12, que se
+  auditan aunque solo consulten. Diez flechas hacia el mismo óvalo dirían
+  menos que esta frase. Aparece en el diagrama de cada caso de uso.
+end note
+
+note left of VER
+  **El Verificador tiene un solo caso de uso, y es a propósito.**
+  RNF-005 exige segregación de funciones: quien valida la evidencia
+  no puede ser quien la registró. Por eso CU-03 rechaza además que
+  alguien valide lo propio, aunque su rol se lo permita.
+end note
+
+@enduml

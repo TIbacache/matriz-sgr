@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Carga el plan de desarrollo de Matriz SGR en el Planner del equipo, usando los
 buckets de la plantilla del profesor (Ámbito, Requisitos, Diseño, Desarrollo,
@@ -26,6 +26,19 @@ editar el CSV para agregar solo lo nuevo.
   # Cargar de verdad, asignando responsables:
   .\scripts\cargar-plan-planner.ps1 -EmailA tomas@dominio.cl -EmailB companero@dominio.cl
 
+.EXAMPLE
+  # Si la ventana de inicio de sesión no aparece (terminal de VS Code):
+  .\scripts\cargar-plan-planner.ps1 -SoloSimular -Dispositivo
+
+.EXAMPLE
+  # Ver qué borraría si hubiera que deshacer la carga (no borra nada):
+  .\scripts\cargar-plan-planner.ps1 -Deshacer
+
+.EXAMPLE
+  # Deshacer de verdad. Solo borra tareas cuyo título esté en el CSV, así que
+  # las que se crearon a mano en el tablero quedan intactas:
+  .\scripts\cargar-plan-planner.ps1 -Deshacer -Confirmo
+
 .NOTES
 En el CSV, la columna Responsable usa A / B / Ambos. Si no pasas los correos,
 las tareas se crean sin asignar (se pueden asignar a mano en Planner).
@@ -35,7 +48,16 @@ param(
     [string]$CsvPath = "$PSScriptRoot\..\docs\plan-desarrollo.csv",
     [string]$EmailA,
     [string]$EmailB,
-    [switch]$SoloSimular
+    [switch]$SoloSimular,
+    # Inicia sesión con código de dispositivo en vez de abrir una ventana. Útil
+    # en el terminal de VS Code, donde la ventana de inicio de sesión queda
+    # detrás y parece que el script se colgó.
+    [switch]$Dispositivo,
+    # Deshacer una carga: borra del plan las tareas cuyo título esté en el CSV.
+    # Como compara por título exacto, no toca las tareas creadas a mano que no
+    # estén en el CSV. Sin -Confirmo solo las lista.
+    [switch]$Deshacer,
+    [switch]$Confirmo
 )
 
 $ErrorActionPreference = "Stop"
@@ -65,7 +87,11 @@ $patronBucket = @{
 }
 
 $prioridadPlanner = @{ "Urgente" = 1; "Importante" = 3; "Media" = 5; "Baja" = 9 }
-$avancePorEstado = @{ "Completado" = 100; "En curso" = 50; "Pendiente" = 0; "Bloqueado" = 0 }
+# Planner básico solo distingue No iniciada / En curso / Completada por el
+# porcentaje. La rúbrica pide cuatro estados, así que "En revisión" se carga
+# como 75% y además se le pone una etiqueta de color a mano en el tablero
+# (ver docs/entrega/planner-delta.md).
+$avancePorEstado = @{ "Completado" = 100; "En revisión" = 75; "En curso" = 50; "Pendiente" = 0; "Bloqueado" = 0 }
 
 if (-not (Test-Path $CsvPath)) { throw "No se encontró el CSV en $CsvPath" }
 $filas = Import-Csv -Path $CsvPath -Delimiter ";" -Encoding UTF8
@@ -75,7 +101,42 @@ Write-Host "Filas leídas del CSV: $($filas.Count)" -ForegroundColor Cyan
 # los que ya tienes acceso. El de personas solo se pide si vas a asignar.
 $permisos = @("Tasks.ReadWrite")
 if ($EmailA -or $EmailB) { $permisos += "User.ReadBasic.All" }
-Connect-MgGraph -Scopes $permisos | Out-Null
+
+$conexion = @{ Scopes = $permisos }
+
+# Si ya hay una sesión con los permisos necesarios, no se vuelve a pedir. Sirve
+# para poder conectarse a mano antes (Connect-MgGraph -UseDeviceCode) y luego
+# correr el script sin que abra un segundo inicio de sesión.
+$contexto = Get-MgContext -ErrorAction SilentlyContinue
+$yaConectado = $contexto -and @($permisos | Where-Object { $contexto.Scopes -notcontains $_ }).Count -eq 0
+
+# En Windows, Connect-MgGraph abre por defecto la ventana nativa del Web Account
+# Manager, que en un terminal incrustado (VS Code) queda DETRÁS de la ventana y
+# parece que el script se colgó. Con -Dispositivo se usa el flujo de código de
+# dispositivo: imprime una URL y un código para pegar en el navegador, sin
+# ventanas que se escondan. El nombre del parámetro cambió entre versiones del
+# módulo, así que se detecta cuál acepta el que está instalado.
+if ($yaConectado) {
+    Write-Host "Ya hay sesión iniciada con los permisos necesarios: no se vuelve a pedir." -ForegroundColor DarkGray
+}
+elseif ($Dispositivo) {
+    $conectar = Get-Command Connect-MgGraph
+    if ($conectar.Parameters.ContainsKey("UseDeviceCode")) { $conexion.UseDeviceCode = $true }
+    elseif ($conectar.Parameters.ContainsKey("UseDeviceAuthentication")) { $conexion.UseDeviceAuthentication = $true }
+    else { Write-Warning "Este módulo no admite el código de dispositivo. Se abrirá la ventana normal (revisa Alt+Tab)." }
+    # El mensaje con la URL y el código lo emite MSAL por el flujo de
+    # Information, que PowerShell silencia por defecto.
+    $conexion.InformationAction = "Continue"
+    Write-Host "Modo código de dispositivo: copia la URL y el código que aparecen abajo." -ForegroundColor Yellow
+    # OJO: nada de Out-Null aquí. Según la versión del módulo, ese mensaje sale
+    # por la salida normal y no por consola, así que un Out-Null se lo traga y
+    # la terminal se queda esperando un código que nunca se ve.
+    Connect-MgGraph @conexion
+}
+else {
+    Write-Host "Se abrirá una ventana de inicio de sesión. Si no la ves, prueba Alt+Tab: en VS Code suele quedar detrás." -ForegroundColor Yellow
+    Connect-MgGraph @conexion | Out-Null
+}
 Write-Host "Conectado como: $((Get-MgContext).Account)" -ForegroundColor Green
 
 # Buscar el plan entre los que el usuario ya tiene (/me/planner/plans).
@@ -148,6 +209,47 @@ $existentes = Get-MgPlannerPlanTask -PlannerPlanId $planId
 $titulosExistentes = @($existentes | ForEach-Object { $_.Title })
 $creadas = 0; $omitidas = 0
 
+# ------------------------------------------------------------------ Deshacer
+if ($Deshacer) {
+    $titulosCsv = @($filas | ForEach-Object { $_.Titulo })
+    $aBorrar = @($existentes | Where-Object { $titulosCsv -contains $_.Title })
+
+    if (-not $aBorrar) {
+        Write-Host "No hay ninguna tarea del CSV en el plan. Nada que deshacer." -ForegroundColor Green
+        return
+    }
+
+    Write-Host ""
+    Write-Host "Tareas del plan que coinciden con el CSV ($($aBorrar.Count)):" -ForegroundColor Yellow
+    $aBorrar | ForEach-Object { Write-Host "  - $($_.Title)" }
+
+    $intactas = @($existentes | Where-Object { $titulosCsv -notcontains $_.Title })
+    Write-Host ""
+    Write-Host "NO se tocan ($($intactas.Count)):" -ForegroundColor Cyan
+    $intactas | ForEach-Object { Write-Host "  - $($_.Title)" }
+
+    if (-not $Confirmo) {
+        Write-Host ""
+        Write-Host "Esto fue solo un listado. Para borrarlas de verdad, repite el comando agregando -Confirmo" -ForegroundColor Yellow
+        return
+    }
+
+    $borradas = 0
+    foreach ($t in $aBorrar) {
+        try {
+            Remove-MgPlannerTask -PlannerTaskId $t.Id -IfMatch $t.AdditionalProperties["@odata.etag"] -ErrorAction Stop
+            Write-Host "  - borrada: $($t.Title)" -ForegroundColor DarkGray
+            $borradas++
+        }
+        catch {
+            Write-Warning "No se pudo borrar '$($t.Title)': $($_.Exception.Message)"
+        }
+    }
+    Write-Host ""
+    Write-Host "Borradas: $borradas de $($aBorrar.Count)." -ForegroundColor Cyan
+    return
+}
+
 foreach ($fila in $filas) {
     if ($titulosExistentes -contains $fila.Titulo) {
         Write-Host "  = ya existe: $($fila.Titulo)" -ForegroundColor DarkGray
@@ -156,12 +258,23 @@ foreach ($fila in $filas) {
     }
     if (-not $bucketPorClave.ContainsKey($fila.BucketClave)) { $omitidas++; continue }
 
+    # Un estado o una prioridad mal escritos en el CSV dejarían la tarea sin
+    # avance ni prioridad sin avisar: es mejor decirlo y seguir con el valor neutro.
+    if (-not $avancePorEstado.ContainsKey($fila.Estado)) {
+        Write-Warning "Estado desconocido '$($fila.Estado)' en '$($fila.Titulo)'. Se carga como Pendiente."
+    }
+    if (-not $prioridadPlanner.ContainsKey($fila.Prioridad)) {
+        Write-Warning "Prioridad desconocida '$($fila.Prioridad)' en '$($fila.Titulo)'. Se carga como Media."
+    }
+    $avance = if ($avancePorEstado.ContainsKey($fila.Estado)) { $avancePorEstado[$fila.Estado] } else { 0 }
+    $prioridad = if ($prioridadPlanner.ContainsKey($fila.Prioridad)) { $prioridadPlanner[$fila.Prioridad] } else { 5 }
+
     $params = @{
         PlanId          = $planId
         BucketId        = $bucketPorClave[$fila.BucketClave]
         Title           = $fila.Titulo
-        PercentComplete = $avancePorEstado[$fila.Estado]
-        Priority        = $prioridadPlanner[$fila.Prioridad]
+        PercentComplete = $avance
+        Priority        = $prioridad
     }
     $inicio = ComoFechaUtc $fila.Inicio
     $vence = ComoFechaUtc $fila.Vence

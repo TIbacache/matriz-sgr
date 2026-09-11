@@ -1,0 +1,76 @@
+@startuml m4-calculos-tableros
+' M4 - Cálculos, semáforos y tableros (RF-022 a RF-031)
+title M4 · Cálculos, semáforos y tableros
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #F4F4F2
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+left to right direction
+
+rectangle "<<requirement>>\n**EP-02**\nMedición y desempeño" as EP02 #EFEDE8
+rectangle "<<requirement>>\n**EP-05**\nMonitoreo y control\nde gestión" as EP05 #EFEDE8
+
+rectangle "<<requirement>>\n**RF-022**\nAvance con actividades\nválidas" as RF022
+rectangle "<<requirement>>\n**RF-023**\nCumplimiento igual a\navance sobre meta" as RF023
+rectangle "<<requirement>>\n**RF-024**\nPonderado con el\nmáximo configurado" as RF024
+rectangle "<<requirement>>\n**RF-025**\nIncentivos y penalizaciones\nparametrizables\n//pendiente//" as RF025 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RF-026**\nMeta esperada al día" as RF026
+rectangle "<<requirement>>\n**RF-027**\nSemáforo con umbrales\nconfigurables" as RF027
+rectangle "<<requirement>>\n**RF-028**\nTablero personal\n//pendiente//" as RF028 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RF-029**\nTablero de delegación\nconsolidado" as RF029
+rectangle "<<requirement>>\n**RF-030**\nActividad reciente\nde usuarios" as RF030
+rectangle "<<requirement>>\n**RF-031**\nVista global por cargos\n//pendiente//" as RF031 #FFFFFF;line.dashed
+
+usecase "CU-05\nConsultar la ficha\ny el semáforo" as CU05
+usecase "CU-09\nConsultar el tablero\nconsolidado" as CU09
+usecase "CU-12\nControlar la actividad\nde usuarios" as CU12
+
+EP02 --> RF022 : <<refine>>
+EP02 --> RF023 : <<refine>>
+EP02 --> RF024 : <<refine>>
+EP02 --> RF025 : <<refine>>
+EP02 --> RF026 : <<refine>>
+EP02 --> RF027 : <<refine>>
+EP05 --> RF028 : <<refine>>
+EP05 --> RF029 : <<refine>>
+EP05 --> RF030 : <<refine>>
+EP05 --> RF031 : <<refine>>
+
+RF022 ..> RF023 : <<deriveReqt>>
+RF023 ..> RF024 : <<deriveReqt>>
+RF026 ..> RF027 : <<deriveReqt>>
+RF024 ..> RF029 : <<deriveReqt>>
+RF024 ..> RF025 : <<deriveReqt>>
+
+CU05 -[#5B6166,bold]-> RF023 : <<satisfy>>
+CU05 -[#5B6166,bold]-> RF026 : <<satisfy>>
+CU05 -[#5B6166,bold]-> RF027 : <<satisfy>>
+CU09 -[#5B6166,bold]-> RF022 : <<satisfy>>
+CU09 -[#5B6166,bold]-> RF024 : <<satisfy>>
+CU09 -[#5B6166,bold]-> RF029 : <<satisfy>>
+CU12 -[#5B6166,bold]-> RF030 : <<satisfy>>
+
+note bottom of RF027
+  **El semáforo depende de RF-026, no de RF-023.**
+  Compara contra el objetivo al día, no contra la
+  meta del período completo: en abril, un 30%
+  puede ser verde. Los umbrales salen de la tabla
+  de parámetros, nunca del código.
+end note
+
+@enduml

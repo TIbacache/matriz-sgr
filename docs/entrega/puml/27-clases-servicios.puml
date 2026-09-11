@@ -1,0 +1,168 @@
+@startuml clases-servicios
+' Diagrama de clases — capa de servicios.
+' Aquí viven las OPERACIONES del sistema. Los nombres son los reales de
+' backend/src/services/*.ts: si una operación no está en el código, no está
+' en el diagrama.
+' Los servicios van en paquetes por responsabilidad: sin agrupar, PlantUML
+' los deja en una sola fila que no se lee impresa.
+title Diagrama de clases — Servicios del dominio
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+' La rúbrica §6.1 pide la visibilidad como + - #, no como iconos de color.
+skinparam classAttributeIconSize 0
+' Con las dependencias apuntando casi todas a ServicioParametros, la
+' direccion por defecto extiende el diagrama a lo ancho hasta hacerlo
+' ilegible impreso. De izquierda a derecha, los servicios se apilan.
+left to right direction
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam package {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #FFFFFF
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+package "Medición" as PM {
+  class ServicioCumplimiento <<service>> {
+    +calcularCumplimientoItem(avance : Decimal, meta : Decimal, dir : DireccionItem) : Decimal
+    +calcularSemaforo(avance : Decimal, objetivoAlDia : Decimal) : Semaforo
+    +calcularPeriodo(periodo : UUID) : CumplimientoFuncionario[]
+    +proyectarCumplimiento(f : CumplimientoFuncionario) : Decimal
+    +consolidarPeriodo(periodo : UUID) : Consolidado
+  }
+
+  class ServicioActividadUsuarios <<service>> {
+    +panelActividad(org : UUID, periodo : UUID, unidad : UUID) : Panel
+    +estadoPorDias(dias : Int, umbral : Int) : Estado
+    +umbralAlerta(org : UUID, periodo : UUID) : Int
+  }
+}
+
+package "Reglas transversales" as PT {
+  class ServicioParametros <<service>> {
+    +CLAVES : Map<String, String>
+    --
+    +obtenerParametro(org : UUID, clave : String, periodo : UUID) : Decimal
+    +obtenerParametros(org : UUID, periodo : UUID) : Map<String, Decimal>
+    +sembrarParametros(org : UUID) : void
+  }
+
+  class ServicioAuditoria <<service>> {
+    +registrarAuditoria(evento : EventoAuditoria) : void
+    +auditarDesde(auth : AuthPayload, req : Request) : Auditor
+  }
+
+  class ServicioConcurrencia <<service>> {
+    +actualizarConVersion(args : ArgsActualizar) : Resultado
+    +resolverVersion(res : Response, r : Resultado, qué : String) : Entidad [0..1]
+  }
+
+  class ServicioAlcance <<service>> {
+    +unidadesVisibles(auth : AuthPayload) : UUID[] [0..1]
+    +puedeVerUnidad(auth : AuthPayload, unidad : UUID) : Boolean
+    +unidadesParaVerificacion(auth : AuthPayload) : UUID[] [0..1]
+  }
+
+  class ServicioCodigos <<service>> {
+    +prefijoDeArea(area : String) : String
+    +generarCodigo(org : UUID, area : String, fecha : Date) : String
+  }
+}
+
+package "Dominio específico" as PD {
+  class ServicioVecinos <<service>> {
+    +ROLES_FICHA_VECINO : Rol[]
+    --
+    +historialDePersona(org : UUID, persona : UUID, visibles : UUID[]) : HechoHistorial[]
+    +detectarDuplicidad(hechos : HechoHistorial[], ventanaDias : Int) : AvisoDuplicidad [0..1]
+    +ventanaDuplicidad(org : UUID) : Ventana
+    +puedeVerFichaVecino(auth : AuthPayload) : Boolean
+    +alcanceDetallado(auth : AuthPayload) : UUID[] [0..1]
+  }
+
+  class ServicioAtencionSocial <<service>> {
+    +gestionesRegistradas(a : AtencionSocial) : Int
+    +siguienteGestion(a : AtencionSocial) : Int [0..1]
+    +valorDeCatalogo(org : UUID, catalogo : String, valor : String) : Boolean
+    +catalogoDeGestion(n : Int) : String
+    +camposDeGestion(n : Int) : String[]
+  }
+
+  class ServicioAlmacenamiento <<service>> {
+    +formatosPermitidos(org : UUID) : String[]
+    +rutaRelativa(org : UUID, codigo : String, sec : Int, mime : String) : String
+    +guardarArchivo(ruta : String, contenido : Buffer) : void
+    +leerArchivo(ruta : String) : Buffer
+    +eliminarArchivo(ruta : String) : void
+  }
+}
+
+package "Tiempo real" as PR {
+  class ServicioBroadcast <<service>> {
+    +roomUnidad(unidad : UUID) : String
+    +roomOrganizacion(org : UUID) : String
+    +roomCentral(org : UUID) : String
+    +emitEvent(room : String, evento : String, datos : Object) : void
+  }
+
+  class ServicioPresencia <<service>> {
+    +entrarAUnidad(unidad : UUID, socket : String, usuario : UsuarioPresente) : void
+    +salirDeUnidad(unidad : UUID, socket : String) : void
+    +conectadosEnUnidad(unidad : UUID) : UsuarioPresente[]
+    +conectadosEnOrganizacion(org : UUID) : UsuarioPresente[]
+  }
+}
+
+ServicioCumplimiento ..> ServicioParametros : <<use>>
+ServicioActividadUsuarios ..> ServicioParametros : <<use>>
+ServicioActividadUsuarios ..> ServicioPresencia : <<use>>
+ServicioVecinos ..> ServicioParametros : <<use>>
+ServicioVecinos ..> ServicioAlcance : <<use>>
+ServicioAtencionSocial ..> ServicioParametros : <<use>>
+ServicioAlmacenamiento ..> ServicioParametros : <<use>>
+
+note right of PM
+  **Un solo cálculo en todo el sistema.** `calcularPeriodo()` mide por
+  FUNCIONARIO y `consolidarPeriodo()` lo agrega por delegación y por área
+  del cargo. La vista materializada de la versión anterior, que medía la
+  delegación con el tope escrito en SQL, **se eliminó**: convivir con
+  este servicio dejaba dos verdades para la misma pregunta (ADR-014).
+end note
+
+note right of ServicioParametros
+  **Ningún valor de negocio vive en el código** (RNF-015, RF-038, ADR-007).
+  El tope de cumplimiento, los umbrales del semáforo, la ventana de
+  duplicidad y el tamaño máximo de evidencia salen de aquí, con vigencia
+  por período. Por eso casi todos los demás dependen de este servicio.
+end note
+
+note right of ServicioConcurrencia
+  Bloqueo optimista: si la `version` enviada ya no es la vigente,
+  responde **409 con el estado actual** en vez de sobrescribir
+  (RF-034, CA-08, ADR-005). Es **CU-E4** en el criterio 4.
+end note
+
+note right of ServicioAlcance
+  Traduce el rol del token a **qué delegaciones puede ver**. `null`
+  significa «todas» (nivel central). Es el punto único donde se decide
+  el alcance, y de él salen los 403 con motivo de **CU-E5**.
+end note
+
+@enduml

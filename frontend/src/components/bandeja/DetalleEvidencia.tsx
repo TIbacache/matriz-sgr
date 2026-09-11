@@ -70,6 +70,15 @@ export function DetalleEvidencia({ evidencia }: Props) {
           <dd>{a.item?.nombre ?? "Sin ítem"}</dd>
         </div>
         <div>
+          {/* Quién subió el archivo no siempre es el funcionario: la jefatura y
+              el nivel central pueden cargarlo por él. Y es el dato que decide
+              si esta evidencia es "propia" para quien la está mirando, así que
+              sin él la denegación por segregación de funciones (RNF-005) llega
+              sin explicación en pantalla. */}
+          <dt>Subida por</dt>
+          <dd>{evidencia.subidaPor.nombre}</dd>
+        </div>
+        <div>
           <dt>Archivo</dt>
           <dd>
             {evidencia.mimeType} · {mb(evidencia.tamanoBytes)}

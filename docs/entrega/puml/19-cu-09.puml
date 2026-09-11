@@ -1,0 +1,45 @@
+@startuml 19-cu-09
+' CU-09 · Consultar el tablero consolidado — caso de uso detallado.
+' El caso con su actor, sus casos incluidos y sus casos de extensión.
+' La explicación de cada paso va en la FICHA, no en el diagrama: la
+' rúbrica §5.4 pide el detalle en la ficha textual (casos-uso-detalle.md).
+title CU-09 · Consultar el tablero consolidado
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam actorStyle awesome
+skinparam actor {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam rectangle {
+  BackgroundColor #FAFAF8
+  BorderColor #B9BDBF
+  FontColor #5B6166
+}
+
+actor "Delegado\no jefatura" as DEL
+actor "Usuario\nde consulta" as CON
+
+rectangle "**SGR** — M4 · Cálculos y tableros" #FFFFFF {
+  usecase "CU-09\nConsultar el tablero\nconsolidado" as CU09
+  usecase "CU-E6\nInformar delegación\nsin medición" as CUE6
+}
+
+DEL --> CU09
+CON --> CU09
+
+CUE6 ..> CU09 : <<extend>>\n[la delegación no tiene\na nadie con metas]
+
+@enduml

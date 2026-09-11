@@ -1,6 +1,6 @@
 # Restricciones y pendientes — Matriz SGR
 
-**Actualizado**: 31 de agosto de 2026
+**Actualizado**: 9 de septiembre de 2026
 
 ## Restricciones del equipo (Origami SpA)
 
@@ -12,11 +12,13 @@
 
 2. **Equipo**: Origami SpA. El Planner del equipo lo creó otro integrante; aún no tenemos acceso.
 
+3. **El tenant de INACAP no permite automatizar Microsoft 365.** Comprobado el 9 de septiembre de 2026: el consentimiento de usuario para la aplicación *Microsoft Graph Command Line Tools* está desactivado, así que cualquier script de PowerShell contra Planner, Teams, SharePoint o el correo institucional muere en «Need admin approval». No depende del permiso que se pida —se probó con `Tasks.ReadWrite`, el mínimo— ni del método de inicio de sesión; se probó también con código de dispositivo. **Consecuencia práctica: todo lo que toque Microsoft 365 se hace a mano.** Detalle en [guia-cargar-planner.md](guia-cargar-planner.md).
+
 ## Pendientes (bloqueados por terceros)
 
 | Pendiente | Bloqueado por | Acción cuando se destrabe |
 |---|---|---|
-| ~~Cargar backlog en Planner~~ **DESBLOQUEADO 26-08-2026** | — | Ya hay acceso al plan `DesarrolloSW-MuniLS-OrigamiSpA` con la plantilla del profesor (buckets: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación). Plan completo en [plan-desarrollo.md](plan-desarrollo.md); cargar con `scripts/cargar-plan-planner.ps1` (usar `-SoloSimular` primero). |
+| ~~Cargar backlog en Planner~~ **DESBLOQUEADO 26-08-2026** | — | Ya hay acceso al plan `DesarrolloSW-MuniLS-OrigamiSpA` con la plantilla del profesor (buckets: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación). Plan completo en [plan-desarrollo.md](plan-desarrollo.md); se carga **a mano** siguiendo [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf), porque INACAP bloquea el consentimiento de la aplicación que usan los scripts de Microsoft Graph. |
 | ~~Fórmula de "Objetivo al día"~~ **DESBLOQUEADO 25-08-2026** | — | El cliente la explicó en la reunión (01:05:31 y 00:35:17); confirmada por RN-007 del PDF y **verificada con los datos reales** de la planilla. |
 | ~~Nombres exactos de las columnas~~ **DESBLOQUEADO 31-08-2026** | — | Estaban en las capturas del PPT que enviaron los profesores. Extraídas y documentadas en [estructura-planilla-real.md](estructura-planilla-real.md): columnas de pestaña personal, área social, tubo, semáforo y resumen, más los catálogos completos de tipo/subatención y gestiones. |
 | ~~Matriz de roles definitiva~~ **DESBLOQUEADO 31-08-2026** | — | El PDF §3 define 6 actores: Administrador, Coordinador del sistema, Delegado/jefatura, Funcionario, **Verificador** y **Usuario de consulta**. Faltan los dos últimos en nuestro enum `Rol`. |

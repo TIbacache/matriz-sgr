@@ -11,7 +11,7 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 
 | Documento | Contenido |
 |---|---|
-| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 12 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
+| **[docs/requerimientos-oficiales.md](docs/requerimientos-oficiales.md)** | **38 RF, 18 RNF, 13 reglas, 10 criterios y 31 historias del PDF de los profesores, con el estado de cumplimiento de cada uno.** Su **§10** son las 14 consultas abiertas al docente: qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta |
 | [docs/estructura-planilla-real.md](docs/estructura-planilla-real.md) | Columnas, catálogos, códigos y fórmulas extraídos de la planilla en producción |
 | [docs/matriz-trazabilidad.md](docs/matriz-trazabilidad.md) | HU ↔ requisito ↔ commit ↔ prueba (exigida por los profesores) |
 | [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md) | 15 ADR: RUT, fechas, nombres, códigos, concurrencia, auditoría, parámetros, trazabilidad, ítems, tipografía, los dos rojos, la ficha del vecino (ADR-012), las tres gestiones (ADR-013), la consolidación por delegación (ADR-014) y el control de actividad (ADR-015) |
@@ -36,10 +36,13 @@ Proyecto integrador INACAP · **Equipo**: Origami SpA
 | Documento | Contenido |
 |---|---|
 | [docs/plan-desarrollo.md](docs/plan-desarrollo.md) | Plan del ciclo de vida por sprints, calendario y ruta crítica |
-| **[docs/mockups/](docs/mockups/)** | **Las ocho pantallas, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
+| **[docs/mockups/](docs/mockups/)** | **Las diecisiete pantallas —ocho del camino feliz y nueve escenarios alternativos—, en `.html` autocontenido (para adjuntar en Planner) y `.png` (para verlas aquí en GitHub).** Generadas desde la aplicación real |
 | [docs/diagramas/](docs/diagramas/) | Los diagramas de [diagramas.md](docs/diagramas.md) exportados a PNG, para adjuntar |
-| [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | Fuente cargable del plan en Microsoft Planner |
-| [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | Guía paso a paso para cargar el plan en Planner |
+| [docs/plan-desarrollo.csv](docs/plan-desarrollo.csv) | El plan en formato tabla: 87 tareas con fecha, responsable, estado y prioridad |
+| **[docs/entrega/informe.md](docs/entrega/informe.md)** | **EL INFORME DE LA ENTREGA.** El documento paraguas: el caso, los ocho criterios y las cuatro tablas de trazabilidad. También en [PDF](docs/entrega/informe.pdf) |
+| **[docs/entrega/](docs/entrega/)** | **Los artefactos de la evaluación del 15 de septiembre.** Ver su [índice](docs/entrega/README.md) |
+| **[docs/entrega/guia-planner-hector.pdf](docs/entrega/guia-planner-hector.pdf)** | **Cargar las 87 tareas en Planner**, en seis tandas con el contenido exacto de cada tarjeta |
+| [docs/guia-cargar-planner.md](docs/guia-cargar-planner.md) | La ruta automatizada y por qué INACAP no la permite |
 | [Documento_Maestro_Matriz_SGR.md](Documento_Maestro_Matriz_SGR.md) | Visión inicial del equipo (histórico, superado en parte) |
 
 ## Estructura
@@ -116,7 +119,7 @@ node scripts/capturas.mjs capturas   # cada pantalla con las seis cuentas (--mov
 
 ## Las pantallas
 
-Las ocho pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
+Las diecisiete pantallas, generadas desde la aplicación real: **[docs/mockups/](docs/mockups/)**. Ahí se ven todas en imagen (GitHub no ejecuta HTML) y se descarga el `.html` de cada una, que abre con doble clic sin servidores ni base de datos.
 
 ```powershell
 cd frontend

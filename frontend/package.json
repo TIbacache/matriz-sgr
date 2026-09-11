@@ -10,7 +10,13 @@
     "verificar:contraste": "node scripts/verificar-contraste.mjs",
     "mockups": "node scripts/mockups.mjs",
     "verificar:mockups": "node scripts/verificar-mockups.mjs",
-    "diagramas": "node scripts/diagramas.mjs"
+    "verificar:entrega": "node scripts/verificar-entrega.mjs",
+    "diagramas": "node scripts/diagramas.mjs",
+    "pdf": "node scripts/pdf.mjs",
+    "guia:planner": "node scripts/pdf.mjs ../docs/entrega/guia-planner-hector.md",
+    "pdf:entrega": "node scripts/pdf-entrega.mjs",
+    "puml": "node scripts/plantuml.mjs",
+    "probar:mermaid": "node scripts/probar-mermaid.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

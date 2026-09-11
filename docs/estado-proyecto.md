@@ -69,7 +69,7 @@ El mismo bloque **borró de la base las cuentas `@demo.cl`** que seguían vivas 
 | Pruebas formales (Jest/RTL) y CI | ⬜ |
 | Despliegue | ⬜ |
 
-**Contra los 38 RF oficiales: 22 ✅ · 9 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027 —el tope y los umbrales dejaron de estar escritos en SQL— y con ellos desapareció la última fuente de cálculo duplicada. El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 bajó de ✅ a 🟡 el 3 de septiembre al comprobar que el campo INT/EXT no era alcanzable, y el **Bloque B5** lo cerró junto con RF-017.
+**Contra los 38 RF oficiales: 23 ✅ · 8 🟡 · 7 ⬜** (al recibir la especificación: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027 —el tope y los umbrales dejaron de estar escritos en SQL— y con ellos desapareció la última fuente de cálculo duplicada. El Bloque B4 cerró **RF-015 y CA-04**, el criterio de aceptación más caro de la especificación: el caso social con sus tres gestiones existe, avanza y se consulta desde la ficha del vecino cruzando delegaciones. El Bloque A3 cerró RF-001 y, con él, **CA-08 y CA-09**: el bloqueo optimista y la auditoría dejaron de ser una propiedad del modelo v2 para ser una del sistema entero. RF-016 bajó de ✅ a 🟡 el 3 de septiembre al comprobar que el campo INT/EXT no era alcanzable, y el **Bloque B5** lo cerró junto con RF-017.
 
 El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, y la configuración que lo alimenta (**cargo → ítems → metas**) también.
 
@@ -239,6 +239,7 @@ La pantalla más importante: la "pestaña personal" de la planilla. Tres bloques
 Aquí el punto se otorga o se niega. Es una **lista de trabajo, no un tablero**: cola a la izquierda, foto grande a la derecha, tres acciones equidistantes.
 
 - Tres decisiones: aprobar · solicitar corrección · rechazar. Las dos últimas exigen observación.
+- El detalle dice **quién subió el archivo**, que no siempre es el funcionario: la jefatura y el nivel central pueden cargarlo por él. Es el dato que decide si la evidencia es «propia» para quien la mira, así que sin él la denegación por segregación de funciones (RNF-005) llegaba a la pantalla sin nada que la explicara.
 - **Teclado completo** con las teclas visibles en pantalla: `J` siguiente, `K` anterior, `Enter` aprobar.
 - Orden según el estado: lo pendiente de más antiguo a más nuevo (es una cola); lo decidido al revés (es un historial). Selector para invertirlo.
 - Paginación explícita con "N de TOTAL" y "Cargar más".
@@ -400,7 +401,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 
 | Pendiente | Dónde | Prioridad |
 |---|---|---|
-| 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner | `scripts/cargar-plan-planner.ps1` | Bloqueante |
+| 🔴 **El plan del Planner no está cargado** y el docente dijo que solo revisará el Planner. El CSV ya quedó reescrito contra el estado real (87 tareas, ninguna bloqueada) y va **a mano**: INACAP bloquea el consentimiento de *Microsoft Graph Command Line Tools*, así que ningún script puede cargarlo | [docs/entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf) | Bloqueante |
 | ~~Las evidencias del seed daban 410~~ ✅ **resuelto el 02-09-2026** | El seed inventaba `archivoRuta` (`/evidencias/COD.jpg`) en un formato que `rutaRelativa()` no resuelve, y nunca escribía el archivo. Ahora usa el mismo helper que el alta real y escribe 1.126 ilustraciones sintéticas (`prisma/imagen-demo.ts`, PNG generado sin dependencias) | — |
 | ~~Bloque C: migrar el dashboard al motor v2 y **eliminar la vista materializada v1**~~ ✅ **resuelto el 04-09-2026**: se eliminaron la vista, la tabla `metas`, el modelo `Meta`, `/metas`, `/kpis/cumplimiento`, `/kpis/recalcular` y el cron. Ya no hay dos verdades | — | ✅ |
 | La ficha del rol consulta dice "usa la fila de arriba para registrar" y no hay fila (ese rol no registra): el vacío debe explicar su causa, no señalar algo que no existe | `FichaPage.tsx` | Media |
@@ -433,7 +434,7 @@ Ninguno lo detectó una prueba automatizada: todos aparecieron recorriendo el fl
 
 ## 10. Bloqueos externos y consultas abiertas
 
-- **12 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1, 3 y 12 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código. La **nº 12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad) es la única sobre datos de terceros y la de mayor peso legal.
+- **14 consultas al docente** en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con qué dice cada fuente, qué hicimos mientras tanto y qué cambia con la respuesta. Las nº 1, 3 y 12 viven en `parametro` con `confirmado: false` y se corrigen sin tocar código. La **nº 12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad) es la única sobre datos de terceros y la de mayor peso legal.
 - **Instrucciones verbales sin rúbrica** en [§9.bis](requerimientos-oficiales.md): diagrama de clases, 10 casos de uso, y que solo se revisará el Planner. Se contrastan cuando se publique la rúbrica.
 - **Columnas de asistencia** (licencia, vacaciones, compensatorios): sin definición. **No inventar el cálculo.**
 - **Matriz de roles definitiva**: hoy rige la del Documento Maestro §4; los ajustes solo tocan `middleware/roles.ts` y los checks de alcance.

@@ -1,5 +1,26 @@
 # Diagramas — Matriz SGR
 
+> # ⛔ DOCUMENTO HISTÓRICO — NO USAR COMO FUENTE
+>
+> **Estos diagramas son del 25 de agosto de 2026 y describen el modelo v1, que ya no existe.** Se conservan como registro de cómo se pensó el sistema al principio, no como descripción de lo que hay.
+>
+> **Los diagramas vigentes están en [entrega/](entrega/)**, en PlantUML:
+>
+> | Si buscas… | Está en |
+> |---|---|
+> | Actores y casos de uso | [entrega/casos-uso-general.md](entrega/casos-uso-general.md) y [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) |
+> | Entidades, atributos y relaciones | [entrega/clases.md](entrega/clases.md) y el DER de [entrega/](entrega/) |
+> | Requerimientos y su trazabilidad | [entrega/requerimientos.md](entrega/requerimientos.md) |
+>
+> **Qué tiene de falso este archivo, concretamente** —está enumerado para que nadie copie de aquí por accidente:
+>
+> - **§1** dibuja **4 actores**; son **6** (PDF §3). Y muestra un **cron que recalcula el cumplimiento**: se eliminó en el Bloque C.
+> - **§2** usa casos de uso del modelo v1, que no coinciden con los doce CU de la entrega.
+> - **§3** es un **ERD de 7 tablas** que incluye `metas` y la vista materializada `cumplimiento_ponderado_vista`, **las dos eliminadas**. El esquema real tiene **22 tablas**.
+> - Los umbrales del semáforo que aparecen aquí («verde ≥80, amarillo 50-79, rojo <50») **nunca fueron los del sistema**: son 100% y 60% del objetivo al día, y salen de la tabla de parámetros.
+>
+> Retirarlo o rehacerlo entero es un pendiente declarado en [plan-entrega-15-septiembre.md §5, punto 10](plan-entrega-15-septiembre.md).
+
 **Versión**: 1.0 · **Fecha**: 25 de agosto de 2026
 Formato Mermaid: se renderiza directo en GitHub/VS Code (extensión Markdown Preview Mermaid).
 

@@ -1,0 +1,218 @@
+@startuml der-medicion
+' DER — detalle de la configuración de la medición.
+' Campos y tipos traducidos de backend/prisma/schema.prisma con la tabla de
+' equivalencias de clases.md §9. Las restricciones CHECK son las de la
+' migración 20260901120000_modelo_v2_especificacion_oficial.
+title DER · Configuración de la medición (7 tablas)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 10
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+hide circle
+hide empty methods
+
+entity "periodos" as periodos {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * nombre : VARCHAR(120)
+  * fecha_inicio : DATE
+  * fecha_termino : DATE
+  * estado : ENUM('abierto','cerrado') = 'abierto'
+  o cerrado_en : DATETIME(3)
+  o cerrado_por_id : CHAR(36) <<sin FK>>
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (organization_id, nombre)
+  <<IDX>> (organization_id, estado)
+  <<CHECK>> fecha_termino >= fecha_inicio
+}
+
+entity "parametros" as parametros {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o periodo_id : CHAR(36) <<FK>>
+  * clave : VARCHAR(80)
+  * valor : DECIMAL(12,4)
+  o descripcion : VARCHAR(255)
+  * confirmado : TINYINT(1) = 0
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (organization_id, periodo_id, clave)
+  <<IDX>> (organization_id, clave)
+}
+
+entity "cargos" as cargos {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * nombre : VARCHAR(160)
+  o area : VARCHAR(60)
+  * activo : TINYINT(1) = 1
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (organization_id, nombre)
+  <<IDX>> (organization_id, activo)
+}
+
+entity "items_medicion" as items {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * cargo_id : CHAR(36) <<FK>>
+  * nombre : VARCHAR(200)
+  * tipo : ENUM('cantidad','porcentaje') = 'cantidad'
+  * direccion : ENUM('mayor_mejor','menor_mejor') = 'mayor_mejor'
+  * alimentado_por_tubo : TINYINT(1) = 0
+  * orden : INT = 0
+  * activo : TINYINT(1) = 1
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<IDX>> (organization_id, cargo_id, activo)
+}
+
+entity "metas_item" as metas_item <<asociativa>> {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * item_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  * meta_valor : DECIMAL(12,2)
+  * ponderador : DECIMAL(5,4)
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<UQ>> (periodo_id, item_id, funcionario_id)
+  <<IDX>> (organization_id, periodo_id, funcionario_id)
+  <<CHECK>> meta_valor > 0
+  <<CHECK>> ponderador BETWEEN 0 AND 1
+}
+
+entity "ausencias" as ausencias {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  * tipo : ENUM('licencia','vacaciones','compensatorio','emergencia')
+  * fecha_desde : DATE
+  * fecha_hasta : DATE
+  * dias : INT
+  o observacion : TEXT
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<IDX>> (organization_id, periodo_id, funcionario_id)
+}
+
+entity "ajustes" as ajustes #FFFFFF;line.dashed {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  * registrado_por_id : CHAR(36) <<FK>>
+  * tipo : VARCHAR(20)
+  * motivo : TEXT
+  o canal : VARCHAR(60)
+  o persona_nombre : VARCHAR(160)
+  o persona_contacto : VARCHAR(160)
+  o sector : VARCHAR(120)
+  * fecha : DATE
+  * version : INT = 1
+  * created_at : DATETIME(3) = CURRENT_TIMESTAMP(3)
+  * updated_at : DATETIME(3)
+  --
+  <<IDX>> (organization_id, periodo_id, funcionario_id)
+}
+
+entity "users" as users <<en 32-der-plataforma>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "organizations" as organizations <<en 32-der-plataforma>> {
+  * **id** : CHAR(36) <<PK>>
+}
+
+organizations ||--o{ periodos #DDDDDA
+organizations ||--o{ parametros #DDDDDA
+organizations ||--o{ cargos #DDDDDA
+organizations ||--o{ items #DDDDDA
+organizations ||--o{ metas_item #DDDDDA
+organizations ||--o{ ausencias #DDDDDA
+organizations ||--o{ ajustes #DDDDDA
+
+periodos |o--o{ parametros : da vigencia a >
+periodos ||--o{ metas_item : rige >
+periodos ||--o{ ausencias : descuenta >
+periodos ||--o{ ajustes : afecta >
+
+cargos ||--|{ items : se le mide >
+items ||--o{ metas_item : se le fija >
+
+users ||--o{ metas_item : se le fija >
+users ||--o{ ausencias : se ausenta >
+users ||--o{ ajustes : recibe (funcionario_id) >
+users ||--o{ ajustes : registra (registrado_por_id) >
+
+note bottom of parametros
+  **`periodo_id` nulo significa «valor por defecto de la organización»**
+  (RF-038, ADR-007). Ojo con el UNIQUE: tanto MySQL como PostgreSQL
+  tratan los NULL como distintos entre sí, así que la unicidad de
+  `(organization_id, NULL, clave)` **no la garantiza el índice**; la
+  exige `services/parametros.ts`. Es el mismo comportamiento en los
+  dos motores, así que la traducción no introduce una diferencia.
+end note
+
+note bottom of metas_item
+  **Tabla asociativa con atributos.** Resuelve el N:M entre funcionario
+  e ítem, calificado por período. `ponderador` es la RN-001: los de un
+  funcionario en un período deben sumar exactamente 1,0000. Esa suma
+  cruza filas, así que ningún CHECK puede expresarla: la exige el
+  `PUT /metas-item` del conjunto. El CHECK sí cubre el rango 0..1.
+end note
+
+note right of ajustes
+  **Borde punteado = pendiente.** La tabla existe, pero RF-025 no está
+  implementado: no hay API de ajustes. Los valores del ajuste
+  (+10 % / −20 %) saldrán de `parametros`, nunca del código.
+end note
+
+note top of periodos
+  **`cerrado_por_id` no tiene clave foránea a `users`**, y en el modelo
+  real tampoco la tiene. Se deja igual en el DER en vez de inventarla:
+  el artefacto describe el sistema, no el sistema que quisiéramos.
+  Queda anotado como corrección posterior a la entrega.
+end note
+
+@enduml

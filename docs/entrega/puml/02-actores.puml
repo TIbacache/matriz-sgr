@@ -1,0 +1,70 @@
+@startuml actores
+' Relación actor - épica. Un actor se une a una épica cuando la ejecuta
+' o la consume, no cuando simplemente puede verla.
+title Quién necesita qué: actores y épicas
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam actorStyle awesome
+skinparam actor {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+
+left to right direction
+
+actor "Administrador" as ADM
+actor "Coordinador" as COO
+actor "Delegado" as DEL
+actor "Funcionario" as FUN
+actor "Verificador" as VER
+actor "Usuario de consulta" as CON
+
+rectangle "EP-01\nRegistro de actividades" as EP01
+rectangle "EP-02\nMedición y desempeño" as EP02
+rectangle "EP-03\nEvidencias y verificación" as EP03
+rectangle "EP-04\nAgenda colectiva" as EP04
+rectangle "EP-05\nMonitoreo y control" as EP05
+rectangle "EP-06\nReportabilidad" as EP06
+rectangle "EP-07\nPlataforma colaborativa" as EP07
+rectangle "EP-08\nAdministración y trazabilidad" as EP08
+
+FUN --> EP01
+FUN --> EP02
+FUN --> EP03
+FUN --> EP04
+FUN --> EP07
+
+VER --> EP03
+
+DEL --> EP04
+DEL --> EP05
+DEL --> EP06
+
+COO --> EP02
+COO --> EP05
+COO --> EP06
+COO --> EP08
+
+ADM --> EP02
+ADM --> EP05
+ADM --> EP08
+
+CON --> EP06
+
+note bottom of VER
+  El Verificador toca **una sola épica**.
+  Es RNF-005 dibujado: mínimo privilegio
+  y segregación de funciones.
+end note
+
+@enduml

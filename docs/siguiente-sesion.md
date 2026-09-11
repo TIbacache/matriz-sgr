@@ -1,6 +1,6 @@
 # Siguiente sesión — qué sigue y en qué orden
 
-**Actualizado**: 6 de septiembre de 2026 (cierre del panel RF-030 y plan de la entrega del 15 de septiembre)
+**Actualizado**: 11 de septiembre de 2026 (la entrega completa: criterios 2 a 8 y el informe)
 
 Este documento existe para que una sesión nueva retome sin perder contexto. **Se actualiza al terminar cada bloque de trabajo.**
 
@@ -18,10 +18,11 @@ Este documento existe para que una sesión nueva retome sin perder contexto. **S
 | Pantallas del modelo v2 | ✅ Ficha personal, bandeja del verificador, configuración de metas, **ficha del vecino** y **dashboard**; faltan las de administración (períodos, cargos, catálogos) |
 | **Cálculo único** | ✅ El Bloque C eliminó la vista materializada v1, la tabla `metas`, `/metas`, `/kpis/cumplimiento` y el cron. Ya no hay dos verdades |
 | **Identidad visual de La Serena** (DESIGN §10) | ✅ Bloque D0: tokens, barra, login, tipografía; 83 comprobaciones de contraste y capturas de los seis roles |
+| **Entrega del 15 de septiembre** (análisis y diseño, 100 pts) | 🟢 **100 de 100 cubiertos, con el informe escrito**: criterios 2 a 8 cerrados y [entrega/informe.md](entrega/informe.md) con sus cuatro tablas de trazabilidad. Falta **cargar el Planner** (criterio 1, trabajo a mano) y pegar su captura en el §10 del informe. 343 comprobaciones de coherencia en verde |
 | Pruebas en marco formal (Jest/RTL) + CI | ⬜ No existen |
 | Despliegue (Fase 5) | ⬜ No iniciado |
 
-Cumplimiento contra los 38 RF oficiales: **22 ✅ · 9 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
+Cumplimiento contra los 38 RF oficiales: **23 ✅ · 8 🟡 · 7 ⬜** (antes del Bloque A: 5 · 13 · 20). El **Bloque C** cerró RF-024 y RF-027: el tope y los umbrales del semáforo dejaron de estar escritos en SQL. **CA-04, CA-08 y CA-09 en ✅**: el A3 cerró los dos de concurrencia y auditoría, el B4 el caso social con sus tres gestiones, y el B5 la solicitud del vecino en el tubo — con él **EP-01 queda completa**. El eje **actividad → código → evidencia → validación → puntaje** funciona de extremo a extremo, la configuración de **cargo → ítems → metas** que lo alimenta también, y desde el Bloque B3 el sistema además **detecta a la misma persona atendida en varias delegaciones**, que es lo que el cliente vino a buscar.
 
 ## 2. Antes de escribir una línea: auditar
 
@@ -185,12 +186,27 @@ Docker de producción, CI/CD a ghcr.io, VPS con Caddy y HTTPS, respaldos.
 
 **Lo que sigue, en este orden** (acordado el 3 de septiembre al cerrar el Bloque C):
 
-1. **El Planner** — el docente dijo que **solo** revisará el Planner: lo que no esté adjunto ahí no se evalúa. ⚠ **El tablero ya existe y no está vacío**: lo construyó Héctor con los siete depósitos de la plantilla y cinco tareas de la entrega (GIT, MockUps, MER, UML, Clases) con vencimiento 15/9. Lo que falta es la tarea del **diagrama de requerimientos** y poblar **Desarrollo y Pruebas**, que están vacíos y hacen parecer que el desarrollo no empezó. **No ejecutar `cargar-plan-planner.ps1` a ciegas**: crearía duplicados conceptuales y el CSV está desfasado. Detalle en [plan-entrega-15-septiembre.md §1.bis](plan-entrega-15-septiembre.md).
-2. **Entrega del 15 de septiembre** — plan operativo completo en **[plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md)**, escrito contra la rúbrica oficial (100 pts, 8 criterios). Lo esencial: **85 de los 100 puntos dependen de artefactos que hoy no existen o describen el modelo v1**, y solo 10 dependen del software, que es lo que está terminado. Hay que crear de cero el diagrama de requerimientos, el de clases y los 12 casos de uso con sus fichas, y rehacer el caso de uso general y el DER. El script se pide en **MySQL** y el sistema corre en PostgreSQL: decisión D-1 del plan y **consulta abierta nº 13**.
+1. **El Planner** — el docente dijo que **solo** revisará el Planner: lo que no esté adjunto ahí no se evalúa. ⚠ **El tablero ya existe y no está vacío**: lo construyó Héctor con los siete depósitos de la plantilla y cinco tareas de la entrega (GIT, MockUps, MER, UML, Clases) con vencimiento 15/9. Lo que falta es la tarea del **diagrama de requerimientos** y poblar **Desarrollo y Pruebas**, que están vacíos y hacen parecer que el desarrollo no empezó. **Estado al 9 de septiembre**: el CSV quedó reescrito (87 tareas, ninguna bloqueada, sin títulos que choquen con los de Héctor), y **la carga va a mano** con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf), en seis tandas. ⚠ **No intentar automatizarlo otra vez**: INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, así que cualquier script de PowerShell contra Microsoft 365 muere en «Need admin approval», incluso pidiendo solo `Tasks.ReadWrite`. Probado y documentado en [guia-cargar-planner.md](guia-cargar-planner.md). Detalle en [entrega/planner-delta.md](entrega/planner-delta.md).
+2. **Entrega del 15 de septiembre** — ✅ **los artefactos están todos escritos** (criterios 2 a 8 y el informe), con 343 comprobaciones de coherencia en verde. Estado por criterio en **[entrega/README.md](entrega/README.md)**; el plan operativo original, contra la rúbrica, sigue en [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md). ⚠ **Lo que falta no es documentación**: cargar el Planner a mano y **publicar la rama en GitHub**, sin lo cual el enlace del informe no lleva a ninguna parte. El script se pide en **MySQL** y el sistema corre en PostgreSQL: decisión D-1 del plan y **consulta abierta nº 13**.
 3. ~~**Panel de actividad de usuarios** (RF-030, HU-19)~~ ✅ **terminado el 4 de septiembre**: `/actividad` responde las tres preguntas del docente —quién registró, **quién no** y quién está conectado—, con presencia a nivel de organización y alcance restringido a admin y coordinador ([ADR-015](decisiones-tecnicas.md)).
 4. **Bloque D — pruebas formales y CI**, y después el **Bloque E — despliegue**.
 
 Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo que los contiene, no como bloque propio.
+
+### 4.bis Cuatro desvíos entre el requerimiento y el código, encontrados al escribir los artefactos de la entrega
+
+Los tres primeros salieron de contrastar cada caso de uso con su RF oficial (criterio 4 de la entrega, 10 de septiembre); el cuarto, de extraer las 52 claves foráneas una por una para el DER (criterio 6, el mismo día). **No son decisiones de diseño: son incumplimientos**, y están declarados como tales en [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) y en [entrega/der.md §14](entrega/der.md) en vez de disimularse describiendo el código como si fuera el requisito.
+
+| # | RF | Qué pide | Qué hay | Costo estimado |
+|---|---|---|---|---|
+| **D-a** | **RF-016** | La creación de compromisos del tubo es del **Funcionario** y del Delegado | `POST /tareas` la restringe a `admin`, `supervisor` y `gerente`: el funcionario **mueve** sus compromisos pero no puede **crearlos**. La restricción viene de la matriz de permisos del Documento Maestro —la fuente más baja de la jerarquía— y quedó por encima del RF sin que nadie lo decidiera | Bajo: un rol más en `requireRol`, más la prueba de alcance |
+| **D-b** | **RF-018** y **RF-019** | Cuatro estados (Ingresado → Pendiente → En proceso → Realizado) con **historial de transiciones**; alertas de «próximo a vencer» y «realizado fuera de plazo» | Tres estados y solo se marcan los vencidos. ⚠ **`tarea_historial` existe y el seed la llena, pero `src/` nunca escribe en ella**: el historial se ve poblado en la demo y no se llenaría en uso real. El recorrido se reconstruye desde la bitácora | Bajo para el historial (un `create` en el PATCH de tareas); medio para los estados y las alertas |
+| **D-c** | **RF-036** | Trazabilidad **consultable** | Se audita todo write crítico, pero falta la pantalla para leer la bitácora | Medio: una pantalla nueva con filtros |
+| **D-d** | Integridad referencial | `periodos.cerrado_por_id` guarda **quién cerró el período** y debería ser clave foránea a `users` | **No la tiene.** No estaba declarado en ninguna parte: apareció al extraer las 52 FK de las migraciones para el DER. Hoy nada impide que ese `id` apunte a un usuario borrado o inexistente, y RN-013 exige poder responder quién cerró y reabrió un período | Bajo: una FK con `ON DELETE RESTRICT`, igual que `ajustes.registrado_por_id`, que es el caso análogo y sí la tiene. Requiere migración |
+
+**D-a es el más barato y el que más se nota**, porque contradice el uso diario que el cliente describió. Conviene resolverlo antes de que el desvío se consolide como si fuera la regla.
+
+**D-d entra en la lista de «tablas y columnas sin dueño»** de más abajo, y confirma que esa auditoría vale la pena: la encontró un artefacto de documentación, no una prueba.
 
 | Cabo | Dónde | Prioridad |
 |---|---|---|
@@ -222,13 +238,14 @@ Los cabos sueltos de prioridad Media (abajo) se toman cuando toquen el archivo q
 | **Entrega del 15 de septiembre**: plan operativo en [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md), contra la rúbrica oficial. La [guía en .docx](Guia-Entregables-15-septiembre.docx) es del 1 de septiembre (`v0.7.1`) y quedó desfasada: sirve su paso a paso y su ficha de ejemplo de CU-03, no su estado | documentación | **Alta, con fecha** |
 | 🔴 **`docs/diagramas.md` describe el modelo v1**: `metas`, la vista materializada, el cron y umbrales «50-79» que nunca existieron. Cuatro diagramas del 25 de agosto. Presentarlos en la entrega sería describir un sistema que no es el nuestro | `docs/diagramas.md` | **Alta** |
 | **No existe diagrama de clases** (15 pts de la rúbrica) ni **casos de uso con ficha** (20 pts). Es el 35% de la nota de la primera evaluación | `docs/entrega/` | **Alta** |
-| `README.md` dice «11 ADR» y son 15; `historias-usuario.md` sigue en las 20 historias propias sin decir que las 31 oficiales mandan | README, docs | Media |
+| ~~`README.md` dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente: `historias-usuario.md` está en las 20 historias propias sin decir que **las 31 oficiales mandan** sobre ellas | `docs/historias-usuario.md` | Media |
+| **El anti-trampa de las emergencias funciona a medias.** El cliente lo pidió expresamente (reunión 01:09:46: *"hay gente que se aprovecha de la emergencia y hace mil cosas"*) y tiene tres palancas: el **tope por ítem** ✅, la **emergencia como ítem al 5%** ✅ y el **descuento de los días de emergencia** del objetivo al día — que el motor sí aplica, pero **`Ausencia` no tiene API ni pantalla**, así que hoy esos días solo se cargan en la base. Es la pieza que falta para que el control sea usable. Consulta abierta nº 14 | `Ausencia`, sin ruta | **Alta** |
 | Falta alternativa por teclado en el drag & drop (dnd-kit `KeyboardSensor`) | `KanbanBoard.tsx` | Media |
 | **`GET /cumplimiento/:periodoId` entrega el detalle por funcionario a todos los roles.** El consolidado del tablero no lo necesita, pero el detalle individual roza la consulta abierta nº 11. Detectado en el Bloque C, anotado y no cambiado en silencio | `cumplimiento.routes.ts` | Media |
 | **El seed tarda ~15 minutos**: genera y escribe ~2.400 PNG de evidencia uno por uno. Se arregla escribiendo en paralelo; no bloquea nada, pero conviene saberlo antes de correrlo | `prisma/seed.ts` | Baja |
 | `npm audit`: 3 vulnerabilidades en el CLI de Prisma (dev, no producción) | — | Baja |
 
-## 5. Las 12 consultas al docente
+## 5. Las 14 consultas al docente
 
 Están en [requerimientos-oficiales.md §10](requerimientos-oficiales.md), con tabla de impacto al inicio. **No inventar respuestas.** Mientras no lleguen, los valores viven en `parametro` con `confirmado: false`. Cinco nacieron construyendo: la **8** (si una aprobación puede revertirse), la **9** (si el verificador es transversal o por delegación), la **10** (antivirus y retención de evidencias, RNF-017 — la única que puede implicar costo), la **11** (si un funcionario ve las metas de sus pares) y la **12** (quién consulta la ficha del vecino y con qué ventana se avisa la duplicidad — la única sobre datos de **terceros**, y la de mayor peso legal). Las dos que más impactan en el cálculo:
 
@@ -274,6 +291,10 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 - **Una pantalla que nace vacía necesita una URL que la llene** para poder capturarla o generar su mockup. `/vecinos` acepta `?q=` y `?id=`, que además sirven para compartir el enlace de una ficha.
 - **El contraste no se juzga a ojo**: 4.1:1 y 4.5:1 se ven iguales. `npm run verificar:contraste` antes de cada merge que toque `tokens.css` o un color de texto.
 - **Un mockup .html no se da por bueno hasta abrirlo desde `file://` sin red**: ECharts pinta en `<canvas>` y esos píxeles **no** sobreviven a serializar el HTML (el tablero salía con las tarjetas vacías). Se convierte cada canvas a `<img>` **conservando su `style`**, porque ECharts apila capas absolutas y sin eso el heatmap pierde las celdas. Lo cubre `npm run verificar:mockups`.
+- **Una regla que el seed nunca produce es una regla que no se puede demostrar.** RNF-005 (nadie valida lo propio) estaba implementada, probada por la API y **era incapturable**: las tres cuentas que validan no tienen cargo, así que ninguna de las 2.058 evidencias sembradas les pertenecía. Al armar un escenario para el mockup, comprobar contra la base que el caso **ocurre**, antes de escribir el hook que lo captura. Se arregló dando vuelta la pregunta: la regla también se dispara por *quién sube* la evidencia, y eso no exigió inventarle actividades a nadie.
+- **Un escenario que no se produce no se guarda igual.** Si el generador de mockups no encuentra el elemento que iba a retratar, tiene que fallar, no caer a «página entera»: una captura de la pantalla normal con el nombre del caso de error es un entregable que miente y nadie lo nota hasta la corrección.
+- **Dos elementos con la misma clase y el selector se lleva el equivocado.** El tablero tiene dos `.dash-aviso` —los parámetros provisionales y la delegación sin medición— y el recorte retrató el primero. Para capturar un mensaje concreto, filtrar por su texto (`:has-text()`), no por su clase.
+- **Para mostrar un error de formato, sacar el foco del campo sin entrar a otro** (`locator.blur()`). Hacer clic en el campo de al lado le pinta *su* anillo de foco y la captura sugiere dos campos con problema en vez de uno.
 - **Un SVG de escena que sangra hasta los bordes necesita `meet` + `aspect-ratio` para no recortarse, y entonces el "suelo" (mar, tierra) debe extenderse fuera del viewBox** con `overflow: visible`; si no, a un ancho distinto del que se probó aparece un rectángulo. Probar el arte a 1900, 1440 y 390 px, no a uno solo.
 
 ## 7. Definición de terminado

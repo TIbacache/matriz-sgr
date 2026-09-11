@@ -1,0 +1,198 @@
+@startuml clases-medicion
+' Diagrama de clases — dominio de la medición.
+' Estructura y tipos salen de backend/prisma/schema.prisma; las operaciones,
+' de las rutas y servicios que las implementan (ver 27-clases-servicios).
+' Los nombres son los MISMOS del DER: la rúbrica evalúa esa coherencia.
+title Diagrama de clases — Dominio de la medición
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+' La rubrica §6.1 pide la visibilidad como + - #, no como iconos de color.
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+class Periodo <<entity>> {
+  +id : UUID
+  +nombre : String
+  +fechaInicio : Date
+  +fechaTermino : Date
+  +estado : EstadoPeriodo
+  +cerradoEn : DateTime [0..1]
+  +cerradoPorId : UUID [0..1]
+  #version : Int
+  --
+  +cerrar(porId : UUID) : void
+  +reabrir(porId : UUID, motivo : String) : void
+  +diasTotales() : Int
+  +diasTranscurridos(hoy : Date) : Int
+  +estaAbierto() : Boolean
+}
+
+class Parametro <<entity>> {
+  +id : UUID
+  +clave : String
+  +valor : Decimal
+  +descripcion : String [0..1]
+  +confirmado : Boolean
+  #version : Int
+  --
+  +valorVigente(clave : String, periodo : UUID) : Decimal
+  +estaConfirmado() : Boolean
+}
+
+class Cargo <<entity>> {
+  +id : UUID
+  +nombre : String
+  +area : String [0..1]
+  +activo : Boolean
+  #version : Int
+  --
+  +agregarItem(item : ItemMedicion) : void
+  +desactivar() : void
+}
+
+class ItemMedicion <<entity>> {
+  +id : UUID
+  +nombre : String
+  +tipo : TipoItem
+  +direccion : DireccionItem
+  +alimentadoPorTubo : Boolean
+  +orden : Int
+  +activo : Boolean
+  #version : Int
+  --
+  +perteneceA(cargo : Cargo) : Boolean
+  +desactivar() : void
+}
+
+class MetaItem <<entity>> {
+  +id : UUID
+  +metaValor : Decimal
+  +ponderador : Decimal
+  #version : Int
+  --
+  +sumaPonderadores(funcionario : UUID, periodo : UUID) : Decimal
+  +cumpleRN001() : Boolean
+  +tieneAvanceValidado() : Boolean
+}
+
+class Actividad <<entity>> {
+  +id : UUID
+  +codigo : String <<inmutable>>
+  +fecha : Date
+  +descripcion : String
+  +accion : String [0..1]
+  +contactoNombre : String [0..1]
+  +contactoFono : String [0..1]
+  +ingresoATubo : Boolean
+  +anulada : Boolean
+  +motivoAnulacion : String [0..1]
+  #version : Int
+  --
+  +registrar() : Actividad
+  +generarCodigo(area : String, fecha : Date) : String
+  +anular(motivo : String, version : Int) : void
+  +estaValidada() : Boolean
+}
+
+class Evidencia <<entity>> {
+  +id : UUID
+  +archivoNombre : String
+  +archivoRuta : String
+  +mimeType : String
+  +tamanoBytes : Int
+  +subidaPorId : UUID
+  +createdAt : DateTime
+  --
+  +rutaDesdeCodigo(codigo : String, sec : Int) : String
+  +formatoPermitido(mime : String) : Boolean
+  +dentroDelTamanoMaximo() : Boolean
+}
+
+class Validacion <<entity>> {
+  +id : UUID
+  +decision : DecisionValidacion
+  +observacion : String [0..1]
+  +decididaEn : DateTime [0..1]
+  +verificadorId : UUID
+  --
+  +decidir(d : DecisionValidacion, obs : String) : void
+  +esAprobada() : Boolean
+  +exigeObservacion() : Boolean
+  +esValidacionPropia(usuario : UUID) : Boolean
+}
+
+class Ausencia <<entity>> {
+  +id : UUID
+  +tipo : TipoAusencia
+  +fechaDesde : Date
+  +fechaHasta : Date
+  +dias : Int
+  +observacion : String [0..1]
+  #version : Int
+  --
+  +diasEnPeriodo(periodo : Periodo) : Int
+}
+
+class Ajuste <<entity>> #FFFFFF;line.dashed {
+  +id : UUID
+  +tipo : String
+  +motivo : String
+  +canal : String [0..1]
+  +fecha : Date
+  +registradoPorId : UUID
+  #version : Int
+  --
+  +factor() : Decimal
+}
+
+Periodo "1" *-- "0..*" MetaItem : rige >
+Periodo "1" o-- "0..*" Actividad : contiene >
+Periodo "1" o-- "0..*" Ausencia
+Periodo "1" o-- "0..*" Ajuste
+Periodo "1" o-- "0..*" Parametro : vigencia >
+
+Cargo "1" *-- "1..*" ItemMedicion : se le mide >
+ItemMedicion "1" o-- "0..*" MetaItem
+ItemMedicion "1" o-- "0..*" Actividad : suma a >
+
+Actividad "1" *-- "0..*" Evidencia : respalda >
+Evidencia "1" *-- "0..*" Validacion : decide >
+
+note bottom of Actividad
+  **`codigo` es inmutable**: un disparador en la base impide su UPDATE
+  (RF-011). La composición con Evidencia es real: una evidencia no
+  existe sin su actividad, y se borra con ella.
+end note
+
+note right of Ajuste
+  **Borde punteado = pendiente.** La tabla existe en el modelo,
+  pero **RF-025 no está implementado**: no hay API de ajustes.
+  Misma convención que el diagrama de requerimientos.
+end note
+
+note top of Periodo
+  **Toda clase de negocio lleva además `-organizationId : UUID`**
+  (multi-tenant, regla 8). Se omite en el dibujo para no repetirlo
+  veintidós veces; en el DER está en todas las tablas.
+  **`#version : Int`** es el bloqueo optimista: conflicto → 409 (ADR-005).
+end note
+
+@enduml

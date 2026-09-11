@@ -1,0 +1,175 @@
+@startuml clases-agenda-personas
+' Diagrama de clases — agenda colectiva (el tubo) y personas atendidas.
+' Estructura y tipos: backend/prisma/schema.prisma. Operaciones: rutas y
+' servicios que las implementan (ver 27-clases-servicios).
+title Diagrama de clases — Agenda colectiva y personas atendidas
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+' La rúbrica §6.1 pide la visibilidad como + - #, no como iconos de color.
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+
+class UnidadTerritorial <<entity>> {
+  +id : UUID
+  +nombre : String
+  +responsableId : UUID [0..1]
+  +activo : Boolean
+  #version : Int
+  --
+  +desactivar() : void
+  +esResponsable(usuario : UUID) : Boolean
+}
+
+class CategoriaGestion <<entity>> {
+  +id : UUID
+  +nombre : String
+  +ordenPrioridad : Int
+  #version : Int
+}
+
+class Tarea <<entity>> {
+  +id : UUID
+  +titulo : String
+  +descripcion : String [0..1]
+  +estado : String
+  +fechaCompromiso : Date [0..1]
+  +responsableId : UUID [0..1]
+  +interesExterno : Boolean
+  +fechaSolicitud : Date [0..1]
+  +solicitante : String [0..1]
+  +territorio : String [0..1]
+  +areaApoyo : String [0..1]
+  +observaciones : String [0..1]
+  +cerradaFueraPlazo : Boolean
+  +fechaCierre : Date [0..1]
+  +computadaEnMeta : Boolean
+  #version : Int
+  --
+  +crear() : Tarea
+  +moverA(estado : String, version : Int) : void
+  +esExterna() : Boolean
+  +estaVencida(hoy : Date) : Boolean
+  +solicitudCompleta() : Boolean
+}
+
+class TareaHistorial <<entity>> #FFFFFF;line.dashed {
+  +id : UUID
+  +estadoAnterior : String [0..1]
+  +estadoNuevo : String
+  +autorId : UUID
+  +observacion : String [0..1]
+  +createdAt : DateTime
+}
+
+class PersonaUsuaria <<entity>> {
+  +id : UUID
+  +rut : String [0..1]
+  +nombres : String
+  +apellidoPaterno : String
+  +apellidoMaterno : String [0..1]
+  +telefono : String [0..1]
+  +direccion : String [0..1]
+  +sector : String [0..1]
+  #version : Int
+  --
+  +normalizarRut(entrada : String) : String
+  +nombreCompleto() : String
+  +historial(visibles : UUID[]) : HechoHistorial[]
+  +detectarDuplicidad(ventanaDias : Int) : AvisoDuplicidad
+}
+
+class AtencionSocial <<entity>> {
+  +id : UUID
+  +tipoAtencion : String
+  +subAtencion : String [0..1]
+  +requiereVisita : Boolean
+  +primeraGestion : String [0..1]
+  +fechaProgramadaVisita : Date [0..1]
+  +observacion : String [0..1]
+  +segundaGestion : String [0..1]
+  +fechaVisita : Date [0..1]
+  +fechaEntregaInforme : Date [0..1]
+  +terceraGestion : String [0..1]
+  +fechaEntregaBeneficio : Date [0..1]
+  #version : Int
+  --
+  +registrarGestion(valor : String, fechas : Date[]) : void
+  +siguienteGestion() : Int [0..1]
+  +gestionesRegistradas() : Int
+  +estaCerrada() : Boolean
+}
+
+class Comentario <<entity>> #FFFFFF;line.dashed {
+  +id : UUID
+  +entidad : String
+  +entidadId : UUID
+  +autorId : UUID
+  +texto : String
+  +createdAt : DateTime
+}
+
+class Actividad <<entity>> #FAFAF8 {
+  +codigo : String <<inmutable>>
+  .. ver 24-clases-medicion ..
+}
+
+UnidadTerritorial "1" o-- "0..*" Tarea : agenda de >
+CategoriaGestion "1" o-- "0..*" Tarea : clasifica >
+Tarea "1" *-- "0..*" TareaHistorial : recorrido >
+Tarea "1" o-- "0..*" Actividad : se ejecuta como >
+
+PersonaUsuaria "0..1" o-- "0..*" Tarea : solicita >
+PersonaUsuaria "0..1" o-- "0..*" Actividad : es atendida en >
+
+Actividad "1" *-- "0..1" AtencionSocial : caso social >
+
+note bottom of TareaHistorial
+  **Borde punteado = pendiente.** La tabla existe y el seed la llena,
+  pero **la aplicación nunca escribe en ella**: el recorrido real se
+  reconstruye desde `Auditoria`, que distingue el cambio de estado.
+  RF-018 queda parcial mientras eso siga así.
+end note
+
+note bottom of Comentario
+  **Borde punteado = pendiente**: la tabla existe, pero **RF-035 no está
+  implementado** (no hay API de comentarios).
+  Y aparece **sin asociación a propósito**: su vínculo es polimórfico
+  —`entidad` + `entidadId` apuntan a una tarea, una actividad o una
+  meta—, así que no puede tener una clave foránea a una tabla concreta.
+  En el DER se ve igual: una tabla sin FK hacia lo que comenta.
+end note
+
+note right of PersonaUsuaria
+  **El RUT es único por ORGANIZACIÓN, no por delegación** (ADR-008).
+  Esa sola decisión es lo que hace detectable al vecino que pide lo
+  mismo en varias delegaciones: sin ella habría una ficha por
+  delegación y el cruce sería imposible.
+  ⚠ La PK es `id : UUID`; **el RUT no es clave foránea de nada**.
+end note
+
+note right of AtencionSocial
+  **Composición 1:1 con Actividad**: la atención social no existe sin
+  su actividad y se borra con ella (RF-015). Las tres gestiones son un
+  **avance**, no tres campos sueltos: el servidor decide el casillero,
+  así que no se puede saltar la primera ni registrar una cuarta.
+end note
+
+@enduml

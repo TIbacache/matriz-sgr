@@ -1,0 +1,79 @@
+@startuml rnf
+' Los 18 requerimientos no funcionales, agrupados por atributo de calidad
+title Requerimientos no funcionales (18)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+
+
+rectangle "**Seguridad y privacidad**" as SEG #EFEDE8
+rectangle "**Operación y capacidad**" as OPE #EFEDE8
+rectangle "**Integridad de los datos**" as DAT #EFEDE8
+rectangle "**Experiencia de uso**" as EXP #EFEDE8
+rectangle "**Evolución**" as EVO #EFEDE8
+
+rectangle "<<requirement>>\n**RNF-004**\nAutenticación con\nidentidad individual" as RNF004
+rectangle "<<requirement>>\n**RNF-005**\nAutorización con mínimo\nprivilegio y segregación" as RNF005
+rectangle "<<requirement>>\n**RNF-006**\nConfidencialidad y cifrado\nen tránsito\n//parcial//" as RNF006
+rectangle "<<requirement>>\n**RNF-008**\nAuditoría con valor\nanterior y nuevo\n//parcial//" as RNF008
+rectangle "<<requirement>>\n**RNF-009**\nPrivacidad y minimización\nde datos personales\n//pendiente//" as RNF009 #FFFFFF;line.dashed
+
+rectangle "<<requirement>>\n**RNF-001**\nDisponibilidad 99,5%\n//pendiente//" as RNF001 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RNF-002**\nRendimiento 2 s en registro\ny 5 s en tableros\n//parcial//" as RNF002
+rectangle "<<requirement>>\n**RNF-003**\nConcurrencia sin\nsobrescritura silenciosa\n//parcial//" as RNF003
+rectangle "<<requirement>>\n**RNF-014**\nEscalabilidad sin\nrediseñar" as RNF014
+rectangle "<<requirement>>\n**RNF-018**\nMonitoreo con métricas\ny alertas\n//pendiente//" as RNF018 #FFFFFF;line.dashed
+
+rectangle "<<requirement>>\n**RNF-007**\nIntegridad de formatos\ny relaciones\n//parcial//" as RNF007
+rectangle "<<requirement>>\n**RNF-010**\nRespaldo con RPO 24 h\ny RTO 4 h\n//pendiente//" as RNF010 #FFFFFF;line.dashed
+rectangle "<<requirement>>\n**RNF-017**\nGestión de evidencias\ny retención\n//parcial//" as RNF017
+
+rectangle "<<requirement>>\n**RNF-011**\nUsabilidad para quien\nno maneja planillas" as RNF011
+rectangle "<<requirement>>\n**RNF-012**\nAccesibilidad por teclado\ny contraste\n//parcial//" as RNF012
+rectangle "<<requirement>>\n**RNF-013**\nCompatibilidad Chrome,\nEdge y móvil\n//parcial//" as RNF013
+
+rectangle "<<requirement>>\n**RNF-015**\nMantenibilidad sin\ncambios de código\n//parcial//" as RNF015
+rectangle "<<requirement>>\n**RNF-016**\nInteroperabilidad y\nexportación estructurada\n//pendiente//" as RNF016 #FFFFFF;line.dashed
+
+SEG --> RNF004
+SEG --> RNF005
+SEG --> RNF006
+SEG --> RNF008
+SEG --> RNF009
+OPE --> RNF001
+OPE --> RNF002
+OPE --> RNF003
+OPE --> RNF014
+OPE --> RNF018
+DAT --> RNF007
+DAT --> RNF010
+DAT --> RNF017
+EXP --> RNF011
+EXP --> RNF012
+EXP --> RNF013
+EVO --> RNF015
+EVO --> RNF016
+
+RNF004 ..> RNF005 : <<deriveReqt>>
+RNF005 ..> RNF008 : <<deriveReqt>>
+RNF005 ..> RNF009 : <<deriveReqt>>
+
+note bottom of RNF005
+  **La cadena legal del sistema.**
+  Sin identidad individual no hay autorización;
+  sin autorización la auditoría no atribuye nada;
+  y la privacidad se implementa como alcance por rol.
+  Leyes 21.663, 19.628 y 21.719.
+end note
+
+@enduml

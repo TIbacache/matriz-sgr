@@ -1,0 +1,48 @@
+@startuml 14-cu-04
+' CU-04 · Configurar metas y ponderadores — caso de uso detallado.
+' El caso con su actor, sus casos incluidos y sus casos de extensión.
+' La explicación de cada paso va en la FICHA, no en el diagrama: la
+' rúbrica §5.4 pide el detalle en la ficha textual (casos-uso-detalle.md).
+title CU-04 · Configurar metas y ponderadores
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 11
+skinparam actorStyle awesome
+skinparam actor {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+}
+skinparam rectangle {
+  BackgroundColor #FAFAF8
+  BorderColor #B9BDBF
+  FontColor #5B6166
+}
+
+actor "Administrador" as ADM
+actor "Coordinador\ndel sistema" as COO
+
+rectangle "**SGR** — M1 · Configuración" #FFFFFF {
+  usecase "CU-04\nConfigurar metas\ny ponderadores" as CU04
+  usecase "CU-E4\nInformar conflicto\nde versión" as CUE4
+  usecase "CU-I3\nRegistrar en la bitácora\nde auditoría" as CUI3
+}
+
+ADM --> CU04
+COO --> CU04
+
+CU04 ..> CUI3 : <<include>>
+
+CUE4 ..> CU04 : <<extend>>\n[la versión enviada\nya no es la vigente]
+
+@enduml

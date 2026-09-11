@@ -34,3 +34,7 @@ Thumbs.db
 
 # Docker
 docker-volumes/
+
+# Intermedio de scripts/pdf.mjs con --conservar-html: se borra solo, salvo
+# cuando se pide conservarlo para depurar. No entra al repositorio.
+*.tmp.html

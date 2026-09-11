@@ -1,9 +1,9 @@
 # Prompt para abrir una sesión nueva
 
-Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada bloque, junto con [siguiente-sesion.md](siguiente-sesion.md).
+Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
-**Última actualización**: 6 de septiembre de 2026 · `main` en la etiqueta `v0.15.0-control-actividad`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). El código está terminado para esta entrega; lo que falta son los artefactos de análisis y diseño. El Planner **ya existe** (lo construyó Héctor) y hay que completarlo, no cargarlo de cero.
+**Última actualización**: 11 de septiembre de 2026 · rama `entrega/analisis-diseno`, **sin publicar en GitHub**
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **100 puntos cubiertos y el informe escrito**: criterios 2 a 8 cerrados. Se retoma en la **documentación viva desfasada**, y queda cargar el Planner a mano.
 
 ---
 
@@ -11,213 +11,199 @@ Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya e
 Continuamos el proyecto SGR (Sistema de Gestión de Resultados), en
 c:\Users\zgf\Documents\Scripts\matriz-sgr.
 
-Esta sesión NO es de código: es la entrega del 15 de septiembre, que es de
-análisis y diseño. La rúbrica lo dice literal: "Para esta entrega no se
-evaluará conexión con base de datos ni consumo de API". De 100 puntos, 85
-dependen de artefactos que hoy no existen o describen un modelo que ya no
-existe, y solo 10 dependen del software, que es lo único terminado.
+Estamos en la rama entrega/analisis-diseno, que NO está mergeada a main.
+Esta sesión NO es de código de producto: es la entrega del 15 de septiembre,
+de análisis y diseño. La rúbrica lo dice literal: "Para esta entrega no se
+evaluará conexión con base de datos ni consumo de API".
 
 LEE PRIMERO, EN ESTE ORDEN:
 
-1. docs/plan-entrega-15-septiembre.md — EL PLAN DE ESTA SESIÓN. Tiene la
-   rúbrica criterio por criterio contra lo que hay, las tres decisiones
-   tomadas (D-1 MySQL, D-2 alcance de los CU, D-3 escenarios alternativos),
-   los 12 casos de uso ya elegidos con su actor y su pantalla, el orden de
-   trabajo y el reparto entre las dos personas. Todo lo demás es apoyo.
-2. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA: los ocho
-   criterios con su puntaje, la ficha mínima de cada caso de uso, la condición
-   de los 10 mínimos, la validación de consistencia DER↔script y la cadena de
-   artefactos que espera el docente. Los dos PDF originales están versionados
-   en docs/ (la rúbrica y "Relación entre los artefactos"): ante cualquier
-   duda, mandan ellos.
-3. CLAUDE.md — reglas del proyecto y estado real del código.
-4. docs/requerimientos-oficiales.md — los 38 RF, 18 RNF, 13 RN, 10 CA y 31 HU.
-   Su §10 son las 13 consultas abiertas: NO inventar esas respuestas.
-5. docs/estado-proyecto.md — cuentas y roles (§1), contrato de la API (§3) y
-   las pantallas (§6). Es de dónde salen los nombres que deben coincidir en
-   todos los artefactos.
-6. docs/Guia-Entregables-15-septiembre.docx — es del 1 de septiembre (v0.7.1)
-   y su estado está desfasado, PERO su §10.4 tiene la ficha de CU-03 ya
-   redactada, que sirve de plantilla para las otras once.
+1. docs/entrega/README.md — EL ESTADO. Qué criterio está listo, las decisiones
+   ya tomadas para no rediscutirlas y lo que no se toca. Sus secciones "Cómo
+   quedó el criterio 3/4/5/6/7/8" y "Cómo quedó el informe" evitan rehacer
+   trabajo ya discutido.
+2. docs/entrega/informe.md — EL DOCUMENTO PARAGUAS, ya escrito. Si algo cambia
+   en cualquier artefacto, este es el que hay que revisar también.
+3. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Los dos PDF
+   originales están versionados en docs/: ante la duda, mandan ellos.
+4. CLAUDE.md — reglas del proyecto.
 
-ANTES DE TOCAR NADA, comprueba el estado real (Docker arriba):
-      cd backend && npm run build && npm run verificar:calculo
-      npm run dev   (en otra terminal)
-      npm run smoke && npm run verificar:api
-      cd frontend && npm run build && npm run verificar:contraste
-Deben dar 332 comprobaciones en verde (21 + 37 + 191 + 83).
+ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 343 en verde:
+      cd frontend && npm run verificar:entrega
+Correrlo también DESPUÉS de cada artefacto. Sale con código 1 si algo se cae.
+(Las 332 comprobaciones del software son otra cosa y no hace falta tocarlas:
+esta entrega no evalúa el código corriendo.)
 
-⚠ Si Docker Desktop no está corriendo, `docker compose up -d` falla con
-"open //./pipe/dockerDesktopLinuxEngine". Hay que iniciarlo y esperar al motor.
-⚠ Antes de levantar el backend, busca `tsx watch` huérfanos: llegaron a ser
-CINCO peleando por el 4000 y ninguno escuchando. Matar al hijo no basta, el
-vigilante lo respawnea: hay que subir al padre (receta en siguiente-sesion §6).
-⚠ El seed tarda ~15 minutos. No lo corras "por si acaso": `SELECT count(*)`
-primero.
+QUÉ SIGUE, en este orden:
 
-TAREA — en este orden, porque las dependencias importan (el diagrama de
-requerimientos define los CU, los CU definen las clases y las pantallas, y el
-DER define el script; hacerlo al revés obliga a rehacer):
+  9. ~~INFORME~~ ✅ HECHO. docs/entrega/informe.md y su PDF. Trae las cuatro
+     tablas de trazabilidad (RF→CU, CU→mockup, CU→clase+servicio, CU→tabla),
+     el enlace al repositorio, la decisión D-1, los cuatro desvíos y las
+     consultas abiertas. El verificador lo ata a sus fuentes.
+     ⚠ TIENE UN HUECO MARCADO A PROPÓSITO: la captura del Planner del §10.
+     Se llena cuando el tablero esté cargado, y hay que acordarse.
 
-  1. COMPLETAR EL PLANNER (15 pts). ⚠ EL TABLERO NO ESTÁ VACÍO: lo construyó
-     Héctor y tiene los siete depósitos de la plantilla del profesor más ocho
-     tareas — cinco de esta entrega en el depósito Diseño (GIT, Diseño
-     MockUps, Modelo Entidad-Relación, Diagramas UML, Diagramas de Clase),
-     todas con vencimiento 15/9, con checklists y responsables. Lee §1.bis del
-     plan antes de tocarlo. Lo que hay que hacer:
-       a) Agregar la tarea que FALTA: «Diagrama de Requerimientos» (criterio 2,
-          10 pts, hoy sin dueño en el tablero).
-       b) Poblar Desarrollo y Pruebas con lo YA CONSTRUIDO, marcado como
-          Completado. Hoy están vacíos, así que el tablero describe un proyecto
-          que no ha empezado a desarrollar cuando hay 15 bloques cerrados y 332
-          comprobaciones en verde. Eso es lo que resta puntos.
-       c) NO ejecutar scripts/cargar-plan-planner.ps1 a ciegas. Es idempotente
-          por título EXACTO, y los títulos del CSV no coinciden con los de
-          Héctor («Modelo entidad-relación inicial» vs «Modelo
-          Entidad-Relacion»): quedarían pares duplicados. Además el CSV es del
-          1 de septiembre y marca como Bloqueado el modelo v2 y las historias
-          por funcionario, que están construidos. Hay que actualizar el CSV
-          antes, o cargar a mano lo que falte.
-       d) El tablero es COMPARTIDO: coordinar con Héctor antes de reorganizar
-          lo suyo.
-       e) Planner básico solo tiene No iniciada / En curso / Completada, y la
-          rúbrica menciona cuatro estados. Cubrir «En revisión» con etiqueta de
-          color y explicarlo en el informe.
-       f) Capturar el tablero y dejar cada artefacto adjunto o enlazado desde
-          su tarea: lo que no está en Planner, no se evalúa.
-
-  2. DIAGRAMA DE REQUERIMIENTOS (10 pts). No existe. Los 38 RF y 18 RNF con
-     código único, agrupados por épica, relacionados con actores y módulos, y
-     trazados a los CU. Mermaid tiene `requirementDiagram`, que es lo más
-     cercano a la notación del ejemplo del docente («requirement», «refine»,
-     «deriveReqt»). Los RF sin implementar (RF-025, 028, 031, 033, 035, 037)
-     SÍ van, marcados como no implementados: aquí se muestra el alcance.
-
-  3. CASO DE USO GENERAL (10 pts). Rehacer: el actual tiene 4 actores de 6 y
-     casos del modelo v1. Frontera del sistema explícita, los SEIS actores del
-     PDF §3 (Administrador, Coordinador, Delegado, Funcionario, Verificador,
-     Usuario de consulta) y los ~12 casos principales, sin flujos internos.
-
-  4. LOS 12 CASOS DE USO ESPECÍFICOS (20 pts — el criterio más caro y el más
-     vacío). Están ELEGIDOS en el plan §4, con actor, RF y pantalla: CU-01 a
-     CU-12, más tres «include» (CU-I1 validar RUT, CU-I2 generar código,
-     CU-I3 auditar) y seis «extend» (CU-E1 aviso de duplicidad, CU-E2 exigir
-     observación, CU-E3 rechazar validación propia, CU-E4 conflicto 409,
-     CU-E5 denegar por alcance con motivo, CU-E6 delegación sin medición).
-     Cada uno necesita SU diagrama y SU ficha con los campos exactos de la
-     rúbrica: ID, nombre, objetivo, actor principal, actores secundarios,
-     precondiciones, disparador, flujo principal numerado, flujos
-     alternativos, excepciones, postcondiciones y reglas/requisitos.
-     Los flujos NO se inventan: salen del código y de las verificaciones que
-     ya existen. Ejemplo: las excepciones de CU-03 son literalmente las
-     comprobaciones de verificar-api-v2.ts sobre validación.
-
-  5. DIAGRAMA DE CLASES (15 pts). No existe. Mermaid `classDiagram` con
-     visibilidad (+/-/#), atributos tipados, métodos y multiplicidades. Que
-     los nombres coincidan con los del DER y los CU: la rúbrica evalúa esa
-     coherencia como criterio transversal.
-
-  6. DER (10 pts). Rehacer contra backend/prisma/schema.prisma: son 16
-     entidades, no las 7 del diagrama actual. Y el actual incluye `metas` y
-     `cumplimiento_ponderado_vista`, que SE ELIMINARON en el Bloque C.
-
-  7. SCRIPT SQL (10 pts) + su verificador. Ver decisión D-1 del plan: se
-     entrega MySQL traducido desde el esquema real, declarando las
-     equivalencias de tipos, y queda como consulta abierta nº 13. Escribir
-     además un script que compruebe contra schema.prisma que no falta ni
-     sobra ninguna tabla ni FK — la rúbrica valida esa consistencia a mano y
-     nosotros la verificamos, que es más barato y no se olvida.
-
-  8. MOCKUP (10 pts, lo más fuerte que hay). Están las 8 pantallas. Falta lo
-     que el mapa del docente llama escenarios alternativos: modales de error,
-     avisos y estados vacíos. Tres ya son capturables (aviso de duplicidad,
-     403 con motivo escrito, delegación sin medición); el resto hay que
-     producirlos ampliando frontend/scripts/mockups.mjs con una lista de
-     ESCENARIOS, cada uno anclado al CU cuyo flujo alternativo representa.
-
-  9. INFORME de la entrega con las cuatro tablas de trazabilidad
-     (RF→CU, CU→mockup, CU→clase, CU→tabla), el enlace al repositorio y la
-     captura del Planner.
-
- 10. DOCUMENTACIÓN VIVA que quedó desfasada y que la rúbrica castiga por
-     incoherencia: docs/diagramas.md (retirarlo o rehacerlo apuntando a
-     docs/entrega/), README.md (dice "11 ADR" y son 15; y la tabla de
-     documentos), docs/historias-usuario.md (decir que las 31 oficiales
-     mandan sobre las 20 propias), matriz-trazabilidad.md (agregar columna CU)
-     y estado-proyecto.md.
+ 10. DOCUMENTACIÓN VIVA desfasada, que la rúbrica castiga por incoherencia.
+     ES LO SIGUIENTE:
+     - docs/diagramas.md: YA LLEVA una cabecera de documento histórico que
+       enumera qué tiene de falso. Falta decidir si se retira del todo.
+     - docs/historias-usuario.md: debe declarar que las 31 oficiales mandan
+       sobre las 20 propias.
+     - docs/matriz-trazabilidad.md: agregar la columna CU.
 
  11. AL CERRAR: publicar el estado del sistema para el compañero, que no tiene
-     cuenta de Claude. Generarlo como PDF versionado en el repositorio
-     (docs/entrega/estado-del-sistema.pdf) con el mismo pipeline de
-     playwright-core + Edge que ya produce los mockups — `page.pdf()` — y
-     actualizar además el artifact
-     https://claude.ai/code/artifact/187f3aea-a27a-41f4-a4c9-6d6d3f02d185
-     El PDF debe permitirle DISEÑAR LOS DIAGRAMAS ÉL MISMO: entidades con sus
-     campos y relaciones, servicios con sus responsabilidades, actores, roles
-     y alcances, las pantallas y qué hace cada una, y los 12 CU con su flujo.
-     No es un resumen ejecutivo: es material de trabajo.
+     cuenta de Claude, como PDF versionado (docs/entrega/estado-del-sistema.pdf)
+     con `npm run pdf`. Debe permitirle DISEÑAR LOS DIAGRAMAS ÉL MISMO:
+     entidades con sus campos y relaciones, servicios con sus
+     responsabilidades, actores, roles y alcances, las pantallas y qué hace
+     cada una, y los 12 CU con su flujo. Es material de trabajo, no un resumen.
 
-LO QUE NO SE TOCA EN ESTA SESIÓN (para que nadie lo abra "ya que estamos"):
+DECISIONES YA TOMADAS. No se rediscuten; si hay que cambiarlas, se cambian
+las dos puntas a la vez y se documenta:
+
+- NO SE DIBUJA HERENCIA ni generalización entre actores. Los seis roles son
+  valores de un enum que se SOLAPAN, no una jerarquía. Está argumentado en
+  casos-uso-general.md §3.2 y en clases.md §8. Son la misma decisión.
+- El Sistema NO se dibuja como actor en la frontera, pero SÍ es el actor
+  principal de los casos incluidos, como en el ejemplo del docente.
+- CU-I1 es "Validar los datos del registro" (RF-010), no "validar RUT".
+- CU-E1 tiene tres casos base (CU-01, CU-06, CU-11) y CU-E4 tres
+  (CU-04, CU-07, CU-10).
+- Las fichas y los diagramas usan la ficha de la RÚBRICA, no la del ejemplo
+  del docente, que es más corta. El ejemplo es referencia, no plantilla.
+- D-1: el DER y el script van en MySQL traducidos del esquema real; el
+  sistema NO se migra. Es la consulta abierta nº 13.
+- El DER usa notación crow's foot (entity + ||--o{), no cajas de clase: el
+  DER y el diagrama de clases se evalúan por separado y entregar dos veces el
+  mismo dibujo con otro título es la forma más barata de perder los dos.
+- Las claves foráneas del script conservan el nombre de Prisma
+  (tabla_columna_fkey): es lo que deja seguir una restricción hasta la
+  migración que la creó.
+- Los archivos de la entrega ya existen todos: der.md, script-sql.md y
+  sgr-mysql.sql. clases.md y der.md enlazan a script-sql.md.
+- CU-I2 y CU-I3 NO tienen mockup, y las dos ausencias están argumentadas en
+  el mapa del §8.1. CU-I3 es el desvío D-c: inventarle una pantalla a RF-036
+  haría desaparecer del artefacto justo lo que falta construir.
+
+CUATRO DESVÍOS DECLARADOS entre el requerimiento y el código. Están en
+docs/siguiente-sesion.md §4.bis, en las fichas y en der.md §14. Los
+artefactos NO deben "arreglarlos" inventando lo que no existe:
+
+- D-a · RF-016: crear compromisos del tubo es del Funcionario, y hoy está
+  restringido a jefatura. Es el más barato de corregir.
+- D-b · RF-018 / RF-019: se piden cuatro estados con historial y alertas de
+  plazo; hay tres estados y solo se marcan los vencidos. Y tarea_historial
+  EXISTE, EL SEED LA LLENA Y LA APLICACIÓN NUNCA ESCRIBE EN ELLA.
+- D-c · RF-036: se audita todo write crítico, pero falta la pantalla para
+  leerlo. ES LA RAZÓN POR LA QUE CU-I3 NO TIENE MOCKUP.
+- D-d · periodos.cerrado_por_id NO TIENE FK a users y debería tenerla.
+  Salió al extraer las 52 FK para el DER. Ni el DER ni el script la agregan.
+
+LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
 - RF-025 ajustes, RF-028 tablero personal, RF-031 vista por cargos,
   RF-033 exportación, RF-035 comentarios, RF-037 alertas.
 - Bloque D (Jest, RTL, CI) y Bloque E (despliegue).
-- Los cabos sueltos Media: color-scheme, TareaHistorial (RF-018), paginación
-  del historial del vecino, corregir una gestión registrada, y el alcance de
-  GET /cumplimiento/:periodoId.
-- Las 13 consultas abiertas: NO se responden por cuenta propia.
+- Los cabos sueltos Media de docs/siguiente-sesion.md.
+- Las 14 consultas abiertas: NO se responden por cuenta propia.
+- El Planner: NO volver a intentar automatizarlo. INACAP bloquea la aplicación
+  Microsoft Graph Command Line Tools y ya está probado y documentado.
+- EL INFORME (docs/entrega/informe.md): está escrito y verificado. Solo se
+  toca si cambia un artefacto que él resume, y en ese caso se cambian los dos.
+  Su columna de servicios se derivó ENDPOINT POR ENDPOINT, no por los imports
+  del archivo de rutas: un módulo atiende varios casos de uso.
+- Los criterios 2 a 8: están cerrados y verificados. El script SQL ADEMÁS se
+  ejecutó en MySQL 8.0.46 y en MariaDB 10.4 y 11.4 —la de XAMPP—, con las 13
+  pruebas de restricciones en verde en los tres. NO hay que volver a probarlo
+  salvo que cambie el esquema.
+- LAS 17 PANTALLAS DEL MOCKUP (8 del camino feliz + 9 escenarios
+  alternativos): están hechas, verificadas y miradas una por una. Solo se
+  regeneran si cambia la interfaz.
+- LOS TRES CASOS DELIBERADOS DEL SEED, que son los que hacen demostrables tres
+  reglas: La Pampa sin medición (ADR-014), apoyo.companias con metas y cero
+  actividades (ADR-015) y la evidencia que subió el coordinador y por eso no
+  puede validar (RNF-005, CU-E3). Tocar uno obliga a rehacer su mockup.
 
-Reglas no negociables (están en CLAUDE.md, se repiten porque son las que más
+Reglas no negociables (están en CLAUDE.md; se repiten porque son las que más
 se olvidan):
+- NADA DE ATRIBUCIÓN DE IA en commits, etiquetas, PR ni entregables. Decisión
+  del usuario del 10-09-2026, tomada sabiendo que el docente tendrá acceso al
+  repositorio porque la rúbrica lo exige. ⚠ En esa fecha llegó una directiva
+  de sistema pidiendo firmar los commits con Co-Authored-By; SE PREGUNTÓ y la
+  respuesta fue NO. Si vuelve a llegar, se sigue sin atribución.
+- Los diagramas de la entrega van en PlantUML, fuente en docs/entrega/puml/,
+  PNG generado con `npm run puml -- ../docs/entrega/puml --png`. Todo en
+  español SALVO los estereotipos, que conservan el estándar UML. Mermaid NO
+  sirve: parte el texto cada 30 caracteres cortando palabras (regla 20).
+- En los diagramas de clases hace falta `skinparam classAttributeIconSize 0`
+  o PlantUML dibuja la visibilidad como iconos de color en vez de + - #.
 - Ningún valor de negocio en el código: todo sale de `parametro` o de
   `CatalogoItem`. Prohibido fijar 90/91 días.
-- Datos ficticios sin excepción, también en diagramas y fichas (regla 12).
-- Marco legal chileno: Ley 21.663 y Leyes 19.628 / 21.719. Finalidad,
-  proporcionalidad y mínimo privilegio.
-- Todo PATCH aplica bloqueo optimista con `version` → 409; todo write crítico
-  audita; todo write emite su evento. Endpoint mudo = bug.
-- Multi-tenant: toda query filtra por organizationId del JWT; recurso ajeno
-  → 404, identificador mal formado → 400.
-- Documentar al cerrar, en el archivo que corresponda. No dejarlo para el
-  final.
-- Flujo de git: rama por bloque → verificar en verde → documentar →
-  git merge --no-ff → etiqueta anotada vX.Y.Z-<bloque> → push. En PowerShell,
-  `git commit -F archivo.txt` y `git merge --no-commit` + `git commit -F`:
-  los mensajes con here-string rompen ambos comandos. Y NUNCA editar
-  documentación con Get-Content + Set-Content: corrompe los acentos.
-- Nada de atribución de herramientas de IA en etiquetas, PR ni entregables.
+- Datos ficticios sin excepción, también en diagramas, fichas y SQL (regla 12).
+- Marco legal chileno: Ley 21.663 y Leyes 19.628 / 21.719.
+- Multi-tenant: toda query filtra por organizationId; recurso ajeno → 404,
+  identificador mal formado → 400.
+- El rojo institucional NUNCA entra en una zona de datos (regla 14).
+- Documentar al cerrar cada artefacto, en el archivo que corresponda.
+- Flujo de git: verificar en verde → documentar → commit en español
+  referenciando RF y HU. En PowerShell, `git commit -F archivo.txt`: los
+  here-strings rompen el comando. Y NUNCA editar documentación con
+  Get-Content + Set-Content: corrompe los acentos.
 
-Contexto que NO hay que volver a derivar (y que los diagramas viejos
-contradicen, así que ojo al copiar de ellos):
-- HAY UN SOLO CÁLCULO (Bloque C). `services/cumplimiento.ts` mide por
-  FUNCIONARIO y `consolidarPeriodo()` lo agrega por delegación y por área del
-  cargo. La vista materializada `cumplimiento_ponderado_vista`, la tabla
-  `metas`, el modelo `Meta`, `/metas`, `/kpis/cumplimiento`,
-  `/kpis/recalcular` y el cron SE ELIMINARON. `GET /kpis/tubo` se queda.
+TRAMPAS DEL ENTORNO, ya pagadas:
+- El heredoc de bash COLAPSA las barras invertidas dobles. Un `\\n` escrito
+  dentro de un heredoc de Python llega como salto de línea real y rompe el
+  código. Para escribir o editar archivos, usar la herramienta de edición,
+  no reemplazos por shell.
+- `cat > "$VAR/x"` con $VAR sin definir se queda esperando stdin y cuelga el
+  comando hasta el timeout.
+- EL SEED TARDA ~20 MINUTOS y no imprime nada hasta el final: codifica a mano
+  2.058 PNG de 800x600 con deflate nivel 9. No está colgado. Para saber si
+  avanza, mirar el CPU del proceso, no la salida.
+- Para PROBAR SQL de verdad hay un camino ya recorrido: contenedores
+  desechables `mysql:8.0` (3306), `mariadb:10.4` (3307) y `mariadb:11.4`
+  (3308); se copia el .sql con `docker cp` y se ejecuta con `docker exec`.
+  Esos puertos están libres; 3000/8000/27017 son de talia y no se tocan.
+  ⚠ En mariadb:11.4 el cliente ya NO se llama `mysql` sino `mariadb`, y
+  `mysqladmin` es `mariadb-admin`. ACORDARSE DE `docker rm -f` al terminar.
+- Al comparar el ON DELETE de una migración, ENUMERAR la acción
+  (CASCADE|RESTRICT|SET NULL|...): un patrón \w+( \w+)? se lleva puesto el ON
+  del ON UPDATE. Y la tabla de una FK del script se toma del bloque
+  CREATE TABLE que la contiene, NO del nombre de la restricción: recortar
+  `unidades_territoriales_organization_id_fkey` da "unidades".
+- `npm run puml` sin --png no toca la red; con --png usa plantuml.com.
+- Vite huérfano en 5173 y API huérfana en 4000: comprobar antes de levantar.
+- `npx prisma generate` falla si el server dev está corriendo.
+
+Contexto que NO hay que volver a derivar:
+- SON 22 TABLAS Y 52 CLAVES FORÁNEAS (37 CASCADE / 7 RESTRICT / 8 SET NULL),
+  8 enumerados, 11 UNIQUE en 10 tablas y 5 CHECK. Todo está en der.md, y el
+  verificador lo compara contra las migraciones una por una.
+- CUATRO COLUMNAS PARECEN FK Y NO LO SON, a propósito: los dos entidad_id
+  polimórficos (comentarios y auditoria), auditoria.usuario_id —la bitácora
+  sobrevive al borrado del usuario— y periodos.cerrado_por_id, que es D-d.
+- HAY UN SOLO CÁLCULO. services/cumplimiento.ts mide por FUNCIONARIO y
+  consolidarPeriodo() lo agrega por delegación y por área del cargo. La vista
+  materializada, la tabla `metas`, /metas v1, /kpis/cumplimiento y el cron SE
+  ELIMINARON. GET /kpis/tubo se queda.
 - Los umbrales del semáforo son 100% y 60% del OBJETIVO AL DÍA, y salen de
-  `parametro`. Nunca fueron "verde ≥80, amarillo 50-79, rojo <50": eso está
-  en docs/diagramas.md y está mal.
+  `parametro`. Nunca fueron "verde ≥80, amarillo 50-79, rojo <50".
 - La delegación es el PROMEDIO SIMPLE de sus funcionarios, y una sin nadie con
-  metas NO cumple 0%: no tiene medición (ADR-014). La Pampa está así A
-  PROPÓSITO en el seed.
-- EL PANEL DE ACTIVIDAD ACOMPAÑA, NO VIGILA (ADR-015). Cuenta lo REGISTRADO
-  (no solo lo validado), solo entran admin y coordinador con el motivo escrito
-  en el 403, la presencia de organización va por el room `org:<id>:central`,
-  se muestra un punto de "está ahora" sin minutos acumulados, y abrirlo se
-  audita. `apoyo.companias@sgr.demo` tiene metas y CERO actividades a
-  propósito: es el caso que RF-030 pide demostrar. No "arreglarlo".
-- Son SEIS actores (el PDF §3), no cuatro: el diagrama de casos de uso actual
-  se quedó en Admin, Supervisor, Gerente y Usuario, y faltan el Verificador y
-  el Usuario de consulta. Y el nombre técnico no es el municipal: `supervisor`
-  se dice "Coordinador" y `gerente` se dice "Delegado".
-- El modelo tiene 16 entidades: Organization, User, OrganizationMember,
-  UnidadTerritorial, CategoriaGestion, Tarea, Periodo, Parametro, Cargo,
-  ItemMedicion, MetaItem, PersonaUsuaria, Actividad, Evidencia, Validacion,
-  AtencionSocial, Ausencia, Ajuste, CatalogoItem, TareaHistorial, Comentario
-  y Auditoria. La fuente es backend/prisma/schema.prisma, no los diagramas.
+  metas NO cumple 0%: no tiene medición (ADR-014).
+- EL PANEL DE ACTIVIDAD ACOMPAÑA, NO VIGILA (ADR-015).
+- Son SEIS actores (PDF §3). `supervisor` se dice "Coordinador" y `gerente`
+  se dice "Delegado". Las 23 cuentas están en docs/estado-proyecto.md §1, que
+  es la fuente única. Todas usan la contraseña matriz123.
 - La identidad visual está cerrada (Bloques D0 y D1) y no se reabre.
 - CA-04, CA-06, CA-08 y CA-09 están CERRADOS. EP-01 está COMPLETA.
-- El alcance de los datos de un vecino es una decisión LEGAL: ADR-012 y
-  ADR-013. No ampliarlo sin respuesta a la consulta nº 12.
+- docs/diagramas.md es HISTÓRICO y describe el modelo v1: 4 actores de 6, un
+  cron que no existe y un ERD de 7 tablas con `metas` y la vista materializada.
+  NO COPIAR NADA DE AHÍ.
+- EL GENERADOR DE MOCKUPS SABE HACER CLIC. frontend/scripts/mockups.mjs tiene
+  un hook `acciones({ page, api })` que opera la pantalla real y una segunda
+  sesión contra el backend (así se provoca el 409 de verdad), y un `foco` que
+  recorta el PNG a una franja alrededor del mensaje. Si el elemento de `foco`
+  no aparece, REVIENTA A PROPÓSITO: guardar la pantalla normal con el nombre
+  de un caso de error es un entregable que miente.
 
 Trabaja por artefacto y al cerrar cada uno dame un informe breve (qué se hizo,
 qué falta, decisiones, riesgos) y espera aprobación.

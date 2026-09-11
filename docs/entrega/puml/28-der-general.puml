@@ -1,0 +1,308 @@
+@startuml der-general
+' DER — mapa relacional completo. Las 22 tablas y sus 52 claves foráneas.
+' Fuente: backend/prisma/schema.prisma y las migraciones de backend/prisma/migrations.
+' Aquí van SOLO las claves: los campos completos están en los tres diagramas
+' de detalle (29, 30 y 31). Los nombres son los mismos del diagrama de clases.
+title DER · Mapa relacional completo (22 tablas, 52 claves foráneas)
+
+skinparam backgroundColor #F4F4F2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam ArrowColor #5B6166
+skinparam ArrowFontColor #5B6166
+skinparam ArrowFontSize 10
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #B9BDBF
+  FontColor #1A1A1A
+  AttributeFontColor #1A1A1A
+  AttributeFontSize 11
+  StereotypeFontColor #5B6166
+}
+skinparam note {
+  BackgroundColor #EFEDE8
+  BorderColor #5B6166
+  FontColor #1A1A1A
+}
+hide circle
+hide empty methods
+
+' ── Plataforma e identidad ─────────────────────────────────────────────
+entity "organizations" as organizations {
+  * **id** : CHAR(36) <<PK>>
+}
+
+entity "users" as users {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * email : VARCHAR(180) <<UQ global>>
+  * rut : VARCHAR(12) <<UQ global>>
+}
+
+entity "organization_members" as organization_members <<asociativa>> {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * user_id : CHAR(36) <<FK>>
+  o unidad_territorial_id : CHAR(36) <<FK>>
+  o cargo_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (organization_id, user_id)
+}
+
+' ── Organización territorial y agenda colectiva ────────────────────────
+entity "unidades_territoriales" as unidades {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o responsable_id : CHAR(36) <<FK>>
+}
+
+entity "categorias_gestion" as categorias {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+}
+
+entity "tareas" as tareas {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * unidad_territorial_id : CHAR(36) <<FK>>
+  * categoria_id : CHAR(36) <<FK>>
+  o responsable_id : CHAR(36) <<FK>>
+  o persona_usuaria_id : CHAR(36) <<FK>>
+}
+
+entity "tarea_historial" as tarea_historial {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * tarea_id : CHAR(36) <<FK>>
+  * autor_id : CHAR(36) <<FK>>
+}
+
+' ── Configuración de la medición ───────────────────────────────────────
+entity "periodos" as periodos {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o cerrado_por_id : CHAR(36) <<referencia sin FK>>
+  --
+  <<UQ>> (organization_id, nombre)
+}
+
+entity "parametros" as parametros {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o periodo_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (organization_id, periodo_id, clave)
+}
+
+entity "cargos" as cargos {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (organization_id, nombre)
+}
+
+entity "items_medicion" as items {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * cargo_id : CHAR(36) <<FK>>
+}
+
+entity "metas_item" as metas_item <<asociativa>> {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * item_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (periodo_id, item_id, funcionario_id)
+}
+
+' ── Registro personal, evidencia y validación ──────────────────────────
+entity "personas_usuarias" as personas {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (organization_id, rut)
+}
+
+entity "actividades" as actividades {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * unidad_territorial_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  o item_id : CHAR(36) <<FK>>
+  o persona_usuaria_id : CHAR(36) <<FK>>
+  o tarea_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (organization_id, codigo)
+}
+
+entity "evidencias" as evidencias {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * actividad_id : CHAR(36) <<FK>>
+  * subida_por_id : CHAR(36) <<FK>>
+}
+
+entity "validaciones" as validaciones <<asociativa>> {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * evidencia_id : CHAR(36) <<FK>>
+  * verificador_id : CHAR(36) <<FK>>
+}
+
+entity "atenciones_sociales" as atenciones {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * actividad_id : CHAR(36) <<FK, UQ>>
+}
+
+' ── Ajustes, ausencias, catálogos y bitácora ───────────────────────────
+entity "ausencias" as ausencias {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+}
+
+entity "ajustes" as ajustes #FFFFFF;line.dashed {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * periodo_id : CHAR(36) <<FK>>
+  * funcionario_id : CHAR(36) <<FK>>
+  * registrado_por_id : CHAR(36) <<FK>>
+}
+
+entity "catalogo_items" as catalogo {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  --
+  <<UQ>> (organization_id, catalogo, valor)
+}
+
+entity "comentarios" as comentarios #FFFFFF;line.dashed {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  * autor_id : CHAR(36) <<FK>>
+  * entidad : VARCHAR(40)
+  * entidad_id : CHAR(36) <<referencia polimórfica>>
+}
+
+entity "auditoria" as auditoria {
+  * **id** : CHAR(36) <<PK>>
+  --
+  * organization_id : CHAR(36) <<FK>>
+  o usuario_id : CHAR(36) <<referencia sin FK>>
+  * entidad_id : CHAR(36) <<referencia polimórfica>>
+}
+
+' ── Las 20 claves foráneas del multi-tenant (regla 8) ──────────────────
+' Van en gris claro: son la misma relación repetida veinte veces y taparían
+' el resto del dibujo. Todas son organization_id NOT NULL, ON DELETE CASCADE.
+organizations ||--o{ organization_members #DDDDDA
+organizations ||--o{ unidades #DDDDDA
+organizations ||--o{ categorias #DDDDDA
+organizations ||--o{ tareas #DDDDDA
+organizations ||--o{ tarea_historial #DDDDDA
+organizations ||--o{ periodos #DDDDDA
+organizations ||--o{ parametros #DDDDDA
+organizations ||--o{ cargos #DDDDDA
+organizations ||--o{ items #DDDDDA
+organizations ||--o{ metas_item #DDDDDA
+organizations ||--o{ personas #DDDDDA
+organizations ||--o{ actividades #DDDDDA
+organizations ||--o{ evidencias #DDDDDA
+organizations ||--o{ validaciones #DDDDDA
+organizations ||--o{ atenciones #DDDDDA
+organizations ||--o{ ausencias #DDDDDA
+organizations ||--o{ ajustes #DDDDDA
+organizations ||--o{ catalogo #DDDDDA
+organizations ||--o{ comentarios #DDDDDA
+organizations ||--o{ auditoria #DDDDDA
+
+' ── Las 32 claves foráneas del negocio ─────────────────────────────────
+users ||--o{ organization_members : pertenece a >
+users |o--o{ unidades : es responsable de >
+users |o--o{ tareas : responde por >
+users ||--o{ metas_item : se le fija >
+users ||--o{ actividades : registra >
+users ||--o{ evidencias : sube >
+users ||--o{ validaciones : decide >
+users ||--o{ ausencias : se ausenta >
+users ||--o{ ajustes : recibe (funcionario_id) >
+users ||--o{ ajustes : registra (registrado_por_id) >
+users ||--o{ tarea_historial : mueve >
+users ||--o{ comentarios : escribe >
+
+unidades ||--o{ tareas : agenda >
+unidades ||--o{ actividades : ocurre en >
+unidades |o--o{ organization_members : adscribe >
+
+cargos ||--|{ items : se le mide >
+cargos |o--o{ organization_members : desempeña >
+
+categorias ||--o{ tareas : clasifica >
+
+personas |o--o{ tareas : solicita >
+personas |o--o{ actividades : es atendida en >
+
+periodos ||--o{ metas_item : rige >
+periodos ||--o{ actividades : contiene >
+periodos ||--o{ ausencias : descuenta >
+periodos ||--o{ ajustes : afecta >
+periodos |o--o{ parametros : da vigencia a >
+
+items ||--o{ metas_item : se le fija >
+items |o--o{ actividades : suma a >
+
+tareas ||--o{ tarea_historial : deja huella en >
+tareas |o--o{ actividades : origina >
+
+actividades ||--o{ evidencias : respalda >
+actividades ||--o| atenciones : abre caso >
+
+evidencias ||--o{ validaciones : se decide en >
+
+legend bottom
+  **Multi-tenant (regla 8).** Las veinte relaciones grises son `organization_id NOT NULL` con `ON DELETE CASCADE`, y
+  están en el script SQL una por una. `users` es la excepción: es **global**, porque un mismo correo puede pertenecer a
+  varias organizaciones con roles distintos. El rol vive en `organization_members`.
+  ====
+  **Tres tablas asociativas resuelven relaciones N:M**, y las tres llevan atributos propios —por eso tienen `id` propio
+  además de su UNIQUE compuesto—: `organization_members` (usuarios ↔ organizaciones, con el rol), `metas_item`
+  (funcionarios ↔ ítems, calificada por período) y `validaciones` (evidencias ↔ verificadores, con la decisión).
+  ====
+  **La única relación 1:1** es `actividades` ↔ `atenciones_sociales`: `actividad_id` es UNIQUE, así que una actividad
+  abre a lo sumo un caso social y un caso social no existe sin su actividad (RF-015, ADR-013).
+  ====
+  **Tres referencias no son claves foráneas, y es deliberado.** `comentarios.entidad_id` y `auditoria.entidad_id` son
+  **polimórficas**: apuntan a una tarea, una actividad o una meta según `entidad`, y ninguna base relacional declara una
+  FK hacia varias tablas. `auditoria.usuario_id` tampoco la tiene: la bitácora es de solo inserción y debe sobrevivir al
+  borrado del usuario (RNF-008, ADR-006). `periodos.cerrado_por_id` sí debería tenerla y no la tiene: queda declarado.
+  ====
+  **Borde punteado** = tabla sin comportamiento en la aplicación: `ajustes` (RF-025) y `comentarios` (RF-035).
+end legend
+
+@enduml

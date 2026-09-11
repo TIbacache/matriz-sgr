@@ -15,16 +15,18 @@ Fuentes que mandan, en orden:
 
 | # | Criterio | Pts | Qué hay hoy | Veredicto |
 |---|---|---|---|---|
-| 1 | **Planner / Jira** | 15 | **El tablero existe y lo construyó Héctor**: 7 depósitos y 8 tareas, 5 de ellas de esta entrega con vencimiento 15/9. Pero Desarrollo, Pruebas y Piloto están vacíos | 🟠 **No está vacío: está incompleto y desactualizado.** Ver §1.bis |
-| 2 | **Diagramas de requerimientos** | 10 | **No existe** ningún artefacto de este tipo | 🔴 Hay que crearlo de cero |
-| 3 | **Caso de uso general** | 10 | `diagramas.md §2`, del 25 de agosto: 4 actores de 6, 12 casos del modelo v1, sin frontera ni «include»/«extend» | 🟠 Rehacer |
-| 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **Cero fichas.** La guía propone 10 CU con actor y RF, y desarrolla CU-03 como plantilla | 🔴 El criterio más caro y el más vacío |
-| 5 | **Diagrama de clases** | 15 | **No existe** | 🔴 Hay que crearlo de cero |
-| 6 | **DER MySQL** | 10 | `diagramas.md §3`: 7 tablas del modelo **v1**, con `metas` y la vista materializada que **se eliminaron** en el Bloque C. El modelo real tiene 16 entidades | 🔴 Está mal, no solo incompleto |
-| 7 | **Script SQL** | 10 | **No existe.** El esquema real es PostgreSQL vía Prisma | 🔴 Ver decisión D-1 |
-| 8 | **Mockup funcional + Git** | 10 | 8 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | 🟢 **Es lo más fuerte que tenemos.** Faltan los escenarios alternativos |
+| 1 | **Planner / Jira** | 15 | El CSV quedó reescrito contra el estado real: **87 tareas**, ninguna bloqueada, con la tarea que faltaba del diagrama de requerimientos. Falta cargarlo en el tablero | 🟠 **Preparado, sin cargar.** INACAP no deja automatizarlo: va a mano con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf). Ver §1.bis |
+| 2 | **Diagramas de requerimientos** | 10 | **[entrega/requerimientos.md](entrega/requerimientos.md)**: los 38 RF y 18 RNF por módulo y por épica, con actores y trazados a los CU, en 8 diagramas PlantUML | ✅ **Hecho** (9-09-2026) |
+| 3 | **Caso de uso general** | 10 | **[entrega/casos-uso-general.md](entrega/casos-uso-general.md)**: frontera, seis actores, doce casos con sus RF y su pantalla, tres «include» y seis «extend», en 2 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
+| 4 | **Casos de uso específicos + fichas (mín. 10)** | 20 | **[entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md)**: las 12 fichas de la rúbrica §5.4, ancladas al texto oficial de su RF, con 12 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
+| 5 | **Diagrama de clases** | 15 | **[entrega/clases.md](entrega/clases.md)**: 22 clases del dominio con atributos tipados, visibilidad y multiplicidades, más los 12 servicios con sus operaciones reales, en 5 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
+| 6 | **DER MySQL** | 10 | **[entrega/der.md](entrega/der.md)**: las 22 tablas en notación crow's foot, con sus 52 claves foráneas y su `ON DELETE`, cardinalidades y restricciones, en 5 diagramas PlantUML | ✅ **Hecho** (10-09-2026) |
+| 7 | **Script SQL** | 10 | **[entrega/sgr-mysql.sql](entrega/sgr-mysql.sql)** con su [documento](entrega/script-sql.md): 22 tablas, 52 FK, 8 enumerados, 11 `UNIQUE`, 5 `CHECK` y 3 disparadores. Ejecutado sin errores en MySQL 8.0 y MariaDB 10.4 y 11.4 | ✅ **Hecho** (10-09-2026), decisión D-1 |
+| 8 | **Mockup funcional + Git** | 10 | 17 pantallas navegables, README con tecnologías e instrucciones, repositorio ordenado | ✅ **Cerrado.** Ocho del camino feliz y nueve escenarios alternativos |
 
-**Lectura del cuadro**: de 100 puntos, **85 dependen de artefactos de análisis y diseño que hoy no existen o están obsoletos**, y solo 10 dependen del software, que es justamente lo que está terminado. La entrega no se juega en el código: se juega en documentar lo construido.
+**Lectura del cuadro** (cuando se escribió): de 100 puntos, **85 dependían de artefactos de análisis y diseño que no existían o estaban obsoletos**, y solo 10 del software, que era justamente lo terminado. La entrega no se jugaba en el código sino en documentar lo construido. **Hoy esos 85 están escritos.**
+
+> **Avance al 11 de septiembre de 2026**: cerrados los criterios **2 a 8** y escrito el **informe**, con 343 comprobaciones de coherencia en verde. Queda el criterio **1**: cargar el Planner a mano y pegar su captura en el informe §10. Y queda **publicar la rama en GitHub**, sin lo cual el enlace del repositorio no lleva a nada. Estado por criterio en [entrega/README.md](entrega/README.md).
 
 ---
 
@@ -48,16 +50,17 @@ Eso cambia tres cosas del plan:
 
 **2. Falta la tarea del diagrama de requerimientos.** Las cinco tareas de Diseño cubren GIT (criterio 8), mockups (8), MER (6 y 7), UML (3 y 4) y clases (5). **El criterio 2 —Diagramas de requerimientos, 10 puntos— no tiene tarea que lo represente.**
 
-**3. NO ejecutar `cargar-plan-planner.ps1` a ciegas.** El script es idempotente *por título exacto*, y los títulos del CSV no coinciden con los que escribió Héctor: «Modelo entidad-relación inicial» (CSV) contra «Modelo Entidad-Relacion» (tablero) son la misma tarea con dos nombres, y quedarían las dos. Además el CSV es del 1 de septiembre y **marca como Bloqueado el modelo de datos v2 y las historias por funcionario, que están construidos y verificados**.
+**3. El CSV del 1 de septiembre no se podía cargar tal cual.** El script es idempotente *por título exacto*, y los títulos del CSV no coincidían con los que escribió Héctor: «Modelo entidad-relación inicial» (CSV) contra «Modelo Entidad-Relacion» (tablero) eran la misma tarea con dos nombres, y habrían quedado las dos. Además marcaba como Bloqueado el modelo de datos v2 y las historias por funcionario, que están construidos y verificados. **Corregido el 8 de septiembre**: el CSV quedó reescrito con 87 tareas, ninguna bloqueada y sin títulos que choquen. Y la carga pasó a ser a mano, con lo que el riesgo del acento desaparece.
 
-**Qué hacer entonces** (y hay que coordinarlo con Héctor, porque el tablero es suyo tanto como nuestro):
+**Qué hacer entonces**:
 
 - **Conservar sus cinco tareas de Diseño**: están bien planteadas, tienen fecha y responsables, y son exactamente los entregables de la rúbrica.
 - **Agregar la que falta**: «Diagrama de Requerimientos», mismo depósito, misma fecha.
-- **Poblar Desarrollo y Pruebas con lo ya hecho, marcado como Completado**, para que el tablero cuente la verdad. Salen del CSV y de las etiquetas de git: modelo v2, API del registro y la validación, metas por funcionario, ficha personal, bandeja del verificador, identidad visual, ficha del vecino, rutas endurecidas, atención social, solicitud en el tubo, dashboard v2 y control de actividad.
-- **Actualizar `plan-desarrollo.csv` antes de cargarlo**: revisar los 27 «Pendiente» y los 8 «Bloqueado» contra el estado real, y renombrar los títulos que chocan con los de Héctor.
+- **Poblar Desarrollo y Pruebas con lo ya hecho, marcado como Completado**, para que el tablero cuente la verdad: modelo v2, API del registro y la validación, metas por funcionario, ficha personal, bandeja del verificador, identidad visual, ficha del vecino, rutas endurecidas, atención social, solicitud en el tubo, dashboard v2, control de actividad y los siete verificadores.
 - **Estados**: Planner básico solo tiene *No iniciada / En curso / Completada*, y la rúbrica menciona cuatro («Por hacer, En desarrollo, En revisión, Finalizado»). Se cubre con **etiquetas de color** para «En revisión», y se explica en el informe. No es un problema real, pero conviene decirlo antes de que lo pregunten.
 - **Capturar el tablero** una vez poblado: la rúbrica pide la captura y el enlace.
+
+> **Decisión del 9 de septiembre — se carga a mano, porque INACAP no deja automatizarlo.** `plan-desarrollo.csv` quedó reescrito contra el estado real (87 tareas, ninguna bloqueada, sin títulos que choquen con los de Héctor), pero el script no puede cargarlo: el tenant de INACAP tiene desactivado el consentimiento de usuario para *Microsoft Graph Command Line Tools*, y el inicio de sesión termina en «Need admin approval» incluso pidiendo solo `Tasks.ReadWrite`. Se descartó que fuera un permiso concreto o el intermediario de cuentas de Windows: está bloqueada la aplicación entera. La ruta es **[entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf)**, seis tandas con el contenido exacto de cada tarjeta. El diagnóstico completo queda en [guia-cargar-planner.md](guia-cargar-planner.md), porque «por qué no lo automatizaron» es una pregunta que hay que poder responder.
 
 > ⚠ **El desfase no es casual.** Los diagramas son del 25 de agosto y describen el modelo v1: `metas` por unidad × categoría, la vista materializada `cumplimiento_ponderado_vista`, un cron que la refresca y umbrales «verde ≥80, amarillo 50-79, rojo <50». Nada de eso existe desde el Bloque C, y los umbrales nunca fueron esos. **Presentar esos diagramas sería entregar un sistema que no es el nuestro**, y el criterio transversal de la rúbrica es precisamente la coherencia entre artefactos.
 
@@ -111,10 +114,10 @@ El mapa del docente incluye «Modal de error», «Mensaje de búsqueda sin resul
 |---|---|---|
 | Diagrama de requerimientos (RF + RNF, jerárquico) | `docs/entrega/requerimientos.md` → PNG | — (nuevo) |
 | Caso de uso general con frontera y 6 actores | `docs/entrega/casos-uso-general.md` → PNG | `diagramas.md §2` |
-| 12 diagramas de CU específicos + 12 fichas | `docs/entrega/casos-uso/CU-XX-*.md` | — (nuevo) |
+| 12 diagramas de CU específicos + 12 fichas | `docs/entrega/casos-uso-detalle.md` → PNG | — (nuevo) |
 | Diagrama de clases | `docs/entrega/clases.md` → PNG | — (nuevo) |
-| DER MySQL (16 entidades reales) | `docs/entrega/der-mysql.md` → PNG | `diagramas.md §3` |
-| Script MySQL ejecutable | `docs/entrega/sgr-mysql.sql` | — (nuevo) |
+| DER MySQL (**22 tablas reales**) | `docs/entrega/der.md` → PNG | `diagramas.md §3` |
+| Script MySQL ejecutable | `docs/entrega/script-sql.md` + `docs/entrega/sgr-mysql.sql` | — (nuevo) |
 | Mockups con escenarios alternativos | `docs/mockups/` (ampliado) | — (se amplía) |
 | Informe de la entrega, con las tablas de trazabilidad | `docs/entrega/informe.md` | — (nuevo) |
 | Estado del sistema en PDF para el equipo | `docs/entrega/estado-del-sistema.pdf` | — (nuevo) |
@@ -142,9 +145,9 @@ Hay que separar dos cosas que se confunden fácil:
 |---|---|
 | **El Planner no refleja el trabajo hecho** (Desarrollo, Pruebas y Piloto vacíos) y le falta la tarea del diagrama de requerimientos | Es el criterio 1 de la rúbrica, 15 pts |
 | **`docs/diagramas.md` describe el modelo v1** | Es el criterio 6, y presentarlo sería incoherente |
-| **No hay diagrama de clases** | Es el criterio 5 (15 pts) |
-| **No hay casos de uso** | Es el criterio 4 (20 pts) |
-| **README dice «11 ADR»** (son 15) y `historias-usuario.md` sigue en las 20 historias propias | Consistencia entre artefactos, que es el criterio transversal |
+| ~~**No hay diagrama de clases**~~ ✅ **resuelto** el 10-09: [entrega/clases.md](entrega/clases.md) | Era el criterio 5 (15 pts) |
+| ~~**No hay casos de uso**~~ ✅ **resuelto** el 10-09: [entrega/casos-uso-general.md](entrega/casos-uso-general.md) y [entrega/casos-uso-detalle.md](entrega/casos-uso-detalle.md) | Eran los criterios 3 y 4 (30 pts) |
+| ~~README dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente que `historias-usuario.md` declare que **las 31 oficiales mandan** sobre las 20 propias | Consistencia entre artefactos, que es el criterio transversal |
 | **`Guia-Entregables-15-septiembre.docx` quedó desfasada** | Se marca como histórica y se apunta a este plan |
 
 ### 3.5 Qué NO se toca en esta sesión
@@ -154,7 +157,7 @@ Se dice explícitamente para que nadie lo abra «ya que estamos»:
 - **RF-025** (ajustes por felicitación/reclamo), **RF-028** (tablero personal), **RF-031** (vista global por cargos), **RF-033** (exportación), **RF-035** (comentarios), **RF-037** (alertas).
 - **Bloque D** (Jest, RTL, CI) y **Bloque E** (despliegue).
 - Los cabos sueltos de prioridad Media: `color-scheme`, `TareaHistorial` (RF-018), paginación del historial del vecino, corrección de una gestión ya registrada, alcance de `GET /cumplimiento/:periodoId`.
-- **Las 12 consultas abiertas al docente**: no se responden por cuenta propia. Se suma la nº 13 (MySQL).
+- **Las 14 consultas abiertas al docente**: no se responden por cuenta propia. Se suma la nº 13 (MySQL).
 
 ---
 
@@ -181,17 +184,22 @@ Se conservan los identificadores que ya propuso la guía del 1 de septiembre, pa
 
 | ID | Tipo | Caso base | Condición / resultado |
 |---|---|---|---|
-| CU-I1 | «include» | CU-01, CU-06 | **Validar RUT y teléfono** (ADR-001, RF-010) |
+| CU-I1 | «include» | CU-01, CU-06 | **Validar los datos del registro**: obligatoriedad, formato y coherencia (RF-010, ADR-001) |
 | CU-I2 | «include» | CU-01 | **Generar el código único de la actividad** (RF-011, inmutable) |
 | CU-I3 | «include» | transversal a todo write | **Registrar en la bitácora de auditoría** (RNF-008, RF-036) |
-| CU-E1 | «extend» | CU-01, CU-06 | **Avisar posible atención duplicada** entre delegaciones (ADR-008) — el caso que el cliente vino a buscar |
+| CU-E1 | «extend» | CU-01, CU-06, CU-11 | **Avisar posible atención duplicada** entre delegaciones (ADR-008) — el caso que el cliente vino a buscar |
 | CU-E2 | «extend» | CU-03 | **Exigir observación** cuando la decisión no es aprobar (RF-013) |
 | CU-E3 | «extend» | CU-03 | **Rechazar validación propia** por segregación de funciones (RNF-005) |
 | CU-E4 | «extend» | CU-07, CU-04 | **Informar conflicto de versión** (409) sin sobrescribir (CA-08, ADR-005) |
 | CU-E5 | «extend» | CU-11, CU-12 | **Denegar por alcance** con el motivo escrito (ADR-012, ADR-015) |
 | CU-E6 | «extend» | CU-09 | **Informar delegación sin medición** en vez de 0% (ADR-014) |
 
-**Cobertura de actores**: Funcionario (CU-01, 02, 05, 06, 07, 08, 10, 11), Verificador (CU-03), Administrador (CU-04, CU-12), Coordinador (CU-04, CU-11, CU-12), Delegado (CU-06, 07, 09), Usuario de consulta (CU-09). **Los seis actores del PDF §3 aparecen.**
+**Cobertura de actores**: Funcionario (CU-01, 02, 05, 06, 07, 08, 10, 11), Verificador (CU-03), Administrador (CU-04, CU-12), Coordinador (CU-04, CU-11, CU-12), Delegado (CU-06, 07, 09, 10), Usuario de consulta (CU-09). **Los seis actores del PDF §3 aparecen.**
+
+> **Dos correcciones del 10 de septiembre, al dibujar el criterio 3.** Esta tabla se escribió el 6 de septiembre, antes de contrastarla con el código. Al hacerlo (regla 1 del proyecto) aparecieron dos diferencias, ya aplicadas arriba y explicadas en [entrega/casos-uso-general.md §9](entrega/casos-uso-general.md):
+>
+> 1. **CU-I1 dejó de llamarse «Validar RUT y teléfono».** Un `«include»` se ejecuta *siempre*, y validar el RUT no siempre ocurre: una actividad puede no llevar vecino asociado, y el alta del tubo **no pide RUT**. Lo que sí ocurre siempre es la validación de obligatoriedad, formato y coherencia, que es lo que dice RF-010.
+> 2. **CU-E1 tiene tres casos base.** El aviso de duplicidad existe también en CU-11, con la ventana del parámetro; en el alta (CU-01, CU-06) avisa sin ventana de tiempo. Es la misma regla en dos momentos.
 
 ---
 
@@ -199,12 +207,12 @@ Se conservan los identificadores que ya propuso la guía del 1 de septiembre, pa
 
 Las dependencias importan: el diagrama de requerimientos define los CU, los CU definen las clases y las pantallas, y el DER define el script. Hacerlo en otro orden obliga a rehacer.
 
-1. **Cargar el Planner.** No depende de nada y sin él la nota tiene techo.
+1. **Cargar el Planner.** No depende de nada y sin él la nota tiene techo. Va a mano con [entrega/guia-planner-hector.pdf](entrega/guia-planner-hector.pdf), en seis tandas repartibles entre los dos; los adjuntos y la captura van después, a medida que cada artefacto queda listo.
 2. **Diagrama de requerimientos** (38 RF + 18 RNF agrupados por épica, con `requirementDiagram` de mermaid, que es lo más cercano a la notación del ejemplo del docente).
 3. **Caso de uso general**: frontera, 6 actores, ~12 casos, sin flujos internos.
 4. **Los 12 diagramas específicos + sus 12 fichas**, con la estructura exacta de la rúbrica (ID, nombre, objetivo, actor principal, secundarios, precondiciones, disparador, flujo principal, alternativos, excepciones, postcondiciones, reglas). La ficha de CU-03 ya está redactada en la guía del 1 de septiembre: sirve de plantilla.
 5. **Diagrama de clases**: servicios y entidades del backend con visibilidad, atributos tipados, métodos y multiplicidades. Que los nombres coincidan con los del DER y los CU.
-6. **DER MySQL** desde `schema.prisma`: 16 entidades, PK, FK, cardinalidades, tipos MySQL.
+6. **DER MySQL** desde `schema.prisma`: **22 tablas**, PK, FK, cardinalidades, tipos MySQL.
 7. **Script MySQL** + **verificador de consistencia** que compruebe, contra `schema.prisma`, que no falta ni sobra ninguna tabla ni FK. La rúbrica valida esa consistencia a mano; nosotros la comprobamos con un script, que es más barato y no se olvida.
 8. **Escenarios alternativos del mockup** y regeneración de los 8 existentes.
 9. **Informe** con las tablas de trazabilidad (RF→CU, CU→mockup, CU→clase, CU→tabla) y los enlaces al repositorio y al Planner.
@@ -219,8 +227,9 @@ El trabajo se corta por artefacto, no por archivo, para que nadie espere a nadie
 
 | Persona | Se lleva | Por qué |
 |---|---|---|
-| **A** (Tomás) | Planner (1) junto con Héctor, diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
+| **A** (Tomás) | Diagrama de requerimientos (2), caso de uso general (3), informe (9) | Es la cadena «qué necesita el sistema» y no toca código |
 | **B** (Héctor) | Clases (5), DER (6), script MySQL (7) | Es la cadena «cómo está construido» y sale del esquema real. **Ya tiene esas tres tareas creadas en el Planner** |
+| **Ambos** | **La carga del Planner (1)**, repartiéndose las seis tandas de [la guía](entrega/guia-planner-hector.pdf) | Son unas dos horas y media a mano, y las tandas son independientes. La 6 —etiqueta, adjuntos, captura— conviene dejarla para el final, cuando los artefactos existan |
 | **Ambos** | Las 12 fichas de CU (4) — seis cada uno, con la misma plantilla | Es el criterio más caro (20 pts) y el más divisible |
 | **Quien tenga el entorno arriba** | Escenarios del mockup (8) y el PDF de estado (11) | Necesitan los dos servidores y la base sembrada |
 
