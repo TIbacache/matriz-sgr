@@ -197,10 +197,18 @@ Los bloques de los criterios que faltan **se activan solos** cuando su artefacto
 
 ### Los PDF se generan del Markdown
 
+**El `.md` es para GitHub y el PDF es para Planner**, y los dos salen de la misma fuente. En GitHub el Markdown se renderiza con sus tablas y sus diagramas; adjunto a una tarjeta de Planner se leería como texto plano. Por eso cada documento de criterio tiene su PDF, y **la lista de cuáles está en el script**, no en la memoria de nadie:
+
 ```powershell
 cd frontend
-npm run pdf -- ../docs/entrega/<archivo>.md
+npm run pdf:entrega                           # los 8 PDF de la entrega, a docs/entrega/
+npm run pdf -- ../docs/entrega/<archivo>.md   # uno suelto
 ```
+
+Dos cosas que el generador hace y conviene saber, porque cambian lo que ve quien abre el PDF:
+
+- **Reescribe los enlaces relativos a URL absolutas de GitHub.** Un `[texto](requerimientos.md)` funciona en GitHub y **no** en un PDF abierto en otro computador; el modo de fallar es traicionero, porque al autor le anda (el PDF está junto a los archivos que nombra). La referencia es la rama actual: si se renombra o se mergea, hay que regenerar, o fijarla con `SGR_REPO_REF`.
+- **Recorta las capturas muy altas a su parte superior**, con el pie diciéndolo. La ficha del vecino mide 11.249 px: entera en una página se encoge a una tira de 115 px de ancho.
 
 Sale en Arial, que es lo que la norma gráfica municipal exige para documentos (ADR-010). El `.md` es la fuente: editar el PDF a mano lo desincroniza.
 
@@ -234,6 +242,7 @@ Para que nadie lo abra «ya que estamos»:
 | Archivo | Qué es |
 |---|---|
 | [informe.md](informe.md) · [informe.pdf](informe.pdf) | **El informe.** El documento paraguas: el caso, los ocho criterios, **las cuatro tablas de trazabilidad**, las decisiones, los desvíos y las consultas abiertas |
+| `*.pdf` | **Lo que se adjunta al Planner.** Un PDF por documento de criterio, más el informe y el del mockup. Se regeneran todos con `npm run pdf:entrega` |
 | [requerimientos.md](requerimientos.md) | **Criterio 2.** Los 38 RF y 18 RNF por módulo y épica, con actores y trazados a los CU |
 | [casos-uso-general.md](casos-uso-general.md) | **Criterio 3.** La frontera, los seis actores, los doce casos con sus RF y su pantalla, y las nueve relaciones `«include»` y `«extend»` |
 | [casos-uso-detalle.md](casos-uso-detalle.md) | **Criterio 4.** Las doce fichas de la rúbrica §5.4, cada una anclada al texto oficial de su RF, con su diagrama |

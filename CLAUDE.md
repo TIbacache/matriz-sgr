@@ -74,7 +74,8 @@ npm run verificar:mockups     # abre los .html desde file:// con la red bloquead
 npm run verificar:entrega     # 343 comprobaciones de coherencia entre los artefactos de docs/entrega (no toca la red; NO suman a las 332 del software)
 npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
 npm run pdf -- <archivo.md> [salida.pdf] [--conservar-html]   # cualquier .md del repo → PDF imprimible (Arial, ADR-010)
-npm run guia:planner          # regenera docs/entrega/guia-planner-hector.pdf
+npm run pdf:entrega           # los 8 PDF de la entrega (todo lo que se adjunta al Planner) → docs/entrega/
+npm run guia:planner          # regenera docs/entrega/guia-planner-hector.pdf (interno, no se entrega)
 npm run puml -- <carpeta> [--png]   # comprueba los .puml, deja el enlace a plantuml.com y baja los PNG
 npm run probar:mermaid -- <archivo.md>   # diagnostica qué bloque mermaid no compila y con qué error
 ```

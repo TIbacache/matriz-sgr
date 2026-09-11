@@ -105,6 +105,8 @@ Por eso hay **catorce consultas abiertas** (§11) y **cuatro desvíos declarados
 | 7 | Script SQL | 10 | [`script-sql.md`](script-sql.md) · [`sgr-mysql.sql`](sgr-mysql.sql) | — |
 | 8 | Mockup funcional y Git | 10 | [`docs/mockups/`](../mockups/) con su [README](../mockups/README.md) | 17 pantallas |
 
+**Cada uno de estos documentos se entrega además en PDF**, en la misma carpeta y con el mismo nombre. No es redundancia: el docente revisa el Planner, ahí se adjuntan archivos, y un `.md` adjunto se lee como texto plano —sin tablas y sin diagramas—. El `.md` es la fuente y vive en GitHub, donde sí se renderiza; el PDF es la copia que se adjunta.
+
 **Los 32 diagramas están en PlantUML**, con la fuente `.puml` versionada en [`puml/`](puml/) y el PNG generado desde ella. Ningún PNG se edita a mano: el diagrama y su fuente no pueden divergir. La convención —idioma, paleta, tipografía— está en [`puml/_estilo.md`](puml/_estilo.md).
 
 Todo va **en español**, salvo los estereotipos UML/SysML (`«requirement»`, `«include»`, `«extend»`, `«satisfy»`…), que conservan su nombre estándar porque son **notación, no texto**. Por la misma razón no se traducen la visibilidad (`+ - #`), las cardinalidades ni los tipos de dato.

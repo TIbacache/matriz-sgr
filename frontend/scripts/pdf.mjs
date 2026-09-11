@@ -17,6 +17,7 @@
 
 import { chromium } from "playwright-core";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { dirname, resolve, basename, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
@@ -71,6 +72,17 @@ function enlaceAbsoluto(href) {
 
 // ---------------------------------------------------------------- Markdown
 
+/** Ancho y alto de un PNG, leídos de su cabecera IHDR. `null` si no lo es. */
+function medidasPng(archivo) {
+  try {
+    const b = readFileSync(archivo);
+    if (b.length < 24 || b.readUInt32BE(0) !== 0x89504e47) return null;
+    return { ancho: b.readUInt32BE(16), alto: b.readUInt32BE(20) };
+  } catch {
+    return null;
+  }
+}
+
 function escapar(texto) {
   return texto
     .replace(/&/g, "&amp;")
@@ -92,10 +104,26 @@ function enLinea(texto) {
   // El `src` se resuelve a file:// absoluto para que el PDF salga con la
   // imagen aunque se pida la salida en otra carpeta.
   t = t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
-    const ruta = baseDelDocumento && !/^(https?:|data:)/i.test(src)
-      ? pathToFileURL(resolve(baseDelDocumento, src)).href
-      : src;
-    return `<figure><img src="${ruta}" alt="${escapar(alt)}">${alt ? `<figcaption>${escapar(alt)}</figcaption>` : ""}</figure>`;
+    const local = baseDelDocumento && !/^(https?:|data:)/i.test(src);
+    const archivo = local ? resolve(baseDelDocumento, src) : null;
+    const ruta = archivo ? pathToFileURL(archivo).href : src;
+
+    // Una captura de pantalla completa puede ser muchísimo más alta que ancha
+    // —la ficha del vecino mide 11.249 px—. Metida entera en una página se
+    // encoge a una tira vertical de 115 px de ancho: ilegible y con aspecto de
+    // error. Se muestra **su parte de arriba a ancho completo**, que es lo que
+    // alguien ve al abrir la pantalla, y el pie lo dice. La imagen completa
+    // está en el repositorio.
+    const medidas = archivo ? medidasPng(archivo) : null;
+    const recortar = medidas && medidas.alto / medidas.ancho > 1.6;
+
+    const pie = alt
+      ? `<figcaption>${escapar(alt)}${recortar ? " · <em>captura de página completa, recortada a su parte superior; entera en el repositorio</em>" : ""}</figcaption>`
+      : "";
+    const imagen = `<img src="${ruta}" alt="${escapar(alt)}">`;
+    return recortar
+      ? `<figure class="recorte"><span class="marco">${imagen}</span>${pie}</figure>`
+      : `<figure>${imagen}${pie}</figure>`;
   });
 
   t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, texto, href) => `<a href="${enlaceAbsoluto(href)}">${texto}</a>`);
@@ -289,7 +317,14 @@ const ESTILO = `
   /* Las capturas son evidencia (rúbrica §2): entran completas y con su pie,
      y no se parten entre dos páginas. */
   figure { margin: 12pt 0; page-break-inside: avoid; }
-  figure img { max-width: 100%; border: .75pt solid #D8D5CE; }
+  /* El alto también se acota: A4 con estos márgenes deja 259 mm útiles, y una
+     captura de página completa puede medir varias veces eso. Sin este tope la
+     imagen desborda y el visor la recorta sin avisar. */
+  figure img { max-width: 100%; max-height: 235mm; border: .75pt solid #D8D5CE; }
+  /* Captura muy alta: se muestra su parte superior, a ancho completo. */
+  figure.recorte .marco { display: block; max-height: 120mm; overflow: hidden;
+    border: .75pt solid #D8D5CE; }
+  figure.recorte .marco img { width: 100%; max-height: none; border: 0; display: block; }
   figcaption { font-size: 8.5pt; color: #6B6B6B; margin-top: 4pt; }
 
   code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #EFEDE8; padding: .5pt 3pt; }
