@@ -422,15 +422,17 @@ Se reproducen aquí las cuatro que **caben legibles en una página**. Las captur
 
 El tablero está cargado. Esta es la evidencia del criterio 1:
 
-![El tablero completo, con sus siete depósitos: Ámbito, Requisitos, Diseño, Desarrollo, Pruebas, Piloto e implementación y Etapas Terminadas. Cada tarea lleva responsable, fechas y prioridad; el contador «Tareas completadas» de cada columna agrupa las ya cerradas](planner-tablero-2.png)
+![El tablero, con sus siete depósitos: Ámbito, Requisitos de análisis, Diseño, Desarrollo, Pruebas, Piloto e implementación y Etapas Terminadas. Cada tarjeta lleva responsable, fecha de vencimiento y prioridad](planner-tablero-1.png)
 
-![El mismo tablero con las columnas desplegadas: se ven las tarjetas pendientes de cada depósito con su fecha de vencimiento y su prioridad](planner-tablero-1.png)
+![El mismo tablero desplazado hacia abajo: se ven las tareas ya cerradas, tachadas y con la marca «Completada por»](planner-tablero-2.png)
 
 > 🔗 **Enlace directo al tablero**: [plan `P2-C1/DesarrolloSW-MuniLS-OrigamiSpA` en Microsoft Planner](https://outlook.cloud.microsoft/host/75f31797-37c9-498e-8dc9-53c16a36afca/mytasks/%2Fv1%2Fplan%2FUlmhBkbPr02_iSZDggVesWQACMH8?tenantId=38a1e0a1-b6b1-42e9-b3a9-597626670b17&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists)
 >
 > Abre dentro del inquilino de INACAP, así que se ve con la cuenta institucional sin pedir acceso.
 
-**Cómo leer las capturas**: las tareas ya terminadas están agrupadas bajo «Tareas completadas» al pie de cada columna —**24** en Desarrollo, **9** en Requisitos, **5** en Diseño, **4** en Ámbito—, que es como Planner colapsa lo cerrado. Las tarjetas visibles son las que siguen abiertas, con su fecha y su prioridad.
+**Cómo leer las capturas.** Planner **colapsa lo terminado** bajo un contador «Tareas completadas» al pie de cada columna, así que a primera vista el tablero parece tener menos trabajo del que tiene. Ahí están agrupadas **24** tareas en Desarrollo, **9** en Requisitos, **7** en Pruebas, **5** en Diseño, **5** en Etapas Terminadas y **4** en Ámbito. Las tarjetas a la vista son las que siguen abiertas.
+
+**El depósito «Etapas Terminadas» son los hitos del proyecto**, no tareas: las cuatro fases cerradas —documentación y diseño, backend, frontend y BI— más el **cambio de línea base del 31 de agosto**, cuando los profesores entregaron la especificación formal y la unidad de medición pasó de la delegación al funcionario. Ese hito es el que explica por qué hay trabajo de agosto sobre un modelo y trabajo de septiembre sobre otro.
 
 El tablero se organiza en **seis depósitos** —Ámbito, Requisitos, Diseño, Desarrollo, Pruebas y Piloto—, con responsable, fecha de inicio, fecha de vencimiento y prioridad en cada tarea. El contenido de las 87 tarjetas está versionado en [`plan-desarrollo.csv`](../plan-desarrollo.csv), así que el tablero y el repositorio dicen lo mismo y puede comprobarse.
 
