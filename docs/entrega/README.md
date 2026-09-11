@@ -25,7 +25,7 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 
 **100 de 100 puntos cubiertos, y el informe escrito.** Queda **cargar el Planner** (criterio 1), que es trabajo a mano, y la captura del tablero que va en el §10 del informe.
 
-> 🔴 **Y queda una cosa que no es documentación: esta rama no está publicada en GitHub.** `origin` tiene `main` y dos ramas viejas; **`entrega/analisis-diseno` existe solo en el computador de trabajo**, y `main` no contiene `docs/entrega/` en absoluto. La rúbrica §2 exige «enlace del repositorio incorporado y acceso asegurado al docente», y el informe enlaza al repositorio: mientras la rama no se publique, **ese enlace no lleva a ninguno de estos artefactos**. Es el único punto de la entrega que puede costar puntos en todos los criterios a la vez.
+> ✅ **Publicado el 11 de septiembre.** `main` contiene todos los artefactos de la entrega, y la rama `entrega/analisis-diseno` queda como evidencia de cómo se construyó. Los enlaces de los PDF apuntan a `main`, que es permanente.
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -243,6 +243,7 @@ Para que nadie lo abra «ya que estamos»:
 |---|---|
 | [informe.md](informe.md) · [informe.pdf](informe.pdf) | **El informe.** El documento paraguas: el caso, los ocho criterios, **las cuatro tablas de trazabilidad**, las decisiones, los desvíos y las consultas abiertas |
 | `*.pdf` | **Lo que se adjunta al Planner.** Un PDF por documento de criterio, más el informe y el del mockup. Se regeneran todos con `npm run pdf:entrega` |
+| [estado-del-sistema.md](estado-del-sistema.md) · [estado-del-sistema.pdf](estado-del-sistema.pdf) | **Visita guiada al sistema, para el equipo.** Qué problema resuelve, la cadena actividad → evidencia → validación → puntaje, los seis roles, las ocho pantallas, el modelo en cristiano, qué falta y cómo levantarlo. **No se entrega**: sirve para ponerse al día |
 | [requerimientos.md](requerimientos.md) | **Criterio 2.** Los 38 RF y 18 RNF por módulo y épica, con actores y trazados a los CU |
 | [casos-uso-general.md](casos-uso-general.md) | **Criterio 3.** La frontera, los seis actores, los doce casos con sus RF y su pantalla, y las nueve relaciones `«include»` y `«extend»` |
 | [casos-uso-detalle.md](casos-uso-detalle.md) | **Criterio 4.** Las doce fichas de la rúbrica §5.4, cada una anclada al texto oficial de su RF, con su diagrama |
