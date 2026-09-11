@@ -155,4 +155,4 @@ No es uno de los nueve escenarios modelados, pero es el mismo tipo y sale de la 
 
 ---
 
-Los diagramas del sistema (contexto, casos de uso, ERD y secuencia) están en [../diagramas/](../diagramas/), también en PNG para adjuntar.
+Los 32 diagramas del sistema —requerimientos, casos de uso, clases y DER— están en [../entrega/puml/](../entrega/puml/), en PlantUML, con su fuente `.puml` y su PNG.

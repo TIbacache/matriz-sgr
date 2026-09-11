@@ -413,19 +413,26 @@ Aprovecha de crear dos etiquetas más, que ayudan a leer el tablero de un vistaz
 3. Elige **Vínculo** (para apuntar al archivo en GitHub) o **Archivo** (para subir el `.html` o el `.png`).
 4. Ponle un nombre que se entienda: no `diagrama.png`, sino `Diagrama de requerimientos - RF y RNF`.
 
-Guía de qué va en cada tarea:
+**Qué se adjunta, archivo por archivo.** Todo lo de la columna del medio existe ya; se regenera con `cd frontend && npm run pdf:entrega`.
 
-| Tarea | Qué se le adjunta |
-|---|---|
-| Diagrama de Requerimientos | El diagrama en `.png` y el enlace al archivo fuente |
-| Diagramas UML | El caso de uso general y los 12 casos específicos |
-| Casos de uso específicos y fichas *(si la creas)* | Las 12 fichas |
-| Diagramas de Clase | El diagrama de clases en `.png` |
-| Modelo Entidad-Relación | El DER en `.png` y el script `.sql` |
-| Diseño MockUps | Los `.html` autocontenidos de las 17 pantallas |
-| GIT | El enlace al repositorio y al README |
+| Tarea del tablero | Adjuntar (archivo exacto) | Está en |
+|---|---|---|
+| **Diagrama de Requerimientos** | `requerimientos.pdf` | `docs/entrega/` |
+| **Diagramas UML** | `casos-uso-general.pdf` | `docs/entrega/` |
+| **Casos de uso específicos y fichas** *(si la creas)* | `casos-uso-detalle.pdf` | `docs/entrega/` |
+| **Diagramas de Clase** | `clases.pdf` | `docs/entrega/` |
+| **Modelo Entidad-Relación** | `der.pdf` · `script-sql.pdf` · **`sgr-mysql.sql`** | `docs/entrega/` |
+| **Diseño MockUps** | `mockup-pantallas.pdf` · **los 17 `.html`** | `docs/entrega/` y `docs/mockups/` |
+| **GIT** | *Vínculo* al repositorio · `informe.pdf` | — |
+| **La tarea de la entrega** *(la que reúne todo)* | `informe.pdf` | `docs/entrega/` |
 
-> **Por qué en dos formatos.** El `.html` autocontenido se abre desde Planner sin internet y se ve tal cual. El `.png` es para GitHub, donde el Markdown no ejecuta HTML. El profesor dijo que el frontend tiene que verse en GitHub, así que hacen falta los dos.
+**Tres reglas para no equivocarse:**
+
+1. **Los documentos van en PDF, nunca en `.md`.** Un `.md` adjunto a una tarjeta se abre como texto plano: sin tablas y sin diagramas. Cada PDF ya trae **sus diagramas dentro**, así que no hay que adjuntar los `.png` de `puml/` por separado.
+2. **Los `.html` del mockup sí se adjuntan, y son 17.** No son documentos: son el prototipo. Se abren con doble clic, sin internet y sin servidor, y se ven exactamente como la aplicación. Son el único formato que demuestra navegación, que es lo que la rúbrica §5.8 evalúa.
+3. **Los `.png` NO se adjuntan.** Existen para que las pantallas se vean **en GitHub**, que no ejecuta HTML. Ya están en el repositorio y el `mockup-pantallas.pdf` los lleva todos. Adjuntarlos otra vez solo agrega ruido.
+
+> Si una tarea admite **Vínculo** en vez de **Archivo**, el vínculo a GitHub es preferible para el `.sql` y para el repositorio: se ve el contenido sin descargar nada. Para los PDF y los `.html`, adjunta el **archivo**: el profesor no debería depender de tener acceso al repositorio para abrir un entregable.
 
 ### 8.3 La captura del tablero
 
@@ -456,7 +463,8 @@ Recórrela antes de dar el tablero por listo:
 - [ ] Las tareas terminadas están en **Completada**, no en «En curso al 90%»
 - [ ] Existe la etiqueta **«En revisión»** y está explicada en el informe
 - [ ] Los ocho criterios de la rúbrica tienen una tarea que los respalde (tabla del punto 3.2)
-- [ ] Cada artefacto terminado está **adjunto o enlazado** desde su tarea
+- [ ] Cada artefacto terminado está **adjunto o enlazado** desde su tarea, según la tabla del punto 8.2
+- [ ] Los ocho documentos van en **PDF**, no en `.md`, y los 17 mockups en **`.html`**
 - [ ] Hay **captura del tablero** y **enlace directo** para el informe
 - [ ] Ninguna tarea nombra `metas` de la versión vieja, la vista materializada ni el cron: **eso se eliminó** y mencionarlo contradice al resto de los entregables
 
@@ -492,5 +500,7 @@ Pregunta antes de escribirla. Una nota que dice algo que no es cierto es peor qu
 | `docs/plan-desarrollo.csv` | El mismo contenido en formato tabla, por si prefieres copiar de ahí |
 | `docs/plan-desarrollo.md` | La vista humana del plan completo, con el calendario por sprints y la ruta crítica |
 | `docs/entrega/planner-delta.md` | Qué se corrigió del plan viejo y por qué, y el mapa criterio → tarea |
+| `docs/entrega/*.pdf` | **Lo que se adjunta al tablero.** Nueve PDF; se regeneran con `cd frontend && npm run pdf:entrega` |
+| `docs/mockups/*.html` | Las 17 pantallas para adjuntar a «Diseño MockUps» |
 | `docs/rubrica-entrega-15-septiembre.md` | La rúbrica transcrita, con los ocho criterios y sus puntajes |
 | `docs/plan-entrega-15-septiembre.md` | El plan de toda la entrega, no solo del Planner |

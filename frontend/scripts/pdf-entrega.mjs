@@ -3,7 +3,7 @@
 //   npm run pdf:entrega
 //
 // Para qué existe este archivo y no una lista de comandos en un documento:
-// **el docente solo revisa el Planner** (CLAUDE.md regla 19) y ahí se adjuntan
+// **el docente solo revisa el Planner** (regla 19 del proyecto) y ahí se adjuntan
 // archivos. Un `.md` adjunto se lee como texto plano —sin tablas y sin
 // diagramas—, así que todo documento que vaya al tablero va en PDF.
 //

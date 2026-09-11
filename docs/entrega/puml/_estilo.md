@@ -88,4 +88,7 @@ legibilidad de la rúbrica:
 
 PlantUML deja controlar el salto de línea, el estilo del borde y las notas, es
 la herramienta que el equipo ya usa, y su notación es la del ejemplo del
-docente. Mermaid se sigue usando solo en [docs/diagramas.md](../../diagramas.md).
+docente. **Los diagramas en mermaid se retiraron del repositorio** junto con el
+documento que los contenía: describían el modelo v1 —con la tabla `metas` y la
+vista materializada, que ya no existen— y sus PNG medían 600 px de ancho, así
+que no se dejaban ampliar. Los 32 diagramas vigentes están aquí, en PlantUML.

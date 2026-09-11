@@ -38,3 +38,10 @@ docker-volumes/
 # Intermedio de scripts/pdf.mjs con --conservar-html: se borra solo, salvo
 # cuando se pide conservarlo para depurar. No entra al repositorio.
 *.tmp.html
+
+# Material de trabajo interno del equipo: instrucciones de la herramienta de
+# desarrollo, prompt de continuidad y la visión inicial (superada por el PDF
+# oficial y con los acentos corrompidos). No forman parte de la entrega.
+CLAUDE.md
+docs/prompt-siguiente-sesion.md
+Documento_Maestro_Matriz_SGR.md

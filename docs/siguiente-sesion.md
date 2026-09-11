@@ -26,7 +26,7 @@ Cumplimiento contra los 38 RF oficiales: **23 ✅ · 8 🟡 · 7 ⬜** (antes de
 
 ## 2. Antes de escribir una línea: auditar
 
-Es la regla 1 de CLAUDE.md y el error más caro sería ignorarla. En este punto del proyecto **el modelo ya existe**, así que:
+Es la regla 1 del proyecto y el error más caro sería ignorarla. En este punto del proyecto **el modelo ya existe**, así que:
 
 1. Leer el requisito en [requerimientos-oficiales.md](requerimientos-oficiales.md) (RF y criterio de aceptación).
 2. Revisar si la entidad **ya está** en `backend/prisma/schema.prisma` — casi siempre sí. **No crear tablas nuevas sin comprobarlo.**
@@ -236,7 +236,6 @@ Los tres primeros salieron de contrastar cada caso de uso con su RF oficial (cri
 | ~~Sin estrategia de ramas documentada~~ → **resuelta**: [README §Estrategia de ramas y versiones](../README.md), con etiquetas de rollback por bloque | README | ✅ |
 | **El Planner existe pero no cuenta el trabajo hecho**: Desarrollo, Pruebas y Piloto vacíos, y sin tarea para el diagrama de requerimientos. El docente dijo que SOLO revisará el Planner (clase del 1-09-2026), así que lo que no esté adjunto ahí no se evalúa. ⚠ El CSV de 58 tareas está desfasado y sus títulos chocan con los de Héctor: reconciliar antes de cargar | `docs/plan-desarrollo.csv`, Planner | **Alta** |
 | **Entrega del 15 de septiembre**: plan operativo en [plan-entrega-15-septiembre.md](plan-entrega-15-septiembre.md), contra la rúbrica oficial. La [guía en .docx](Guia-Entregables-15-septiembre.docx) es del 1 de septiembre (`v0.7.1`) y quedó desfasada: sirve su paso a paso y su ficha de ejemplo de CU-03, no su estado | documentación | **Alta, con fecha** |
-| 🔴 **`docs/diagramas.md` describe el modelo v1**: `metas`, la vista materializada, el cron y umbrales «50-79» que nunca existieron. Cuatro diagramas del 25 de agosto. Presentarlos en la entrega sería describir un sistema que no es el nuestro | `docs/diagramas.md` | **Alta** |
 | **No existe diagrama de clases** (15 pts de la rúbrica) ni **casos de uso con ficha** (20 pts). Es el 35% de la nota de la primera evaluación | `docs/entrega/` | **Alta** |
 | ~~`README.md` dice «11 ADR»~~ ✅ **corregido**, dice 15. Sigue pendiente: `historias-usuario.md` está en las 20 historias propias sin decir que **las 31 oficiales mandan** sobre ellas | `docs/historias-usuario.md` | Media |
 | **El anti-trampa de las emergencias funciona a medias.** El cliente lo pidió expresamente (reunión 01:09:46: *"hay gente que se aprovecha de la emergencia y hace mil cosas"*) y tiene tres palancas: el **tope por ítem** ✅, la **emergencia como ítem al 5%** ✅ y el **descuento de los días de emergencia** del objetivo al día — que el motor sí aplica, pero **`Ausencia` no tiene API ni pantalla**, así que hoy esos días solo se cargan en la base. Es la pieza que falta para que el control sea usable. Consulta abierta nº 14 | `Ausencia`, sin ruta | **Alta** |
@@ -256,9 +255,9 @@ Cuando lleguen: cambiar el valor en `parametro`, poner `confirmado: true`, y act
 
 ## 6. Trampas del entorno (ya nos costaron tiempo)
 
-- **`prisma migrate dev` es interactivo y falla aquí.** Usar `migrate diff` + `migrate deploy` (receta en CLAUDE.md).
+- **`prisma migrate dev` es interactivo y falla aquí.** Usar `migrate diff` + `migrate deploy` (la receta está en las reglas del proyecto).
 - **PowerShell agrega BOM** con `Out-File -Encoding utf8`; Postgres rechaza el archivo. Escribir con `UTF8Encoding($false)`.
-- **`Get-Content` + `Set-Content` sobre un archivo con acentos lo corrompe.** PowerShell 5.1 lo lee como ANSI y lo reescribe mal: `código` queda `cÃ³digo`. Pasó al actualizar los conteos de CLAUDE.md y README.md, y se arregló con `git checkout -- <archivo>`. **Para editar documentación usar las herramientas de edición, no reemplazos por consola.**
+- **`Get-Content` + `Set-Content` sobre un archivo con acentos lo corrompe.** PowerShell 5.1 lo lee como ANSI y lo reescribe mal: `código` queda `cÃ³digo`. Pasó al actualizar los conteos de las reglas del proyecto y del README, y se arregló con `git checkout -- <archivo>`. **Para editar documentación usar las herramientas de edición, no reemplazos por consola.**
 - **`prisma generate` falla si el servidor dev está corriendo** (bloquea el `.dll` del motor). Detenerlo antes.
 - **Here-strings de PowerShell con comillas dobles rompen `git commit -m`.** Usar `git commit -F archivo.txt`.
 - **`git merge -m` con here-string también falla** (a veces git recibe una palabra suelta del mensaje como si fuera una rama, y la etiqueta termina en el commit equivocado). Receta segura: `git merge --no-ff --no-commit <rama>` y después `git commit -F archivo.txt`. **Etiquetar solo después de comprobar con `git log --oneline -1` que el merge existe.**
