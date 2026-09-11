@@ -88,18 +88,18 @@ Ni el script ni el CSV pueden con esto. Están desarrollados en la **tanda 6** d
 
 ## 5. Cada criterio de la rúbrica tiene que tener su tarea y su adjunto
 
-Esta tabla es la lista de comprobación final: si una fila queda sin adjunto, ese criterio no se evalúa.
+Esta tabla es la lista de comprobación final: si una fila queda sin adjunto, ese criterio no se evalúa. **Todos los archivos están en `docs/entrega/`**, salvo los 17 `.html`, que están en `docs/mockups/`. Se regeneran con `cd frontend && npm run pdf:entrega`.
 
 | # | Criterio | Pts | Tarea del tablero | Qué se adjunta o enlaza |
 |---|---|---|---|---|
 | 1 | Planner | 15 | (el tablero mismo) | Captura del tablero poblado y enlace directo, en el informe |
-| 2 | Diagramas de requerimientos | 10 | **Diagrama de Requerimientos** (nueva) | `docs/entrega/requerimientos.md` y su PNG |
-| 3 | Caso de uso general | 10 | Diagramas UML | `docs/entrega/casos-uso-general.md` y su PNG |
-| 4 | Casos de uso específicos + fichas | 20 | Diagramas UML | Los 12 diagramas y las 12 fichas de `docs/entrega/casos-uso-detalle.md` |
-| 5 | Diagrama de clases | 15 | Diagramas de Clase | `docs/entrega/clases.md` y su PNG |
-| 6 | DER MySQL | 10 | Modelo Entidad-Relación | `docs/entrega/der.md` y sus cinco PNG (`puml/28` a `puml/32`) |
-| 7 | Script SQL | 10 | Modelo Entidad-Relación | `docs/entrega/sgr-mysql.sql` |
-| 8 | Mockup funcional + Git | 10 | Diseño MockUps · GIT | Los `.html` autocontenidos de `docs/mockups/` y el enlace al repositorio |
+| 2 | Diagramas de requerimientos | 10 | **Diagrama de Requerimientos** | `requerimientos.pdf` |
+| 3 | Caso de uso general | 10 | Diagramas UML | `casos-uso-general.pdf` |
+| 4 | Casos de uso específicos + fichas | 20 | Diagramas UML | `casos-uso-detalle.pdf` (trae los 12 diagramas y las 12 fichas) |
+| 5 | Diagrama de clases | 15 | Diagramas de Clase | `clases.pdf` |
+| 6 | DER MySQL | 10 | Modelo Entidad-Relación | `der.pdf` (trae sus cinco diagramas dentro) |
+| 7 | Script SQL | 10 | Modelo Entidad-Relación | `script-sql.pdf` y **`sgr-mysql.sql`** |
+| 8 | Mockup funcional + Git | 10 | Diseño MockUps · GIT | `mockup-pantallas.pdf` y los **17 `.html`** de `docs/mockups/`; en GIT, el vínculo al repositorio e `informe.pdf` |
 
 **Dos criterios cuelgan de una sola tarea de Héctor** (el 3 y el 4 de «Diagramas UML»; el 6 y el 7 de «Modelo Entidad-Relación»). Funciona, porque las dos traen checklist. Pero el criterio 4 vale 20 puntos —el más caro de la rúbrica— y hoy es un ítem de checklist dentro de otra tarea.
 
