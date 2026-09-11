@@ -16,7 +16,7 @@ Cada pantalla está dos veces, y cada formato sirve para una cosa distinta:
 | **`.html`** | Se adjunta a la tarea de Planner. Se abre con doble clic —sin instalar nada, sin servidor, sin base de datos y sin internet— y se ve exactamente como la aplicación. |
 | **`.png`** | Para que la pantalla **se vea en GitHub**: Markdown muestra imágenes, pero no ejecuta HTML. Son las que aparecen más abajo. |
 
-> **Este documento también se entrega en PDF**, como [`../entrega/mockup-pantallas.pdf`](../entrega/mockup-pantallas.pdf), porque en Planner se adjuntan archivos y un `.md` ahí se lee como texto plano. Se regenera con `npm run pdf:entrega`.
+> **Este documento también se entrega en PDF**, como [`../entrega/mockup-pantallas.pdf`](../entrega/mockup-pantallas.pdf), porque en Planner se adjuntan archivos y un `.md` ahí se lee como texto plano. Y las 17 pantallas van juntas en [`../entrega/mockup-17-pantallas.zip`](../entrega/mockup-17-pantallas.zip), porque **Planner solo admite 10 adjuntos por tarea**. Los dos se regeneran con `npm run pdf:entrega`.
 
 > Los `.html` son **estáticos**: los botones no responden. Es una fotografía navegable, no la aplicación. Cada uno lo dice en una franja al pie, para que nadie crea que algo está roto.
 

@@ -422,14 +422,14 @@ Aprovecha de crear dos etiquetas más, que ayudan a leer el tablero de un vistaz
 | **Casos de uso específicos y fichas** *(si la creas)* | `casos-uso-detalle.pdf` | `docs/entrega/` |
 | **Diagramas de Clase** | `clases.pdf` | `docs/entrega/` |
 | **Modelo Entidad-Relación** | `der.pdf` · `script-sql.pdf` · **`sgr-mysql.sql`** | `docs/entrega/` |
-| **Diseño MockUps** | `mockup-pantallas.pdf` · **los 17 `.html`** | `docs/entrega/` y `docs/mockups/` |
+| **Diseño MockUps** | `mockup-pantallas.pdf` · **`mockup-17-pantallas.zip`** | `docs/entrega/` |
 | **GIT** | *Vínculo* al repositorio · `informe.pdf` | — |
 | **La tarea de la entrega** *(la que reúne todo)* | `informe.pdf` | `docs/entrega/` |
 
 **Tres reglas para no equivocarse:**
 
 1. **Los documentos van en PDF, nunca en `.md`.** Un `.md` adjunto a una tarjeta se abre como texto plano: sin tablas y sin diagramas. Cada PDF ya trae **sus diagramas dentro**, así que no hay que adjuntar los `.png` de `puml/` por separado.
-2. **Los `.html` del mockup sí se adjuntan, y son 17.** No son documentos: son el prototipo. Se abren con doble clic, sin internet y sin servidor, y se ven exactamente como la aplicación. Son el único formato que demuestra navegación, que es lo que la rúbrica §5.8 evalúa.
+2. **Los `.html` del mockup van comprimidos, en un solo adjunto.** ⚠ **Planner admite 10 adjuntos por tarea y las pantallas son 17**, así que sueltas no caben. `mockup-17-pantallas.zip` las lleva todas. No son documentos: son el prototipo —se abren con doble clic, sin internet y sin servidor— y son el único formato que demuestra navegación, que es lo que la rúbrica §5.8 evalúa.
 3. **Los `.png` NO se adjuntan.** Existen para que las pantallas se vean **en GitHub**, que no ejecuta HTML. Ya están en el repositorio y el `mockup-pantallas.pdf` los lleva todos. Adjuntarlos otra vez solo agrega ruido.
 
 > Si una tarea admite **Vínculo** en vez de **Archivo**, el vínculo a GitHub es preferible para el `.sql` y para el repositorio: se ve el contenido sin descargar nada. Para los PDF y los `.html`, adjunta el **archivo**: el profesor no debería depender de tener acceso al repositorio para abrir un entregable.
