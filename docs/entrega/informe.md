@@ -426,7 +426,9 @@ El tablero está cargado. Esta es la evidencia del criterio 1:
 
 ![El mismo tablero con las columnas desplegadas: se ven las tarjetas pendientes de cada depósito con su fecha de vencimiento y su prioridad](planner-tablero-1.png)
 
-> 🔗 **Enlace directo al tablero**: ⟨pegar aquí el vínculo al plan antes de entregar⟩
+> 🔗 **Enlace directo al tablero**: [plan `P2-C1/DesarrolloSW-MuniLS-OrigamiSpA` en Microsoft Planner](https://outlook.cloud.microsoft/host/75f31797-37c9-498e-8dc9-53c16a36afca/mytasks/%2Fv1%2Fplan%2FUlmhBkbPr02_iSZDggVesWQACMH8?tenantId=38a1e0a1-b6b1-42e9-b3a9-597626670b17&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists)
+>
+> Abre dentro del inquilino de INACAP, así que se ve con la cuenta institucional sin pedir acceso.
 
 **Cómo leer las capturas**: las tareas ya terminadas están agrupadas bajo «Tareas completadas» al pie de cada columna —**24** en Desarrollo, **9** en Requisitos, **5** en Diseño, **4** en Ámbito—, que es como Planner colapsa lo cerrado. Las tarjetas visibles son las que siguen abiertas, con su fecha y su prioridad.
 
