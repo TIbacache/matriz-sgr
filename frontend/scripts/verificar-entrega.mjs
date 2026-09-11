@@ -658,5 +658,127 @@ if (!existsSync(rutaSql)) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 10. El informe. Se activa cuando el artefacto existe.
+//
+// El informe REÚNE lo que dicen los demás documentos, y ese es justamente su
+// riesgo: es el artefacto que más barato se desincroniza, porque copiar una
+// tabla no deja rastro de su origen. Estas comprobaciones lo atan a su fuente.
+// ---------------------------------------------------------------------------
+titulo("Criterio 9 · informe");
+
+const rutaInforme = path.join(entrega, "informe.md");
+if (!existsSync(rutaInforme)) {
+  console.log("  ··   todavía no existe informe.md; nada que comprobar");
+} else {
+  const informe = readFileSync(rutaInforme, "utf8");
+
+  verificar(
+    "el informe trae el enlace del repositorio (rúbrica §2)",
+    /github\.com\/TIbacache\/matriz-sgr/.test(informe)
+  );
+
+  // --- 10.1 RF → CU: el informe no puede decir otra cosa que el criterio 2 --
+  const cuDelInforme = new Map();
+  for (const linea of informe.split("\n")) {
+    if (!/^\|\s*RF-\d{3}\s*\|/.test(linea)) continue;
+    const c = celdas(linea);
+    if (c.length >= 3) cuDelInforme.set(c[0], c[2]);
+  }
+  verificar("el informe traza los 38 RF", cuDelInforme.size === 38, `son ${cuDelInforme.size}`);
+
+  // `rfACu` viene del bloque 1, leído de requerimientos.md §12.
+  const discrepan = [];
+  for (const [rf, celdaInforme] of cuDelInforme) {
+    // `rfACu` viene como Set desde el bloque 1.
+    const esperados = [...(rfACu.get(rf) ?? [])];
+    const traidos = celdaInforme.match(/CU-[0-9IE]\d?/g) ?? [];
+    const faltan = esperados.filter((x) => !traidos.includes(x));
+    const sobran = traidos.filter((x) => !esperados.includes(x));
+    if (faltan.length || sobran.length) {
+      discrepan.push(`${rf}${faltan.length ? ` faltan ${faltan.join("/")}` : ""}${sobran.length ? ` sobran ${sobran.join("/")}` : ""}`);
+    }
+  }
+  verificar(
+    "RF → CU del informe coincide con requerimientos.md §12",
+    discrepan.length === 0,
+    discrepan.join(" · ")
+  );
+
+  // --- 10.2 CU → mockup: los doce, y cada imagen existe --------------------
+  const pngsInforme = new Set([...informe.matchAll(/\.\.\/mockups\/([\w-]+\.png)/g)].map((m) => m[1]));
+  verificar("el informe enlaza pantallas del mockup", pngsInforme.size > 0);
+  for (const png of [...pngsInforme].sort()) {
+    verificar(`informe → docs/mockups/${png} existe`, existsSync(path.join(raiz, "docs/mockups", png)));
+  }
+
+  // --- 10.3 y 10.4 CU → clase y CU → tabla --------------------------------
+  // Ninguna clase ni tabla inventada: las dos listas salen de los documentos
+  // de los criterios 5 y 6, que a su vez el verificador ya comparó contra
+  // schema.prisma y contra las migraciones.
+  const seccion = (desde, hasta) => {
+    const i = informe.indexOf(desde);
+    if (i < 0) return "";
+    const f = informe.indexOf(hasta, i + 1);
+    return informe.slice(i, f < 0 ? undefined : f);
+  };
+
+  // La tabla clase ↔ tabla de clases.md §10 da las dos listas de una vez, y ya
+  // viene comparada contra schema.prisma y contra las migraciones por los
+  // bloques 7 y 8: apoyarse en ella evita una tercera lista que mantener.
+  // Solo la tabla del §10: clases.md tiene otras con la misma forma.
+  const docClases = leer("clases.md");
+  const i10 = docClases.indexOf("## 10.");
+  const f10 = docClases.indexOf("## 11.", i10 + 1);
+  const tabla10 = docClases.slice(i10, f10 < 0 ? undefined : f10);
+  const pares = [...tabla10.matchAll(/^\|\s*`([A-Z][A-Za-z]+)`\s*\|\s*`([a-z][a-z_]*)`\s*\|/gm)];
+  const clasesReales = new Set(pares.map((m) => m[1]));
+  const tablasReales = new Set(pares.map((m) => m[2]));
+  verificar("clases.md §10 entrega las 22 clases con su tabla", pares.length === 22, `son ${pares.length}`);
+
+  const clasesInforme = new Set(
+    [...seccion("### 5.3", "### 5.4").matchAll(/`([A-Z][A-Za-z]+)`/g)].map((m) => m[1])
+  );
+  const inventadas = [...clasesInforme].filter(
+    (c) => !clasesReales.has(c) && !c.startsWith("Servicio")
+  );
+  verificar("el informe no nombra ninguna clase que no esté en clases.md", inventadas.length === 0, inventadas.join(", "));
+
+  const tablasInforme = new Set(
+    [...seccion("### 5.4", "## 6.").matchAll(/`([a-z][a-z_]+)`/g)].map((m) => m[1])
+  );
+  const noSonTabla = [...tablasInforme].filter((t) => !tablasReales.has(t));
+  verificar(
+    "el informe no nombra ninguna tabla que no esté en el modelo",
+    noSonTabla.length === 0,
+    noSonTabla.join(", ")
+  );
+
+  // --- 10.5 Los doce casos, presentes en las tres tablas -------------------
+  for (const seccionCu of [
+    ["### 5.2", "### 5.3", "CU → mockup"],
+    ["### 5.3", "### 5.4", "CU → clase"],
+    ["### 5.4", "## 6.", "CU → tabla"],
+  ]) {
+    const texto = seccion(seccionCu[0], seccionCu[1]);
+    const presentes = new Set([...texto.matchAll(/\bCU-(\d{2})\b/g)].map((m) => m[1]));
+    const faltan = [];
+    for (let n = 1; n <= 12; n++) {
+      const id = String(n).padStart(2, "0");
+      if (!presentes.has(id)) faltan.push(`CU-${id}`);
+    }
+    verificar(`${seccionCu[2]} cubre los doce casos`, faltan.length === 0, faltan.join(", "));
+  }
+
+  // --- 10.6 Los desvíos y las decisiones no se pierden ---------------------
+  for (const desvio of ["D-a", "D-b", "D-c", "D-d"]) {
+    verificar(`el informe declara el desvío ${desvio}`, informe.includes(`**${desvio}**`));
+  }
+  verificar(
+    "el informe declara que el modelo va en MySQL y el sistema corre en PostgreSQL",
+    /MySQL/.test(informe) && /PostgreSQL 16/.test(informe)
+  );
+}
+
 console.log(`\n${total - fallas}/${total} verificaciones de la entrega en verde`);
 process.exit(fallas ? 1 : 0);

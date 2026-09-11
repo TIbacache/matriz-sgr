@@ -3,7 +3,7 @@
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
 **Última actualización**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`, sin mergear a `main`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **100 puntos cubiertos**: criterio 1 preparado y criterios 2 a 8 cerrados. Se retoma en el **informe**.
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **100 puntos cubiertos y el informe escrito**: criterios 2 a 8 cerrados. Se retoma en la **documentación viva desfasada**, y queda cargar el Planner a mano.
 
 ---
 
@@ -20,13 +20,15 @@ LEE PRIMERO, EN ESTE ORDEN:
 
 1. docs/entrega/README.md — EL ESTADO. Qué criterio está listo, las decisiones
    ya tomadas para no rediscutirlas y lo que no se toca. Sus secciones "Cómo
-   quedó el criterio 3/4/5/6/7/8" evitan rehacer trabajo ya discutido.
-2. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Los dos PDF
+   quedó el criterio 3/4/5/6/7/8" y "Cómo quedó el informe" evitan rehacer
+   trabajo ya discutido.
+2. docs/entrega/informe.md — EL DOCUMENTO PARAGUAS, ya escrito. Si algo cambia
+   en cualquier artefacto, este es el que hay que revisar también.
+3. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Los dos PDF
    originales están versionados en docs/: ante la duda, mandan ellos.
-3. CLAUDE.md — reglas del proyecto.
-4. Los cuatro documentos de donde sale el informe, listados más abajo.
+4. CLAUDE.md — reglas del proyecto.
 
-ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 311 en verde:
+ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 343 en verde:
       cd frontend && npm run verificar:entrega
 Correrlo también DESPUÉS de cada artefacto. Sale con código 1 si algo se cae.
 (Las 332 comprobaciones del software son otra cosa y no hace falta tocarlas:
@@ -34,21 +36,15 @@ esta entrega no evalúa el código corriendo.)
 
 QUÉ SIGUE, en este orden:
 
-  9. INFORME con las cuatro tablas de trazabilidad (RF→CU, CU→mockup,
-     CU→clase, CU→tabla), el enlace al repositorio y la captura del Planner.
-     ES EL SIGUIENTE. Las cuatro YA EXISTEN y solo hay que reunirlas:
-       RF→CU     entrega/requerimientos.md §12 y casos-uso-general.md §6
-       CU→mockup casos-uso-general.md §6 (camino feliz) y §8.1 (los nueve
-                 escenarios alternativos, con sus dos ausencias argumentadas)
-       CU→clase  clases.md §10
-       CU→tabla  clases.md §10 y der.md §13
-     El informe además tiene que decir la decisión D-1: el DER y el script se
-     entregan en MySQL y el sistema corre en PostgreSQL 16.
-     Y la rúbrica §5.8 pide DOS cosas más que ya están hechas y hay que
-     enlazar, no rehacer: el README del mockup (docs/mockups/README.md) y el
-     enlace del repositorio.
+  9. ~~INFORME~~ ✅ HECHO. docs/entrega/informe.md y su PDF. Trae las cuatro
+     tablas de trazabilidad (RF→CU, CU→mockup, CU→clase+servicio, CU→tabla),
+     el enlace al repositorio, la decisión D-1, los cuatro desvíos y las
+     consultas abiertas. El verificador lo ata a sus fuentes.
+     ⚠ TIENE UN HUECO MARCADO A PROPÓSITO: la captura del Planner del §10.
+     Se llena cuando el tablero esté cargado, y hay que acordarse.
 
- 10. DOCUMENTACIÓN VIVA desfasada, que la rúbrica castiga por incoherencia:
+ 10. DOCUMENTACIÓN VIVA desfasada, que la rúbrica castiga por incoherencia.
+     ES LO SIGUIENTE:
      - docs/diagramas.md: YA LLEVA una cabecera de documento histórico que
        enumera qué tiene de falso. Falta decidir si se retira del todo.
      - docs/historias-usuario.md: debe declarar que las 31 oficiales mandan
@@ -111,6 +107,10 @@ LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
 - Las 14 consultas abiertas: NO se responden por cuenta propia.
 - El Planner: NO volver a intentar automatizarlo. INACAP bloquea la aplicación
   Microsoft Graph Command Line Tools y ya está probado y documentado.
+- EL INFORME (docs/entrega/informe.md): está escrito y verificado. Solo se
+  toca si cambia un artefacto que él resume, y en ese caso se cambian los dos.
+  Su columna de servicios se derivó ENDPOINT POR ENDPOINT, no por los imports
+  del archivo de rutas: un módulo atiende varios casos de uso.
 - Los criterios 2 a 8: están cerrados y verificados. El script SQL ADEMÁS se
   ejecutó en MySQL 8.0.46 y en MariaDB 10.4 y 11.4 —la de XAMPP—, con las 13
   pruebas de restricciones en verde en los tres. NO hay que volver a probarlo

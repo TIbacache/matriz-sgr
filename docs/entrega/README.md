@@ -21,9 +21,9 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | 6 | DER MySQL | 10 | ✅ **Hecho** | [der.md](der.md) · [puml/28](puml/28-der-general.puml) a [puml/32](puml/32-der-plataforma.puml) |
 | 7 | Script SQL | 10 | ✅ **Hecho** | [script-sql.md](script-sql.md) · [sgr-mysql.sql](sgr-mysql.sql) |
 | 8 | Mockup funcional + Git | 10 | ✅ **Hecho** | [../mockups/](../mockups/) · mapa CU → mockup en [casos-uso-general.md §8.1](casos-uso-general.md) |
-| — | Informe de la entrega | — | 🔴 Pendiente | — |
+| — | Informe de la entrega | — | ✅ **Hecho** | [informe.md](informe.md) · [informe.pdf](informe.pdf) |
 
-**100 de 100 puntos cubiertos.** Queda el **informe**, y cargar el Planner (criterio 1).
+**100 de 100 puntos cubiertos, y el informe escrito.** Queda **cargar el Planner** (criterio 1), que es trabajo a mano, y la captura del tablero que va en el §10 del informe.
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -137,6 +137,22 @@ Y un cambio menor de interfaz que ese escenario dejó a la vista: **la bandeja n
 
 **El verificador de la entrega crece a 311 comprobaciones** (eran 262). Las nuevas cierran el círculo en los dos sentidos: cada `«include»` y cada `«extend»` tiene su casilla en el mapa, cada casilla apunta a un PNG que existe **y que `mockups.mjs` genera**, y cada escenario que el script produce está en el mapa. Una casilla que nombra una imagen huérfana se cae sola en cuanto alguien vuelva a correr el generador.
 
+### Cómo quedó el informe (cerrado el 10 de septiembre)
+
+**[informe.md](informe.md), y su [PDF](informe.pdf) para adjuntar en Planner.** Es el documento paraguas: reúne los ocho criterios y, sobre todo, **las cuatro tablas de trazabilidad**, que es donde se juega el criterio transversal.
+
+Las cuatro no se inventaron: se cruzaron desde los artefactos que ya existían —RF → CU desde [requerimientos.md §12](requerimientos.md), CU → mockup desde [casos-uso-general.md §6 y §8.1](casos-uso-general.md), y CU → clase y CU → tabla **invirtiendo** la tabla de [clases.md §10](clases.md), que está escrita al revés—.
+
+Tres decisiones de contenido:
+
+- **La tabla CU → clase lleva además el servicio**, y por eso se gana su lugar al lado de CU → tabla en vez de ser la misma tabla dos veces. La correspondencia clase ↔ tabla es 1:1 por construcción; lo que cambia entre las dos secciones es que una muestra **dónde vive el comportamiento** y la otra **dónde viven los datos**.
+- **La columna de servicios sale del endpoint, no del archivo.** Un módulo de rutas atiende varios casos de uso —`actividades.routes.ts` sostiene CU-01, CU-02, CU-08 y CU-10—, así que atribuirle a cada caso todos los servicios que el archivo importa habría sobreestimado la dependencia. Se revisó línea por línea: CU-01 no usa `ServicioConcurrencia` porque el alta crea y no actualiza.
+- **El informe dice lo que falta**, no solo lo que hay: los cuatro desvíos, los siete RF fuera de alcance y las catorce consultas abiertas tienen su sección. Un informe que presenta el código como si fuera el requisito vuelve invisible el incumplimiento, y el docente pidió explícitamente que las ambigüedades se documenten.
+
+⚠ **Queda un hueco marcado a propósito**: la **captura del Planner** del §10. No se puede llenar hasta que el tablero esté cargado, y está señalado en el documento para que no pase inadvertido.
+
+**El verificador sube a 343 comprobaciones** (eran 311). Las nuevas atan el informe a sus fuentes, que es su riesgo propio: copiar una tabla no deja rastro de su origen. Comprueban que los 38 RF del informe tracen **exactamente** a los mismos casos de uso que el criterio 2, que las tres tablas de casos cubran los doce, que **ninguna clase ni tabla nombrada exista solo en el informe**, que cada imagen enlazada exista y que los cuatro desvíos y la decisión D-1 sigan declarados.
+
 ---
 
 ## Lo que hay que saber para retomar
@@ -171,9 +187,9 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**311 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, **que cada escenario alternativo tenga su casilla en el mapa CU → mockup y que esa casilla apunte a un PNG que el generador produce**, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar—, **el DER contra las migraciones** —las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`— y **el script SQL contra el esquema**: las 22 tablas, sus columnas una por una en los dos sentidos, las 52 FK, el orden de creación, los 3 disparadores y los 5 `CHECK`.
+**343 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, **que cada escenario alternativo tenga su casilla en el mapa CU → mockup y que esa casilla apunte a un PNG que el generador produce**, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar—, **el DER contra las migraciones** —las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`— y **el script SQL contra el esquema**: las 22 tablas, sus columnas una por una en los dos sentidos, las 52 FK, el orden de creación, los 3 disparadores y los 5 `CHECK`.
 
-⚠ **Estas 311 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 311, que los artefactos de la entrega dicen lo mismo entre sí.
+⚠ **Estas 343 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 343, que los artefactos de la entrega dicen lo mismo entre sí.
 
 Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe, y no fallan mientras no exista. Sale con código 1 si algo se cae, así que sirve para CI cuando lo haya.
 
@@ -215,6 +231,7 @@ Para que nadie lo abra «ya que estamos»:
 
 | Archivo | Qué es |
 |---|---|
+| [informe.md](informe.md) · [informe.pdf](informe.pdf) | **El informe.** El documento paraguas: el caso, los ocho criterios, **las cuatro tablas de trazabilidad**, las decisiones, los desvíos y las consultas abiertas |
 | [requerimientos.md](requerimientos.md) | **Criterio 2.** Los 38 RF y 18 RNF por módulo y épica, con actores y trazados a los CU |
 | [casos-uso-general.md](casos-uso-general.md) | **Criterio 3.** La frontera, los seis actores, los doce casos con sus RF y su pantalla, y las nueve relaciones `«include»` y `«extend»` |
 | [casos-uso-detalle.md](casos-uso-detalle.md) | **Criterio 4.** Las doce fichas de la rúbrica §5.4, cada una anclada al texto oficial de su RF, con su diagrama |
