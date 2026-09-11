@@ -39,7 +39,7 @@ Regla del PDF: *"si una historia contradice un requerimiento formal, prevalece e
 - **Rutas heredadas endurecidas (Bloque A3)**: `/tareas`, `/unidades` y `/categorias` aplican `version` → 409 y auditan todo write, igual que el modelo v2. **CA-08 y CA-09 quedaron completos.** El tubo avisa el conflicto en pantalla en vez de revertir en silencio, y `DELETE /unidades/:id` **desactiva** en vez de borrar (RF-001, que estaba incumplido).
 - **Configuración de metas `/metas`** (RF-006, RF-007, HU-05): totalizador de RN-001 siempre visible, todos los ítems del cargo, guardado del conjunto con `PUT`, reparto en partes iguales y protección de lo que ya sumó puntaje. Solo la editan admin y supervisor.
 - Utilidades `lib/rut.ts`, `lib/fechas.ts`, `lib/persona.ts`, `lib/telefono.ts`; servicios `parametros`, `auditoria`, `codigos`, `cumplimiento`, `concurrencia`, `almacenamiento`.
-- Seed 100% ficticio: 23 personas (14 con cargo medido) y ~2.000 actividades con evidencia y validación. Borra a quien no esté en su lista `EQUIPO`, y deja **una delegación sin medición a propósito**.
+- Seed 100% ficticio: 23 personas (14 con cargo medido) y ~2.000 actividades con evidencia y validación. Borra a quien no esté en su lista `EQUIPO`. **Tres casos deliberados, que son los que hacen demostrables tres reglas**: una delegación sin medición (La Pampa, ADR-014), una funcionaria con metas y cero actividades (`apoyo.companias`, ADR-015) y **una evidencia subida por el coordinador, que por eso no puede validarla** (RNF-005, CU-E3). Ninguno se toca sin cambiar también el artefacto que lo usa.
 
 **Lo que NO existe todavía** — ver [docs/siguiente-sesion.md](docs/siguiente-sesion.md):
 - API de `Ajuste`, `Comentario`, `Ausencia`, catálogos y parámetros.
@@ -69,9 +69,9 @@ npm run dev                   # UI en :5173 (Vite)
 npm run build                 # tsc + vite build
 npm run verificar:contraste   # 83 comprobaciones WCAG de tokens.css en los dos temas + hex fuera de tokens
 node scripts/capturas.mjs <carpeta> [--movil] [--solo=login,ficha]   # capturas con las seis cuentas (servers arriba)
-npm run mockups               # .html autocontenido + .png de las 7 pantallas → docs/mockups (servers arriba)
+npm run mockups               # .html autocontenido + .png de las 17 pantallas → docs/mockups (servers arriba)
 npm run verificar:mockups     # abre los .html desde file:// con la red bloqueada
-npm run verificar:entrega     # 262 comprobaciones de coherencia entre los artefactos de docs/entrega (no toca la red; NO suman a las 332 del software)
+npm run verificar:entrega     # 311 comprobaciones de coherencia entre los artefactos de docs/entrega (no toca la red; NO suman a las 332 del software)
 npm run diagramas             # exporta los mermaid de docs/diagramas.md a PNG → docs/diagramas
 npm run pdf -- <archivo.md> [salida.pdf] [--conservar-html]   # cualquier .md del repo → PDF imprimible (Arial, ADR-010)
 npm run guia:planner          # regenera docs/entrega/guia-planner-hector.pdf

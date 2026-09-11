@@ -3,7 +3,7 @@
 Copiar y pegar tal cual. Se mantiene corto a propósito: **no repite lo que ya está en los documentos**, los señala. Actualizarlo al cerrar cada artefacto, junto con [siguiente-sesion.md](siguiente-sesion.md).
 
 **Última actualización**: 10 de septiembre de 2026 · rama `entrega/analisis-diseno`, sin mergear a `main`
-**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **90 puntos cubiertos**: criterio 1 preparado y criterios 2, 3, 4, 5, 6 y 7 cerrados. Se retoma en el **criterio 8 (los escenarios alternativos del mockup)** y sigue con el informe.
+**Lo que abre**: la **entrega del 15 de septiembre** (primera evaluación de Análisis y Diseño, 100 pts). Van **100 puntos cubiertos**: criterio 1 preparado y criterios 2 a 8 cerrados. Se retoma en el **informe**.
 
 ---
 
@@ -18,26 +18,15 @@ evaluará conexión con base de datos ni consumo de API".
 
 LEE PRIMERO, EN ESTE ORDEN:
 
-1. docs/entrega/README.md — EL ESTADO. Qué criterio está listo, cuál falta,
-   las decisiones ya tomadas para no rediscutirlas y lo que no se toca.
-   Sus secciones "Cómo quedó el criterio 3/4/5/6/7" evitan rehacer trabajo
-   ya discutido.
-2. docs/entrega/casos-uso-general.md §7 y §8 — DE AHÍ SALE EL CRITERIO 8.
-   §7 son los 3 casos incluidos y §8 los 6 de extensión, cada uno con su
-   condición y su resultado. ESOS NUEVE son los escenarios alternativos que
-   el mockup tiene que representar (decisión D-3).
-3. docs/entrega/casos-uso-detalle.md — las 12 fichas. Sus campos "Flujos
-   alternativos" y "Excepciones" dicen qué se ve en pantalla en cada caso.
-4. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Para el
-   mockup manda su §5.8, y su §6 trae la exigencia que más afecta: "los
-   mockups deben representar las pantallas necesarias para ejecutar los casos
-   de uso Y TAMBIÉN contemplar los escenarios alternativos modelados". Los
-   dos PDF originales están versionados en docs/: ante la duda, mandan ellos.
-5. CLAUDE.md — reglas del proyecto. Ojo la 14 (frontend y los dos rojos) y
-   la 19 (todo entregable visual va en .html para Planner y .png para GitHub).
-6. frontend/scripts/mockups.mjs — LA HERRAMIENTA que hay que ampliar.
+1. docs/entrega/README.md — EL ESTADO. Qué criterio está listo, las decisiones
+   ya tomadas para no rediscutirlas y lo que no se toca. Sus secciones "Cómo
+   quedó el criterio 3/4/5/6/7/8" evitan rehacer trabajo ya discutido.
+2. docs/rubrica-entrega-15-septiembre.md — LA RÚBRICA TRANSCRITA. Los dos PDF
+   originales están versionados en docs/: ante la duda, mandan ellos.
+3. CLAUDE.md — reglas del proyecto.
+4. Los cuatro documentos de donde sale el informe, listados más abajo.
 
-ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 262 en verde:
+ANTES DE EMPEZAR, corre el verificador de coherencia. Debe dar 311 en verde:
       cd frontend && npm run verificar:entrega
 Correrlo también DESPUÉS de cada artefacto. Sale con código 1 si algo se cae.
 (Las 332 comprobaciones del software son otra cosa y no hace falta tocarlas:
@@ -45,78 +34,19 @@ esta entrega no evalúa el código corriendo.)
 
 QUÉ SIGUE, en este orden:
 
-  8. MOCKUP — ESCENARIOS ALTERNATIVOS (10 pts) — EL SIGUIENTE.
-
-     LO QUE YA HAY: ocho pantallas del camino feliz en docs/mockups/, cada una
-     en .html autocontenido (para adjuntar en Planner) y .png (para GitHub):
-       01-login · 02-tubo · 03-ficha · 04-verificacion · 05-metas
-       06-vecino · 07-dashboard · 08-actividad
-     Se regeneran con `npm run mockups` y se comprueban con
-     `npm run verificar:mockups`, que las abre desde file:// con la red
-     bloqueada. NO hay que rehacerlas.
-
-     LO QUE FALTA: los nueve escenarios de casos-uso-general.md §7 y §8.
-     Están clasificados por dificultad, y la clasificación ya está
-     comprobada contra el código:
-
-     A) DECLARATIVOS — basta agregar una entrada {archivo, ruta, cuenta,
-        titulo} al array PANTALLAS de mockups.mjs. Sin interacción:
-        - CU-E5 denegar por alcance, dos veces:
-            /vecinos   con verificador@sgr.demo
-              (VecinosPage.tsx:119 pinta el motivo cuando !puedeVer)
-            /actividad con territorial.centro@sgr.demo
-              (ActividadPage.tsx:80-82 muestra el motivo que trae el 403)
-        - CU-E1 aviso de duplicidad: /vecinos?q=13.111.222-K, que es el RUT
-          que ya usa 06-vecino (Rosa Maldonado, seed.ts:134). Conviene una
-          toma propia para que el mapa CU → mockup tenga su casilla.
-        - CU-E6 delegación sin medición: /dashboard, DashboardPage.tsx:230.
-          La Pampa está sin metas A PROPÓSITO en el seed.
-        - ALCANCE REDUCIDO (ADR-012): /vecinos con delegado.centro@sgr.demo,
-          VecinosPage.tsx:329. No es uno de los nueve, pero es el mismo tipo
-          de escenario y sale gratis.
-
-     B) NECESITAN INTERACCIÓN — mockups.mjs hoy NO tiene forma de hacer clic.
-        Hay que agregarle un hook opcional `acciones: async (page) => {...}`
-        que corra después del goto y antes de la captura. Es el cambio de
-        diseño de esta tanda; hacerlo ANTES de escribir los escenarios:
-        - CU-I1 validar los datos del registro: enviar el formulario de la
-          ficha vacío y capturar los mensajes de campo obligatorio.
-        - CU-E2 exigir observación: en /verificacion, elegir "rechazar" e
-          intentar guardar sin escribir la observación.
-        - CU-E3 rechazar la validación propia: entrar a /verificacion con la
-          cuenta que subió la evidencia (RNF-005).
-        - CU-E4 conflicto de versión (409): es el más caro. Hay manejo de 409
-          en VecinosPage.tsx:461 y en el tubo. La vía barata es abrir el
-          modal, tocar la fila desde otra sesión y guardar.
-
-     C) NO SE INVENTAN:
-        - CU-I2 generar el código único: NO es una pantalla propia. El código
-          ya se ve en la ficha (03-ficha). Su casilla apunta ahí.
-        - CU-I3 registrar en la bitácora: **NO TIENE PANTALLA, Y NO SE
-          DIBUJA UNA**. Es exactamente el desvío D-c: RF-036 pide
-          trazabilidad consultable y la pantalla no existe. Su casilla del
-          mapa dice "sin pantalla — RF-036 pendiente (desvío D-c)". Inventar
-          un mockup de algo que no está construido es lo único que en este
-          criterio puede costar puntos en varios lados a la vez.
-
-     AL CERRAR EL CRITERIO 8: ampliar el bloque 4 del verificador
-     (frontend/scripts/verificar-entrega.mjs, "Pantallas del mockup"), que
-     hoy solo mira las filas ^| CU-\d\d |. Que compruebe también que cada
-     CU-I y CU-E tenga su casilla y que el .png exista. Copiar la forma de
-     los bloques 8 y 9, no inventar otra.
-
-     ⚠ NECESITA LOS DOS SERVIDORES ARRIBA (backend :4000 y frontend :5173).
-       Comprobar antes que no haya un vite o una API huérfanos de otra sesión.
-
   9. INFORME con las cuatro tablas de trazabilidad (RF→CU, CU→mockup,
      CU→clase, CU→tabla), el enlace al repositorio y la captura del Planner.
-     Las cuatro YA EXISTEN y solo hay que reunirlas:
+     ES EL SIGUIENTE. Las cuatro YA EXISTEN y solo hay que reunirlas:
        RF→CU     entrega/requerimientos.md §12 y casos-uso-general.md §6
-       CU→mockup casos-uso-general.md §6 (y lo que agregue el criterio 8)
+       CU→mockup casos-uso-general.md §6 (camino feliz) y §8.1 (los nueve
+                 escenarios alternativos, con sus dos ausencias argumentadas)
        CU→clase  clases.md §10
        CU→tabla  clases.md §10 y der.md §13
      El informe además tiene que decir la decisión D-1: el DER y el script se
      entregan en MySQL y el sistema corre en PostgreSQL 16.
+     Y la rúbrica §5.8 pide DOS cosas más que ya están hechas y hay que
+     enlazar, no rehacer: el README del mockup (docs/mockups/README.md) y el
+     enlace del repositorio.
 
  10. DOCUMENTACIÓN VIVA desfasada, que la rúbrica castiga por incoherencia:
      - docs/diagramas.md: YA LLEVA una cabecera de documento histórico que
@@ -155,6 +85,9 @@ las dos puntas a la vez y se documenta:
   migración que la creó.
 - Los archivos de la entrega ya existen todos: der.md, script-sql.md y
   sgr-mysql.sql. clases.md y der.md enlazan a script-sql.md.
+- CU-I2 y CU-I3 NO tienen mockup, y las dos ausencias están argumentadas en
+  el mapa del §8.1. CU-I3 es el desvío D-c: inventarle una pantalla a RF-036
+  haría desaparecer del artefacto justo lo que falta construir.
 
 CUATRO DESVÍOS DECLARADOS entre el requerimiento y el código. Están en
 docs/siguiente-sesion.md §4.bis, en las fichas y en der.md §14. Los
@@ -178,11 +111,17 @@ LO QUE NO SE TOCA (para que nadie lo abra "ya que estamos"):
 - Las 14 consultas abiertas: NO se responden por cuenta propia.
 - El Planner: NO volver a intentar automatizarlo. INACAP bloquea la aplicación
   Microsoft Graph Command Line Tools y ya está probado y documentado.
-- Los criterios 2, 3, 4, 5, 6 y 7: están cerrados y verificados. El script SQL
-  ADEMÁS se ejecutó en MySQL 8.0.46 y en MariaDB 10.4 y 11.4 —la de XAMPP—,
-  con las 13 pruebas de restricciones en verde en los tres. NO hay que volver
-  a probarlo salvo que cambie el esquema.
-- Las ocho pantallas del camino feliz del mockup: están hechas y verificadas.
+- Los criterios 2 a 8: están cerrados y verificados. El script SQL ADEMÁS se
+  ejecutó en MySQL 8.0.46 y en MariaDB 10.4 y 11.4 —la de XAMPP—, con las 13
+  pruebas de restricciones en verde en los tres. NO hay que volver a probarlo
+  salvo que cambie el esquema.
+- LAS 17 PANTALLAS DEL MOCKUP (8 del camino feliz + 9 escenarios
+  alternativos): están hechas, verificadas y miradas una por una. Solo se
+  regeneran si cambia la interfaz.
+- LOS TRES CASOS DELIBERADOS DEL SEED, que son los que hacen demostrables tres
+  reglas: La Pampa sin medición (ADR-014), apoyo.companias con metas y cero
+  actividades (ADR-015) y la evidencia que subió el coordinador y por eso no
+  puede validar (RNF-005, CU-E3). Tocar uno obliga a rehacer su mockup.
 
 Reglas no negociables (están en CLAUDE.md; se repiten porque son las que más
 se olvidan):
@@ -217,6 +156,9 @@ TRAMPAS DEL ENTORNO, ya pagadas:
   no reemplazos por shell.
 - `cat > "$VAR/x"` con $VAR sin definir se queda esperando stdin y cuelga el
   comando hasta el timeout.
+- EL SEED TARDA ~20 MINUTOS y no imprime nada hasta el final: codifica a mano
+  2.058 PNG de 800x600 con deflate nivel 9. No está colgado. Para saber si
+  avanza, mirar el CPU del proceso, no la salida.
 - Para PROBAR SQL de verdad hay un camino ya recorrido: contenedores
   desechables `mysql:8.0` (3306), `mariadb:10.4` (3307) y `mariadb:11.4`
   (3308); se copia el .sql con `docker cp` y se ejecuta con `docker exec`.
@@ -246,10 +188,8 @@ Contexto que NO hay que volver a derivar:
 - Los umbrales del semáforo son 100% y 60% del OBJETIVO AL DÍA, y salen de
   `parametro`. Nunca fueron "verde ≥80, amarillo 50-79, rojo <50".
 - La delegación es el PROMEDIO SIMPLE de sus funcionarios, y una sin nadie con
-  metas NO cumple 0%: no tiene medición (ADR-014). La Pampa está así A
-  PROPÓSITO en el seed, y es lo que hace capturable CU-E6.
+  metas NO cumple 0%: no tiene medición (ADR-014).
 - EL PANEL DE ACTIVIDAD ACOMPAÑA, NO VIGILA (ADR-015).
-  apoyo.companias@sgr.demo tiene metas y CERO actividades a propósito.
 - Son SEIS actores (PDF §3). `supervisor` se dice "Coordinador" y `gerente`
   se dice "Delegado". Las 23 cuentas están en docs/estado-proyecto.md §1, que
   es la fuente única. Todas usan la contraseña matriz123.
@@ -258,6 +198,12 @@ Contexto que NO hay que volver a derivar:
 - docs/diagramas.md es HISTÓRICO y describe el modelo v1: 4 actores de 6, un
   cron que no existe y un ERD de 7 tablas con `metas` y la vista materializada.
   NO COPIAR NADA DE AHÍ.
+- EL GENERADOR DE MOCKUPS SABE HACER CLIC. frontend/scripts/mockups.mjs tiene
+  un hook `acciones({ page, api })` que opera la pantalla real y una segunda
+  sesión contra el backend (así se provoca el 409 de verdad), y un `foco` que
+  recorta el PNG a una franja alrededor del mensaje. Si el elemento de `foco`
+  no aparece, REVIENTA A PROPÓSITO: guardar la pantalla normal con el nombre
+  de un caso de error es un entregable que miente.
 
 Trabaja por artefacto y al cerrar cada uno dame un informe breve (qué se hizo,
 qué falta, decisiones, riesgos) y espera aprobación.

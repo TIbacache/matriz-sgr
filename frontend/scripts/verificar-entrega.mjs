@@ -177,6 +177,62 @@ for (const linea of general.split("\n")) {
 }
 verificar("ningún caso de uso queda sin pantalla (D-2)", sinPantalla.length === 0, sinPantalla.join(", "));
 
+// Los ESCENARIOS ALTERNATIVOS (rúbrica §6): cada «include» y cada «extend»
+// tiene su casilla en el mapa del §8.1, y esa casilla apunta a algo que existe.
+//
+// El §8.1 se aísla del resto del documento a propósito: sus filas empiezan
+// igual que las de §7 y §8 —`| **CU-E1** |`— y contarlas juntas daría por
+// mapeado un escenario solo porque está declarado.
+const iMapa = general.indexOf("## 8.1");
+verificar("casos-uso-general.md trae el mapa CU → mockup (§8.1)", iMapa > 0);
+if (iMapa > 0) {
+  const finMapa = general.indexOf("\n## ", iMapa + 1);
+  const mapa = general.slice(iMapa, finMapa < 0 ? undefined : finMapa);
+  const antes = general.slice(0, iMapa);
+  const fila = /^\|\s*\*\*(CU-[IE]\d)\*\*\s*\|/gm;
+
+  const declarados = [...new Set([...antes.matchAll(fila)].map((m) => m[1]))].sort();
+  verificar(
+    "§7 y §8 declaran los 3 «include» y los 6 «extend»",
+    declarados.length === 9,
+    `son ${declarados.length}: ${declarados.join(", ")}`
+  );
+
+  // Un escenario puede ocupar VARIAS filas: CU-E5 se captura dos veces, en la
+  // ficha del vecino y en el control de actividad. Las dos tienen que existir.
+  const enMapa = new Map();
+  for (const linea of mapa.split("\n")) {
+    const m = /^\|\s*\*\*(CU-[IE]\d)\*\*\s*\|/.exec(linea);
+    if (m) enMapa.set(m[1], [...(enMapa.get(m[1]) ?? []), linea]);
+  }
+  // La herramienta que produce las capturas, para cerrar el círculo: una
+  // casilla que nombra un PNG que el script no genera se queda sin fuente en
+  // cuanto alguien vuelva a correrlo.
+  const herramienta = readFileSync(path.join(raiz, "frontend/scripts/mockups.mjs"), "utf8");
+
+  for (const cu of declarados) {
+    const filas = enMapa.get(cu) ?? [];
+    verificar(`${cu} tiene su casilla en el mapa CU → mockup`, filas.length > 0);
+    for (const linea of filas) {
+      const png = /\.\.\/mockups\/([\w-]+)\.png/.exec(linea);
+      if (png) {
+        verificar(`${cu} → docs/mockups/${png[1]}.png existe`, existsSync(path.join(raiz, "docs/mockups", `${png[1]}.png`)));
+        verificar(`${cu} → mockups.mjs genera ${png[1]}`, herramienta.includes(`"${png[1]}"`));
+      } else {
+        // Sin imagen SOLO se admite con el motivo escrito. Es CU-I3: RF-036
+        // pide trazabilidad consultable y la pantalla no está construida (D-c).
+        verificar(`${cu} sin mockup declara por qué (desvío D-c)`, /desv[íi]o D-c|pendiente/i.test(linea), linea.slice(0, 90));
+      }
+    }
+  }
+  // Y al revés: cada escenario que el script produce tiene que estar en el mapa.
+  const producidos = [...herramienta.matchAll(/archivo:\s*"(\d\d-alt-[\w-]+)"/g)].map((m) => m[1]);
+  verificar("mockups.mjs produce escenarios alternativos", producidos.length > 0, "ninguno");
+  for (const archivo of producidos) {
+    verificar(`${archivo} está en el mapa CU → mockup`, mapa.includes(archivo));
+  }
+}
+
 // ---------------------------------------------------------------------------
 // 5. La convención de puml/_estilo.md, en los diez diagramas
 // ---------------------------------------------------------------------------

@@ -20,10 +20,10 @@ Los artefactos de la **primera evaluación** (100 puntos, ocho criterios). Este 
 | 5 | Diagrama de clases | 15 | ✅ **Hecho** | [clases.md](clases.md) · [puml/23](puml/23-clases-panorama.puml) a [puml/27](puml/27-clases-servicios.puml) |
 | 6 | DER MySQL | 10 | ✅ **Hecho** | [der.md](der.md) · [puml/28](puml/28-der-general.puml) a [puml/32](puml/32-der-plataforma.puml) |
 | 7 | Script SQL | 10 | ✅ **Hecho** | [script-sql.md](script-sql.md) · [sgr-mysql.sql](sgr-mysql.sql) |
-| 8 | Mockup funcional + Git | 10 | 🟢 Hecho, faltan escenarios alternativos | [../mockups/](../mockups/) |
+| 8 | Mockup funcional + Git | 10 | ✅ **Hecho** | [../mockups/](../mockups/) · mapa CU → mockup en [casos-uso-general.md §8.1](casos-uso-general.md) |
 | — | Informe de la entrega | — | 🔴 Pendiente | — |
 
-**90 de 100 puntos cubiertos.** Quedan los **escenarios alternativos del mockup** (criterio 8) y el **informe**.
+**100 de 100 puntos cubiertos.** Queda el **informe**, y cargar el Planner (criterio 1).
 
 ### Cómo quedó el criterio 3 (cerrado el 10 de septiembre)
 
@@ -117,6 +117,26 @@ Tres clases van con **borde punteado** porque tienen tabla y no comportamiento: 
 
 ⚠ **Si se importa por phpMyAdmin en vez de por línea de comandos**, conviene comprobar que los tres disparadores se hayan creado: el manejo de `DELIMITER` depende de la versión. La consulta que lo verifica está en [script-sql.md §9](script-sql.md).
 
+### Cómo quedó el criterio 8 (cerrado el 10 de septiembre)
+
+**Diecisiete pantallas**, cada una en `.html` autocontenido y `.png`, en [../mockups/](../mockups/): las **ocho del camino feliz** que ya existían y **nueve escenarios alternativos** nuevos. El mapa CU → mockup —que es la casilla que la rúbrica busca— está en [casos-uso-general.md §8.1](casos-uso-general.md).
+
+La exigencia que lo obliga es la [rúbrica §6](../rubrica-entrega-15-septiembre.md): «los mockups deben representar las pantallas necesarias para ejecutar los casos de uso **y también contemplar los escenarios alternativos modelados**». Los modelados son los tres `«include»` y los seis `«extend»` del §7 y §8.
+
+**Lo que cambió en la herramienta** (`frontend/scripts/mockups.mjs`), y es el motivo de que esto sea demostrable y no decorativo:
+
+- **Un hook `acciones({ page, api })`** que corre entre el `goto` y la captura. `page` es la pestaña real, así que el escenario se produce **operando la aplicación**: se escribe en el campo, se sale de él, se aprieta el botón. `api` es una **segunda sesión** contra el backend, que es lo que permite provocar un conflicto de versión de verdad —alguien más guardó primero, que es literalmente la condición de CU-E4—.
+- **Un `foco`**, selector opcional que recorta el PNG a una franja de ancho completo alrededor del mensaje. Un aviso de campo obligatorio dentro de una ficha de 9.000 px es ilegible en GitHub, y el aviso *es* el entregable. El `.html` sigue completo.
+- **Si el elemento de `foco` no aparece, el script revienta.** Un escenario que no se produjo y se guarda igual como página entera es un entregable que miente, y nadie lo notaría hasta la corrección.
+
+**Dos de los nueve no tienen imagen, y las dos ausencias están argumentadas** en el mapa: CU-I2 porque el código único no es una pantalla sino un dato que ya se ve en `03-ficha`, y **CU-I3 porque la pantalla no existe** — es el desvío D-c, RF-036. Dibujarle un mockup habría hecho desaparecer del artefacto justo lo que falta construir.
+
+⚠ **CU-E3 obligó a tocar el seed, y es el único cambio de código de producto de esta tanda.** La regla de segregación de funciones (RNF-005) era **incomprobable en la demostración**: las tres cuentas que validan no tienen cargo, así que ninguna de las 2.058 evidencias sembradas les pertenecía y el 403 no podía producirse. Se armó por el lado de **quién sube** la evidencia, no de quién registra la actividad: el coordinador carga la evidencia de una funcionaria —un flujo que la API ya admite, porque el nivel central puede editar cualquier actividad— y por eso no puede validarla. Cero filas nuevas: cambia un campo de una evidencia que ya existía. Es la misma clase de dato deliberado que **La Pampa sin medición** (ADR-014) y que **la funcionaria con metas y cero actividades** (ADR-015).
+
+Y un cambio menor de interfaz que ese escenario dejó a la vista: **la bandeja no decía quién había subido la evidencia**. Sin ese dato, el 403 aparecía en pantalla sin nada que lo explicara —y, peor, un verificador no tenía cómo saber que la evidencia era suya—. Se agregó el campo «Subida por» al detalle.
+
+**El verificador de la entrega crece a 311 comprobaciones** (eran 262). Las nuevas cierran el círculo en los dos sentidos: cada `«include»` y cada `«extend»` tiene su casilla en el mapa, cada casilla apunta a un PNG que existe **y que `mockups.mjs` genera**, y cada escenario que el script produce está en el mapa. Una casilla que nombra una imagen huérfana se cae sola en cuanto alguien vuelva a correr el generador.
+
 ---
 
 ## Lo que hay que saber para retomar
@@ -151,9 +171,9 @@ cd frontend
 npm run verificar:entrega
 ```
 
-**262 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar—, **el DER contra las migraciones** —las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`— y **el script SQL contra el esquema**: las 22 tablas, sus columnas una por una en los dos sentidos, las 52 FK, el orden de creación, los 3 disparadores y los 5 `CHECK`.
+**311 comprobaciones**, sin tocar la red: la trazabilidad RF ↔ CU en los dos sentidos, que los diagramas digan lo mismo que los documentos, los seis actores con su rol técnico, que cada caso de uso tenga una pantalla y que esa pantalla exista, **que cada escenario alternativo tenga su casilla en el mapa CU → mockup y que esa casilla apunte a un PNG que el generador produce**, y la convención de [puml/_estilo.md](puml/_estilo.md) en los treinta y dos diagramas (Arial, ningún rojo institucional, PNG generado, entrada en el índice). Además compara el diagrama de clases contra `schema.prisma` en los dos sentidos —ninguna clase inventada, ningún modelo sin dibujar—, **el DER contra las migraciones** —las 52 claves foráneas de [der.md §9](der.md), una por una, con su `ON DELETE`— y **el script SQL contra el esquema**: las 22 tablas, sus columnas una por una en los dos sentidos, las 52 FK, el orden de creación, los 3 disparadores y los 5 `CHECK`.
 
-⚠ **Estas 262 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 262, que los artefactos de la entrega dicen lo mismo entre sí.
+⚠ **Estas 311 no se suman a las 332 del software.** Son cosas distintas: las 332 comprueban que el sistema funciona; estas 311, que los artefactos de la entrega dicen lo mismo entre sí.
 
 Los bloques de los criterios que faltan **se activan solos** cuando su artefacto existe, y no fallan mientras no exista. Sale con código 1 si algo se cae, así que sirve para CI cuando lo haya.
 

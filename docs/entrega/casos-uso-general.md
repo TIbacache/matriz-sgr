@@ -188,7 +188,33 @@ La ficha corta es la que usa el ejemplo del docente para los casos de extensión
 
 **CU-E4 y CU-E5 son transversales, como CU-I3.** El conflicto de versión puede ocurrir en **cualquier** operación que escriba llevando su `version`, y la denegación por alcance en cualquiera que toque un dato restringido. En el diagrama se dibujan sobre los casos base donde el sistema los produce hoy; escribir una flecha por cada write convertiría el dibujo en una maraña sin decir nada nuevo.
 
-**Los seis son escenarios alternativos que el mockup tiene que representar** (decisión D-3). Tres ya son capturables hoy —el aviso de duplicidad, el 403 con motivo escrito y la delegación sin medición—; los otros tres se producen ampliando `frontend/scripts/mockups.mjs`. Ese trabajo es el criterio 8.
+**Los seis son escenarios alternativos que el mockup tiene que representar** (decisión D-3), y desde el criterio 8 lo están: el mapa completo es el §8.1.
+
+---
+
+## 8.1 El mapa CU → mockup de los escenarios alternativos
+
+La [rúbrica §6](../rubrica-entrega-15-septiembre.md) no pide solo las pantallas del camino feliz: «los mockups deben representar las pantallas necesarias para ejecutar los casos de uso **y también contemplar los escenarios alternativos modelados**». Esta es la casilla de cada uno.
+
+**Ninguna de estas imágenes es un dibujo.** Salen de la aplicación real corriendo: el escenario se **produce** —se escribe en el campo, se aprieta el botón, y para el conflicto de versión una segunda sesión guarda primero— y recién entonces se captura. Si en la pantalla aparece un 403, es porque el servidor lo devolvió.
+
+| ID | Escenario | Mockup | Qué se ve |
+|---|---|---|---|
+| **CU-I1** | Validar los datos del registro | [`09-alt-datos-invalidos`](../mockups/09-alt-datos-invalidos.png) | **Formato**: el teléfono no válido avisa junto al campo, al salir de él. **Obligatoriedad**: sin «Actividad o solicitud» el botón Registrar no se habilita |
+| **CU-I2** | Generar el código único | [`03-ficha`](../mockups/03-ficha.png) | **Sin pantalla propia, y es correcto**: el código no se pide, lo genera el servidor. Se ve ya asignado en cada fila de la ficha |
+| **CU-I3** | Registrar en la bitácora | — | **Sin pantalla — RF-036 pendiente (desvío D-c)**. Se audita todo write crítico, pero la pantalla para *leer* la bitácora no está construida. No se le dibuja un mockup: sería describir un sistema que no existe |
+| **CU-E1** | Avisar posible atención duplicada | [`10-alt-duplicidad`](../mockups/10-alt-duplicidad.png) | El aviso ámbar con las delegaciones y los hechos que lo componen, y la ventana de comparación declarada como provisional |
+| **CU-E2** | Exigir observación de la decisión | [`11-alt-observacion-obligatoria`](../mockups/11-alt-observacion-obligatoria.png) | Rechazar sin escribir por qué: el aviso aparece y el foco vuelve al campo. Ni siquiera sale la petición |
+| **CU-E3** | Rechazar la validación propia | [`12-alt-validacion-propia`](../mockups/12-alt-validacion-propia.png) | El coordinador subió esa evidencia —lo dice «Subida por»— y el servidor le responde **403** con RNF-005 escrito |
+| **CU-E4** | Informar conflicto de versión | [`13-alt-conflicto-version`](../mockups/13-alt-conflicto-version.png) | **409** real: otra sesión guardó primero. La corrección no se pierde ni se sobrescribe, y se ofrece «Ver lo vigente» |
+| **CU-E5** | Denegar por alcance · ficha del vecino | [`14-alt-alcance-vecino`](../mockups/14-alt-alcance-vecino.png) | El verificador queda fuera, con el motivo redactado y las leyes citadas — no un «sin permisos» a secas |
+| **CU-E5** | Denegar por alcance · control de actividad | [`15-alt-alcance-actividad`](../mockups/15-alt-alcance-actividad.png) | El mismo caso desde el otro lado: a un funcionario el panel le responde 403 y la pantalla muestra **ese** texto |
+| **CU-E6** | Informar delegación sin medición | [`16-alt-sin-medicion`](../mockups/16-alt-sin-medicion.png) | La Pampa se informa **sin medición**, nunca 0%, y se dice dónde se corrige (ADR-014) |
+| *(ADR-012)* | Alcance reducido entre delegaciones | [`17-alt-alcance-reducido`](../mockups/17-alt-alcance-reducido.png) | No es uno de los nueve, pero es el mismo tipo de escenario: para un delegado, la atención de otra delegación viaja con su fecha, su delegación y su tipo, sin el detalle |
+
+**Dos de los nueve no tienen imagen propia, y las dos ausencias son decisiones argumentadas**, no huecos: CU-I2 porque el código no es una pantalla sino un dato que ya se ve en la ficha, y CU-I3 porque **la pantalla no existe todavía**. Inventarle un mockup a RF-036 lo habría hecho desaparecer del listado de lo que falta, que es exactamente lo contrario de lo que un artefacto de análisis tiene que lograr.
+
+⚠ **CU-E3 exigió un dato deliberado en el seed.** Las tres cuentas que validan no tienen cargo, así que ninguna de las evidencias sembradas les pertenecía y el 403 era **incomprobable en la demostración**. Se armó por el lado de *quién sube*, no de quién registra: el coordinador carga la evidencia de un funcionario —un flujo que la API ya admite— y por eso no puede validarla. Es la misma clase de dato a propósito que La Pampa sin medición (ADR-014) y que la funcionaria con metas y cero actividades (ADR-015).
 
 ---
 

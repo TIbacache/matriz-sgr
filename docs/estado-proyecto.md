@@ -239,6 +239,7 @@ La pantalla más importante: la "pestaña personal" de la planilla. Tres bloques
 Aquí el punto se otorga o se niega. Es una **lista de trabajo, no un tablero**: cola a la izquierda, foto grande a la derecha, tres acciones equidistantes.
 
 - Tres decisiones: aprobar · solicitar corrección · rechazar. Las dos últimas exigen observación.
+- El detalle dice **quién subió el archivo**, que no siempre es el funcionario: la jefatura y el nivel central pueden cargarlo por él. Es el dato que decide si la evidencia es «propia» para quien la mira, así que sin él la denegación por segregación de funciones (RNF-005) llegaba a la pantalla sin nada que la explicara.
 - **Teclado completo** con las teclas visibles en pantalla: `J` siguiente, `K` anterior, `Enter` aprobar.
 - Orden según el estado: lo pendiente de más antiguo a más nuevo (es una cola); lo decidido al revés (es un historial). Selector para invertirlo.
 - Paginación explícita con "N de TOTAL" y "Cargar más".

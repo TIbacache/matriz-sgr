@@ -668,6 +668,34 @@ async function main() {
       }
     }
 
+    // RNF-005 · CU-E3: el caso de la validación propia, armado A PROPÓSITO.
+    //
+    // Sin él la regla es incomprobable en la demostración: las tres cuentas
+    // que validan (admin, supervisor, verificador) no tienen cargo, así que
+    // ninguna de las evidencias sembradas les pertenece y el 403 nunca se
+    // produce. Se arma por el lado de QUIÉN SUBE, no por el de quién registra:
+    // que un supervisor cargue la evidencia de un funcionario es un flujo que
+    // la API ya admite (`puedeEditarActividad` incluye al nivel central) y no
+    // exige inventarle actividades a alguien que no tiene metas.
+    //
+    // Es la misma clase de dato deliberado que La Pampa sin medición (ADR-014)
+    // y que apoyo.companias con cero actividades (ADR-015).
+    {
+      const coordinadorId = userPorEmail.get("coordinador@sgr.demo")!;
+      // La primera que quedó pendiente: `validaciones` y `evidencias` se
+      // llenan en paralelo, una por actividad, así que comparten índice.
+      const i = validaciones.findIndex((v) => v.decision === "pendiente");
+      if (i < 0) throw new Error("El seed no dejó ninguna evidencia pendiente: CU-E3 quedaría sin caso");
+      evidencias[i]!.subidaPorId = coordinadorId;
+      // Encabeza la cola por antigüedad, que es el orden por defecto de la
+      // bandeja: así el escenario se abre sin filtrar ni buscar.
+      evidencias[i]!.createdAt = periodo.fechaInicio;
+      console.log(
+        `  CU-E3: la evidencia ${evidencias[i]!.archivoNombre} la subió el coordinador ` +
+          `y él no puede validarla (RNF-005)`
+      );
+    }
+
     // Inserción por lotes para no exceder el límite de parámetros de Postgres
     const LOTE = 1000;
     for (let i = 0; i < actividades.length; i += LOTE) {
