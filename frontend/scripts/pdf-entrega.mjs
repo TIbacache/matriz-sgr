@@ -39,6 +39,10 @@ const DOCUMENTOS = [
     "Criterio 8 · el README del mockup que pide la rúbrica §5.8",
     "../docs/entrega/mockup-pantallas.pdf",
   ],
+  // No se adjunta al Planner: es la visita guiada al sistema, para el equipo.
+  // Se regenera aquí para que no envejezca, que es lo único que la haría
+  // inútil — un documento de puesta al día desactualizado desinforma.
+  ["../docs/entrega/estado-del-sistema.md", "Visita guiada al sistema (para el equipo, no se entrega)"],
 ];
 
 let fallas = 0;
