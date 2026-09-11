@@ -22,6 +22,30 @@ Cada pantalla está dos veces, y cada formato sirve para una cosa distinta:
 
 **Todos los datos son ficticios** (regla 12 del proyecto). Las imágenes de evidencia son ilustraciones sintéticas generadas por el seed (`backend/prisma/imagen-demo.ts`), no fotografías.
 
+## Cómo se abre
+
+**No hay que instalar nada.** Descarga el `.html` que quieras y ábrelo con **doble clic**: se ve exactamente como la aplicación, sin servidor, sin base de datos y **sin conexión a internet**. Todo —el CSS, las fuentes de reserva, las imágenes de evidencia y los gráficos— viaja dentro del archivo.
+
+Los botones no responden: es una fotografía navegable, no la aplicación corriendo. Cada archivo lo dice en una franja al pie.
+
+## Tecnologías
+
+El mockup no es un dibujo hecho en una herramienta de maquetado: **es la aplicación real**, y por eso usa lo mismo que ella.
+
+| Capa | Tecnología | Por qué |
+|---|---|---|
+| Interfaz | **React 18** + **TypeScript** | Tipos comprobados en compilación, en las dos puntas del proyecto |
+| Empaquetado | **Vite 7** | Arranque inmediato en desarrollo |
+| Estilos | **CSS3 plano con tokens propios** — sin Tailwind ni kits de UI | La identidad gráfica municipal es normativa: el rojo institucional, la tipografía y el contraste no son preferencias. Un framework de terceros habría que pelearlo en vez de usarlo |
+| Arrastre | **dnd-kit** | El tubo de trabajo es un kanban: las tarjetas se mueven entre estados |
+| Gráficos | **ECharts** | Los medidores, el mapa de calor y el radar del tablero. Leen los tokens vivos, así que siguen el tema claro/oscuro solos |
+| Tipografía | **Libre Franklin** + **General Sans** | La norma gráfica de La Serena para pantalla (Arial en lo impreso) |
+| Generación | **Playwright** sobre el Edge ya instalado | Abre la aplicación con cada cuenta, la opera y congela la pantalla. Sin dependencias de pago |
+
+**Costo cero**: ninguna dependencia ni servicio de pago en todo el proyecto.
+
+**Accesible**: operable por teclado, y el contraste de los dos temas se valida por script (83 comprobaciones WCAG sobre los tokens).
+
 ## Cómo se regeneran
 
 ```powershell
