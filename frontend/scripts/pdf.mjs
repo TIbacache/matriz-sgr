@@ -17,7 +17,7 @@
 
 import { chromium } from "playwright-core";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { dirname, resolve, basename, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
@@ -49,7 +49,7 @@ function repositorio() {
     // le puede mostrar al docente. Para un documento de una rama todavía sin
     // mergear se fija con SGR_REPO_REF=<rama>.
     const ref = process.env.SGR_REPO_REF || "main";
-    return `https://github.com/${m[1]}/blob/${ref}`;
+    return { proyecto: `https://github.com/${m[1]}`, ref };
   } catch {
     return null; // sin git o sin remoto: los enlaces quedan como estaban
   }
@@ -69,7 +69,17 @@ function enlaceAbsoluto(href) {
   const enRepo = relative(raízRepo, destino);
   // Fuera del repositorio no hay URL que ofrecer: mejor dejarlo como está.
   if (enRepo.startsWith("..")) return href;
-  return `${REPO_WEB}/${enRepo.split(/[\\/]/).map(encodeURIComponent).join("/")}${ancla ? `#${ancla}` : ""}`;
+  // GitHub separa `blob` (archivo) de `tree` (carpeta). Enlazar una carpeta
+  // como `blob` funciona por un redirect, y depender de un redirect en un
+  // documento que se entrega es pedirle prestado a la suerte.
+  let tipo = "blob";
+  try {
+    if (statSync(destino).isDirectory()) tipo = "tree";
+  } catch {
+    /* no existe en disco: se enlaza como archivo y el verificador lo delata */
+  }
+  const partes = enRepo.split(/[\\/]/).filter(Boolean).map(encodeURIComponent).join("/");
+  return `${REPO_WEB.proyecto}/${tipo}/${REPO_WEB.ref}/${partes}${ancla ? `#${ancla}` : ""}`;
 }
 
 // ---------------------------------------------------------------- Markdown
